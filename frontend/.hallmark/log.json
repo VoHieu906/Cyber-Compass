@@ -1,0 +1,27 @@
+[
+ {
+  "shape": "map-diagram",
+  "theme": "console",
+  "axes": "dark/grotesk-sans/chromatic-cyan",
+  "hero": "stage",
+  "nav": "site-header",
+  "footer": "site-footer",
+  "imagery": "product",
+  "photos": [],
+  "entry": "landing",
+  "fingerprint": "7a3aff",
+  "sections": [
+   "hero-map",
+   "domain-index",
+   "featured-courses",
+   "questions",
+   "close-first-lesson",
+   "footer"
+  ],
+  "signature": "career roadmap graph with prerequisite tracing",
+  "waived": [],
+  "prompt": "CyberCompass landing (Phase 3)",
+  "date": "2026-11-19",
+  "mode": "build"
+ }
+]

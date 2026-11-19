@@ -3,7 +3,10 @@
     "brand": "CyberCompass",
     "skipToContent": "Skip to content",
     "loading": "Loading",
-    "optional": "optional"
+    "optional": "optional",
+    "breadcrumb": "Breadcrumb",
+    "showMore": "Show more",
+    "showLess": "Show less"
   },
   "metadata": {
     "title": "CyberCompass",
@@ -19,8 +22,8 @@
     "languageVi": "Tiếng Việt"
   },
   "home": {
-    "title": "CyberCompass",
-    "lede": "Foundation build. The learning platform is being built phase by phase.",
+    "title": "System status",
+    "lede": "Whether this browser can reach the API, and the API its database.",
     "statusTitle": "System status",
     "designSystemLink": "Open the design system"
   },
@@ -72,7 +75,12 @@
     "register": "Sign up",
     "settings": "Settings",
     "logout": "Log out",
-    "account": "Account"
+    "account": "Account",
+    "courses": "Courses",
+    "careers": "Careers",
+    "primary": "Main",
+    "menu": "Menu",
+    "closeMenu": "Close menu"
   },
   "validation": {
     "required": "This field is required.",
@@ -170,5 +178,170 @@
       "saved": "Saved to your account.",
       "saveFailed": "Couldn't save to your account. It still applies on this device."
     }
+  },
+  "units": {
+    "minutes": "{minutes} min",
+    "hoursMinutes": "{hours} h {minutes} min",
+    "hours": "{hours} h",
+    "lessons": "{count, plural, =1 {# lesson} other {# lessons}}",
+    "topics": "{count, plural, =1 {# topic} other {# topics}}",
+    "courses": "{count, plural, =1 {# course} other {# courses}}"
+  },
+  "difficulty": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced"
+  },
+  "catalog": {
+    "title": "Courses",
+    "lede": "Structured courses across eight security domains. Every lesson is written to be read in one sitting.",
+    "search": "Search courses",
+    "searchPlaceholder": "Try networking, XSS or Linux",
+    "domain": "Domain",
+    "allDomains": "All domains",
+    "difficulty": "Difficulty",
+    "anyDifficulty": "Any difficulty",
+    "sort": "Sort by",
+    "sorts": {
+      "newest": "Newest",
+      "title": "Title, A to Z",
+      "-title": "Title, Z to A",
+      "difficulty": "Easiest first",
+      "-difficulty": "Hardest first",
+      "duration": "Shortest first",
+      "-duration": "Longest first"
+    },
+    "favoritesOnly": "Favorites only",
+    "results": "{count, plural, =0 {No courses} =1 {# course} other {# courses}}",
+    "clearFilters": "Clear filters",
+    "emptyTitle": "No courses match",
+    "emptyBody": "Try a different search term or remove a filter.",
+    "emptyFavorites": "You haven't favorited any courses yet. Use the heart on a course to save it here.",
+    "loadError": "The course list couldn't load.",
+    "retry": "Try again",
+    "viewDetails": "View course",
+    "favorite": "Add {title} to favorites",
+    "unfavorite": "Remove {title} from favorites",
+    "favoriteSignIn": "Log in to save favorites",
+    "pagination": "Pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {total}"
+  },
+  "course": {
+    "overview": "About this course",
+    "objectives": "What you'll learn",
+    "skills": "Skills",
+    "prerequisites": "Before you start",
+    "noPrerequisites": "No prior courses needed.",
+    "curriculum": "Curriculum",
+    "chapter": "Chapter {number}",
+    "related": "Related courses",
+    "enroll": "Enroll",
+    "start": "Start learning",
+    "continue": "Continue: {title}",
+    "review": "Review the course",
+    "enrolled": "Enrolled",
+    "completedCourse": "Completed",
+    "progress": "{completed} of {total} lessons",
+    "signInToStart": "Log in to start",
+    "favorite": "Favorite",
+    "favorited": "Favorited",
+    "lessonStatus": {
+      "not_started": "Not started",
+      "started": "In progress",
+      "completed": "Completed"
+    },
+    "lessonsLabel": "Lessons",
+    "duration": "Duration"
+  },
+  "learn": {
+    "lessonOf": "Lesson {position} of {total}",
+    "onThisPage": "On this page",
+    "objectives": "Learning objectives",
+    "prerequisites": "Builds on",
+    "takeaways": "Key takeaways",
+    "resources": "Further reading",
+    "opensInNewTab": "opens in a new tab",
+    "markComplete": "Mark lesson as complete",
+    "completed": "Lesson completed",
+    "completedOn": "Completed {date}",
+    "courseProgress": "{completed} of {total} lessons in {course}",
+    "previous": "Previous lesson",
+    "next": "Next lesson",
+    "backToCourse": "Back to course",
+    "courseDone": "You've completed every lesson in {course}.",
+    "loadError": "This lesson couldn't load.",
+    "notFound": "This lesson doesn't exist or isn't published.",
+    "copy": "Copy code",
+    "copied": "Copied",
+    "callout": {
+      "info": "Note",
+      "tip": "Tip",
+      "warning": "Watch out"
+    },
+    "diagramUnavailable": "This diagram isn't available.",
+    "diagrams": {
+      "layer": "Layer {number}",
+      "unit": "Data unit",
+      "protocols": "Examples",
+      "attack": "Attack at this layer",
+      "step": "Step {current} of {total}",
+      "previousStep": "Previous step",
+      "nextStep": "Next step",
+      "restart": "Start over",
+      "state": "State",
+      "example": "When it breaks",
+      "controls": "Controls that protect it",
+      "layers": "OSI layers"
+    },
+    "lessonNav": "Lesson navigation"
+  },
+  "careers": {
+    "title": "Careers",
+    "lede": "Seven security roles, what each one does day to day, and the knowledge it builds on.",
+    "viewCareer": "Explore {title}",
+    "keyDomains": "Key domains",
+    "responsibilities": "What you'll do",
+    "domains": "Knowledge it needs",
+    "level": {
+      "1": "Foundation",
+      "2": "Working knowledge",
+      "3": "Deep expertise"
+    },
+    "levelMeter": "Required level {level} of 3: {label}",
+    "skills": "Technical skills",
+    "roadmap": "Learning roadmap",
+    "roadmapLede": "The topics this path covers, in order. Each stage builds on the ones before it.",
+    "stage": "Stage {number}",
+    "requires": "After {topics}",
+    "suggestedCourses": "Suggested courses",
+    "goalLater": "Choosing a career goal and a personalised roadmap arrive with the knowledge assessment."
+  },
+  "landing": {
+    "metaTitle": "CyberCompass: find your path into security",
+    "heroTitle": "Find your path into security",
+    "heroLede": "Pick a role and learn what it builds on, in order.",
+    "ctaPrimary": "Create an account",
+    "ctaSecondary": "Browse courses",
+    "mapLegend": "Lines show what each topic builds on.",
+    "domainsTitle": "Eight domains, one map",
+    "domainsLede": "Every course, topic and career draws on the same eight areas.",
+    "featuredTitle": "Start with the foundations",
+    "allCourses": "All courses",
+    "faqTitle": "Questions",
+    "faq": {
+      "q1": "What can I do without an account?",
+      "a1": "Browse every course, career and roadmap. Reading lessons and tracking progress need an account.",
+      "q2": "What is inside a lesson?",
+      "a2": "Objectives, short sections, interactive diagrams where they help, key takeaways and further reading. Most take 10 to 20 minutes.",
+      "q3": "Which languages are supported?",
+      "a3": "The interface is in English and Vietnamese. Lessons are written in English for now.",
+      "q4": "Is the roadmap personalised?",
+      "a4": "Not yet. A knowledge assessment and a roadmap built from its results are next. Today each career shows its full roadmap."
+    },
+    "closeTitle": "Start with the first lesson",
+    "closeBody": "{lesson}, from {course}.",
+    "closeAction": "Open the lesson"
   }
 }

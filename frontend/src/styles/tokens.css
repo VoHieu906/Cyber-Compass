@@ -1,6 +1,10 @@
-/* Hallmark · shape: app foundation · genre: modern-minimal · theme: Console (deal 2/3, seed cybercompass-personalized-cybersecurity-learning-0c36·65a74510·2026-11-19·r0), adapted: cyan learner signal, amber attention signal
- * console: navy-graphite · faces: Be Vietnam Pro + JetBrains Mono (Vietnamese subsets; Console's faces lack them)
- * axes: dark/grotesk-sans/chromatic-cyan · posture: restrained · v2.0.0
+/* Hallmark · shape: Map / Diagram (landing) · genre: modern-minimal · theme: Console (deal 2/3, seed cybercompass-personalized-cybersecurity-learning-0c36·65a74510·2026-11-19·r0), adapted: cyan learner signal, amber attention signal · job: sign up · draw: 7a3aff
+ * hero: Stage (swapped from Counter: the map carries the page) · nav: site header (swapped from floating pill: shared chrome) · footer: site footer (swapped from statement) · imagery: the product (career topic graph from the API) · signature: the career roadmap graph, seven roles, prerequisite tracing · console: navy-graphite
+ * faces: Be Vietnam Pro + JetBrains Mono (Vietnamese subsets; Console's faces lack them)
+ * axes: dark/grotesk-sans/chromatic-cyan · posture: restrained · contrast: pass · fold: pass · v2.0.0
+ * Hallmark · pre-emit critique: every fact on the landing is read from the API; no metrics, quotes or logos; weakest: the map's labels sit near the 80-word screen budget, kept because they are the picture
+ * answered 58 (WARN): 84 words on the hero screen, almost all of them the graph's topic labels
+ * answered F20 (WARN): course-card meta rows wrap 2 + 1 at some widths; natural wrap of three facts */
  * The single source of colour, type, space, radius and motion. Components use these roles only.
  * Spec: docs/DESIGN_SYSTEM.md */
 
@@ -34,6 +38,7 @@
 
   /* Layout */
   --container: 1440px; --gutter: 64px; --gap-columns: 32px;
+  --section-gap-s: 120px; --section-gap: 144px; --section-gap-l: 176px;
   --header-height: 64px;
 
   /* Shape and depth */
@@ -91,7 +96,7 @@
 }
 
 @media (max-width: 767px) {
-  :root { --gutter: 24px; }
+  :root { --gutter: 24px; --section-gap-s: 72px; --section-gap: 88px; --section-gap-l: 104px; }
 }
 @media (max-width: 399px) {
   :root { --gutter: 16px; }

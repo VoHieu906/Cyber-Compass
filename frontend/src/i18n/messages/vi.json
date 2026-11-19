@@ -3,7 +3,10 @@
     "brand": "CyberCompass",
     "skipToContent": "Chuyển đến nội dung",
     "loading": "Đang tải",
-    "optional": "không bắt buộc"
+    "optional": "không bắt buộc",
+    "breadcrumb": "Đường dẫn",
+    "showMore": "Xem thêm",
+    "showLess": "Thu gọn"
   },
   "metadata": {
     "title": "CyberCompass",
@@ -19,8 +22,8 @@
     "languageVi": "Tiếng Việt"
   },
   "home": {
-    "title": "CyberCompass",
-    "lede": "Bản dựng nền tảng. Nền tảng học tập đang được xây dựng theo từng giai đoạn.",
+    "title": "Trạng thái hệ thống",
+    "lede": "Trình duyệt có kết nối được API không, và API có kết nối được cơ sở dữ liệu không.",
     "statusTitle": "Trạng thái hệ thống",
     "designSystemLink": "Mở hệ thống thiết kế"
   },
@@ -72,7 +75,12 @@
     "register": "Đăng ký",
     "settings": "Cài đặt",
     "logout": "Đăng xuất",
-    "account": "Tài khoản"
+    "account": "Tài khoản",
+    "courses": "Khóa học",
+    "careers": "Nghề nghiệp",
+    "primary": "Chính",
+    "menu": "Menu",
+    "closeMenu": "Đóng menu"
   },
   "validation": {
     "required": "Vui lòng điền trường này.",
@@ -170,5 +178,170 @@
       "saved": "Đã lưu vào tài khoản.",
       "saveFailed": "Không lưu được vào tài khoản. Thiết lập vẫn áp dụng trên thiết bị này."
     }
+  },
+  "units": {
+    "minutes": "{minutes} phút",
+    "hoursMinutes": "{hours} giờ {minutes} phút",
+    "hours": "{hours} giờ",
+    "lessons": "{count} bài học",
+    "topics": "{count} chủ đề",
+    "courses": "{count} khóa học"
+  },
+  "difficulty": {
+    "beginner": "Cơ bản",
+    "intermediate": "Trung cấp",
+    "advanced": "Nâng cao"
+  },
+  "catalog": {
+    "title": "Khóa học",
+    "lede": "Các khóa học có cấu trúc trong tám lĩnh vực bảo mật. Mỗi bài học được viết để đọc xong trong một lần.",
+    "search": "Tìm khóa học",
+    "searchPlaceholder": "Thử networking, XSS hoặc Linux",
+    "domain": "Lĩnh vực",
+    "allDomains": "Tất cả lĩnh vực",
+    "difficulty": "Độ khó",
+    "anyDifficulty": "Mọi độ khó",
+    "sort": "Sắp xếp",
+    "sorts": {
+      "newest": "Mới nhất",
+      "title": "Tên, A đến Z",
+      "-title": "Tên, Z đến A",
+      "difficulty": "Dễ trước",
+      "-difficulty": "Khó trước",
+      "duration": "Ngắn trước",
+      "-duration": "Dài trước"
+    },
+    "favoritesOnly": "Chỉ mục yêu thích",
+    "results": "{count, plural, =0 {Không có khóa học} other {# khóa học}}",
+    "clearFilters": "Xóa bộ lọc",
+    "emptyTitle": "Không có khóa học phù hợp",
+    "emptyBody": "Thử từ khóa khác hoặc bỏ bớt bộ lọc.",
+    "emptyFavorites": "Bạn chưa có khóa học yêu thích. Bấm biểu tượng trái tim trên khóa học để lưu tại đây.",
+    "loadError": "Không tải được danh sách khóa học.",
+    "retry": "Thử lại",
+    "viewDetails": "Xem khóa học",
+    "favorite": "Thêm {title} vào yêu thích",
+    "unfavorite": "Bỏ {title} khỏi yêu thích",
+    "favoriteSignIn": "Đăng nhập để lưu yêu thích",
+    "pagination": "Phân trang",
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang {page} / {total}"
+  },
+  "course": {
+    "overview": "Giới thiệu khóa học",
+    "objectives": "Bạn sẽ học được",
+    "skills": "Kỹ năng",
+    "prerequisites": "Trước khi bắt đầu",
+    "noPrerequisites": "Không cần khóa học trước.",
+    "curriculum": "Nội dung",
+    "chapter": "Chương {number}",
+    "related": "Khóa học liên quan",
+    "enroll": "Đăng ký học",
+    "start": "Bắt đầu học",
+    "continue": "Học tiếp: {title}",
+    "review": "Ôn lại khóa học",
+    "enrolled": "Đã đăng ký",
+    "completedCourse": "Đã hoàn thành",
+    "progress": "{completed} / {total} bài học",
+    "signInToStart": "Đăng nhập để bắt đầu",
+    "favorite": "Yêu thích",
+    "favorited": "Đã yêu thích",
+    "lessonStatus": {
+      "not_started": "Chưa học",
+      "started": "Đang học",
+      "completed": "Hoàn thành"
+    },
+    "lessonsLabel": "Bài học",
+    "duration": "Thời lượng"
+  },
+  "learn": {
+    "lessonOf": "Bài {position} / {total}",
+    "onThisPage": "Trong bài này",
+    "objectives": "Mục tiêu bài học",
+    "prerequisites": "Dựa trên",
+    "takeaways": "Ghi nhớ chính",
+    "resources": "Đọc thêm",
+    "opensInNewTab": "mở trong thẻ mới",
+    "markComplete": "Đánh dấu đã hoàn thành",
+    "completed": "Đã hoàn thành bài học",
+    "completedOn": "Hoàn thành ngày {date}",
+    "courseProgress": "{completed} / {total} bài học trong {course}",
+    "previous": "Bài trước",
+    "next": "Bài tiếp theo",
+    "backToCourse": "Quay lại khóa học",
+    "courseDone": "Bạn đã hoàn thành mọi bài học trong {course}.",
+    "loadError": "Không tải được bài học.",
+    "notFound": "Bài học không tồn tại hoặc chưa được xuất bản.",
+    "copy": "Sao chép mã",
+    "copied": "Đã sao chép",
+    "callout": {
+      "info": "Lưu ý",
+      "tip": "Mẹo",
+      "warning": "Cẩn thận"
+    },
+    "diagramUnavailable": "Sơ đồ này không khả dụng.",
+    "diagrams": {
+      "layer": "Tầng {number}",
+      "unit": "Đơn vị dữ liệu",
+      "protocols": "Ví dụ",
+      "attack": "Tấn công ở tầng này",
+      "step": "Bước {current} / {total}",
+      "previousStep": "Bước trước",
+      "nextStep": "Bước tiếp",
+      "restart": "Bắt đầu lại",
+      "state": "Trạng thái",
+      "example": "Khi bị phá vỡ",
+      "controls": "Biện pháp bảo vệ",
+      "layers": "Các tầng OSI"
+    },
+    "lessonNav": "Điều hướng bài học"
+  },
+  "careers": {
+    "title": "Nghề nghiệp",
+    "lede": "Bảy vai trò bảo mật, công việc hằng ngày của mỗi vai trò và nền tảng kiến thức cần có.",
+    "viewCareer": "Tìm hiểu {title}",
+    "keyDomains": "Lĩnh vực chính",
+    "responsibilities": "Công việc chính",
+    "domains": "Kiến thức cần có",
+    "level": {
+      "1": "Nền tảng",
+      "2": "Thành thạo",
+      "3": "Chuyên sâu"
+    },
+    "levelMeter": "Mức yêu cầu {level} / 3: {label}",
+    "skills": "Kỹ năng kỹ thuật",
+    "roadmap": "Lộ trình học",
+    "roadmapLede": "Các chủ đề của lộ trình theo thứ tự. Mỗi giai đoạn dựa trên các giai đoạn trước.",
+    "stage": "Giai đoạn {number}",
+    "requires": "Sau {topics}",
+    "suggestedCourses": "Khóa học gợi ý",
+    "goalLater": "Chọn mục tiêu nghề nghiệp và lộ trình cá nhân hóa sẽ có cùng bài đánh giá kiến thức."
+  },
+  "landing": {
+    "metaTitle": "CyberCompass: tìm lối vào ngành bảo mật",
+    "heroTitle": "Tìm lối vào ngành bảo mật",
+    "heroLede": "Chọn một vai trò và học những gì nó cần, theo đúng thứ tự.",
+    "ctaPrimary": "Tạo tài khoản",
+    "ctaSecondary": "Xem khóa học",
+    "mapLegend": "Đường nối cho biết mỗi chủ đề dựa trên đâu.",
+    "domainsTitle": "Tám lĩnh vực, một bản đồ",
+    "domainsLede": "Mọi khóa học, chủ đề và nghề nghiệp đều dựa trên tám lĩnh vực này.",
+    "featuredTitle": "Bắt đầu từ nền tảng",
+    "allCourses": "Tất cả khóa học",
+    "faqTitle": "Câu hỏi",
+    "faq": {
+      "q1": "Không có tài khoản thì làm được gì?",
+      "a1": "Xem mọi khóa học, nghề nghiệp và lộ trình. Đọc bài học và theo dõi tiến độ cần có tài khoản.",
+      "q2": "Một bài học gồm những gì?",
+      "a2": "Mục tiêu, các phần ngắn, sơ đồ tương tác khi cần, ghi nhớ chính và tài liệu đọc thêm. Phần lớn mất 10 đến 20 phút.",
+      "q3": "Hỗ trợ những ngôn ngữ nào?",
+      "a3": "Giao diện có tiếng Anh và tiếng Việt. Bài học hiện được viết bằng tiếng Anh.",
+      "q4": "Lộ trình có được cá nhân hóa không?",
+      "a4": "Chưa. Bài đánh giá kiến thức và lộ trình xây dựng từ kết quả sẽ có trong giai đoạn tới. Hiện mỗi nghề nghiệp hiển thị lộ trình đầy đủ."
+    },
+    "closeTitle": "Bắt đầu với bài học đầu tiên",
+    "closeBody": "{lesson}, thuộc {course}.",
+    "closeAction": "Mở bài học"
   }
 }
