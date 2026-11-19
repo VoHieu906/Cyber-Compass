@@ -1,0 +1,229 @@
+# Architecture
+
+## 1. System overview
+
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI[Next.js app<br/>React, TanStack Query]
+  end
+  subgraph Web["web service (Next.js, Node)"]
+    RSC[Server Components<br/>public pages]
+  end
+  subgraph API["api service (Laravel, PHP-FPM + Nginx)"]
+    R[/api/v1 routes/] --> M[Modules<br/>controllers, actions, policies]
+    M --> DB[(MySQL 8)]
+    M --> Q[[Queue: database driver]]
+    W[queue worker] --> Q
+    M --> S3[(Object storage<br/>S3 / local disk)]
+  end
+  UI -- "fetch, credentials: include<br/>session cookie + XSRF" --> R
+  RSC -- "public GETs (no auth)" --> R
+  W -- mail --> MAIL[SES / Mailpit]
+```
+
+There are two independently deployable applications in one monorepo:
+
+| App | Path | Runtime | Responsibility |
+|---|---|---|---|
+| Frontend | `frontend/` | Next.js (App Router), Node 22 | UI, routing, i18n, client state, rendering visuals and lab simulations |
+| Backend | `backend/` | Laravel 12, PHP 8.3 | Auth, business rules, scoring, roadmap generation, persistence, notifications |
+
+The frontend contains no business rules such as scoring, unlock logic or progress completion. It renders what the API returns. The only logic duplicated on the client is form validation for UX, and the server validates again as the authority.
+
+## 2. Repository layout
+
+```text
+CyberCompass/
+├── frontend/              Next.js app (independent package.json)
+├── backend/               Laravel app (independent composer.json)
+├── infrastructure/
+│   ├── docker/            nginx/php config shared by images
+│   └── aws/               ECS task definitions, deployment notes (no app code)
+├── docs/
+├── docker-compose.yml     local dev: mysql, mailpit, api, worker, web
+├── .env.example           compose-level variables only
+└── README.md
+```
+
+## 3. Backend architecture
+
+### 3.1 Module layout
+
+The code is organized by business domain. Each module owns its HTTP layer, actions and policies. Eloquent models stay in `app/Models` because many modules share them, and splitting them by module causes circular imports.
+
+```text
+backend/app/
+├── Models/                         Eloquent models + relationships only
+├── Modules/
+│   ├── Auth/         Http/{Controllers,Requests}, Actions/
+│   ├── Profile/      Http/..., Actions/
+│   ├── Catalog/      courses, chapters, favorites, enrollments
+│   ├── Learning/     lessons, lesson progress, exercises, attempts
+│   ├── Assessment/   assessments, attempts, ScoringService
+│   ├── Careers/      careers, goal selection
+│   ├── Roadmap/      learning paths, RoadmapGenerator, node status resolver
+│   ├── Labs/         labs, attempts, checkpoint validators
+│   ├── Progress/     dashboard stats, activities, streaks
+│   └── Notifications/ list/read/delete, preferences, Notification classes
+│       each: Http/Controllers, Http/Requests, Http/Resources, Actions/, Services/, Policies/, routes.php
+├── Support/                        ApiResponse helpers, base exceptions, enums
+└── Providers/
+```
+
+`routes/api.php` mounts each module's `routes.php` under `/api/v1`.
+
+### 3.2 Layer rules
+
+| Layer | Does | Doesn't |
+|---|---|---|
+| Controller | Accepts a Form Request, calls one action or service, returns a Resource | Query building, business rules |
+| Form Request | Validation and `authorize()` through policies | Side effects |
+| Action | One use case (`SubmitAssessmentAttempt`, `CompleteLesson`), wrapped in `DB::transaction` when it writes several rows | HTTP concerns |
+| Service | Reusable domain logic (`AssessmentScorer`, `RoadmapGenerator`, `StreakCalculator`) | Persistence of unrelated aggregates |
+| Resource | Turns models into the public JSON shape | Exposing internal columns (`is_correct` before submission, password hashes) |
+| Policy | Ownership and visibility (`AttemptPolicy::view` checks that the attempt belongs to the user) | |
+
+Cross-module side effects use **domain events** (`LessonCompleted`, `AssessmentSubmitted`, `MilestoneReached`). Listeners record activities and send notifications, so modules don't call each other's internals.
+
+### 3.3 Error handling
+
+One exception renderer in `bootstrap/app.php` produces the error envelope described in [API_SPECIFICATION.md](API_SPECIFICATION.md#errors). Stack traces never reach clients outside `local`.
+
+## 4. Authentication and authorization
+
+**Decision: Laravel Sanctum in SPA mode, with a cookie-based session.**
+
+- The browser first calls `GET /sanctum/csrf-cookie`, then `POST /api/v1/auth/login`. Laravel sets an `HttpOnly`, `Secure`, `SameSite=Lax` session cookie. JavaScript never sees a token, which satisfies the rule against storing tokens in unsafe browser storage.
+- Mutating requests send `X-XSRF-TOKEN`, which the API client reads from the `XSRF-TOKEN` cookie. This is Laravel's standard CSRF protection.
+- "Remember me" uses Laravel's remember-token cookie.
+- Password reset uses Laravel's password broker. The reset link points to the frontend route `/reset-password?token=…&email=…`.
+- **Constraint:** the frontend and the API must share a registrable domain (for example `app.example.com` and `api.example.com`, or a single host with the ALB routing `/api/*`). Locally this means `localhost:3000` and `localhost:8000`. `SANCTUM_STATEFUL_DOMAINS` and `CORS_ALLOWED_ORIGINS` list the frontend origin, and CORS uses `supports_credentials`.
+- **Route protection on the frontend:** `proxy.ts` (Next 16's name for middleware) checks only that the session cookie exists and redirects to `/login` when it doesn't. That is a UX convenience. The API's `auth:sanctum` middleware is the real gate.
+- **Rate limits:** `login` allows 5 requests per minute per email+IP, `password` 3 per minute, `api` 120 per minute per user.
+- **Roles:** `learner` and `admin`, as an enum column on `users`. Admin endpoints for content authoring are not in the MVP. Seeders write the content.
+
+## 5. Frontend architecture
+
+```text
+frontend/src/
+├── app/                    routes only: layouts, pages, loading/error boundaries
+│   ├── (marketing)/        landing, public careers and courses
+│   ├── (auth)/             login, register, forgot/reset password
+│   └── (app)/              authenticated shell: dashboard, roadmap, learn, labs, profile
+├── components/
+│   ├── ui/                 shadcn primitives, restyled with tokens
+│   ├── layout/             header, app shell, footer
+│   └── shared/             cross-feature pieces (EmptyState, Measured, StatusChip)
+├── features/<feature>/     components/, hooks/, api.ts, types.ts per feature
+├── lib/                    api client, query client, utils, env
+├── i18n/                   next-intl config, messages/en.json, messages/vi.json
+├── styles/                 tokens.css, globals.css
+└── types/                  generated API types (openapi-typescript)
+```
+
+- **Data fetching:** public pages use Server Components that make uncached-or-revalidated `fetch` calls to the API. Authenticated pages are client components using **TanStack Query** through a single `apiClient` (base URL from `NEXT_PUBLIC_API_URL`, `credentials: 'include'`, XSRF header, envelope unwrapping, typed errors). No component calls `fetch` directly.
+- **Types:** the backend publishes an OpenAPI document (generated by **Scramble**). `npm run api:types` turns it into `src/types/api.d.ts`. That gives the frontend one contract and no hand-copied interfaces.
+- **State:** server state lives in TanStack Query. The only global client state is the theme (`next-themes`) and transient UI state such as the exercise draft. No Redux, and no Zustand unless a real need appears.
+- **i18n:** **next-intl**, with the locale stored in a cookie and synced from the user's saved preference. There is no locale prefix in URLs (assumption: SEO for a second locale is not a goal). Every user-facing string lives in `messages/*.json`.
+- **Visuals:** React Flow (`@xyflow/react`) with dagre layout for the roadmap and knowledge map, Recharts for analytics, and Motion for state transitions. React Three Fiber is loaded only on the specific lessons that use it (dynamic import), and never on first paint.
+
+## 6. Personalization engine
+
+Rule-based, deterministic and documented, so a learner can see why a node was recommended.
+
+### 6.1 Assessment scoring
+
+- Each question has a domain and a difficulty of 1, 2 or 3. The **weight is the difficulty**.
+- `domain_score = Σ weight(correct) / Σ weight(answered in domain) × 100`
+- Unanswered questions count as incorrect once the attempt is submitted.
+- Bands: **gap** below 40, **developing** from 40 to 74, **strength** from 75 up.
+- The overall score uses the same weighted formula across all questions.
+- The result page shows the formula and the counts per domain.
+
+### 6.2 Roadmap generation
+
+Input: the career goal's ordered topics (each with a required domain level) and the latest submitted assessment attempt.
+
+For each topic in the career template:
+
+| Condition | Node recommendation | Reason shown |
+|---|---|---|
+| Domain score ≥ 75 and the topic's level ≤ intermediate | `review`: optional, unlocked | "You scored 82% in Networking" |
+| Domain score below 40 | `required`, with foundation topics of that domain inserted before it if they're missing | "Networking is a gap (31%)" |
+| Otherwise | `required` | "Needed for SOC Analyst" |
+
+The path is stored as a snapshot (`learning_paths` and `learning_path_nodes`), so it stays stable while the learner works through it. Reassessing or changing career creates a **new version** and archives the old one. Progress lives in `lesson_progress` and is never copied, so it carries over automatically.
+
+### 6.3 Node status (computed on read, never stored)
+
+- **completed:** every required lesson in the topic is completed.
+- **in_progress:** at least one lesson started or completed.
+- **available:** every prerequisite topic is completed, or marked `review`.
+- **locked:** otherwise.
+
+Lesson completion rule: the lesson was read to the end (the client reports this) **and**, if the lesson has an exercise, the learner has a passing attempt (score at or above the exercise's `pass_percent`).
+
+## 7. Labs architecture
+
+```mermaid
+flowchart LR
+  L[Lab definition<br/>engine key + scenario JSON] --> E[Browser engine<br/>linux-shell / firewall / http-inspector / packet-flow]
+  E -->|action log| V[API: checkpoint validator<br/>per engine, deterministic]
+  V --> P[lab_attempts]
+```
+
+- Each lab names an **engine** and a scenario. A scenario holds a virtual filesystem, a list of rules or a captured request, plus checkpoints.
+- Engines are pure TypeScript simulations. The Linux shell, for example, interprets a whitelisted command subset against an in-memory filesystem. Nothing executes on a server.
+- The server re-validates checkpoints from the submitted action log, so completion can't be faked by editing client state.
+- **Future sandboxes:** a `LabProvider` interface (`browser-sim` today) leaves room for a `container` provider, such as isolated ECS tasks with no egress, without changing the lab or attempt schema.
+
+## 8. Deployment architecture (AWS)
+
+```mermaid
+flowchart TB
+  U[Users] --> CF[CloudFront]
+  CF -->|"/_next/static, assets"| S3S[(S3 static assets)]
+  CF --> ALB[Application Load Balancer]
+  ALB -->|"host: app."| WEB[ECS Fargate: web<br/>Next.js standalone]
+  ALB -->|"host: api."| API[ECS Fargate: api<br/>Laravel nginx + php-fpm]
+  WRK[ECS Fargate: worker<br/>same api image, queue:work] --> RDS
+  API --> RDS[(RDS MySQL 8)]
+  API --> S3U[(S3 uploads: avatars, lesson media)]
+  API --> SES[SES mail]
+  SM[Secrets Manager] -.-> API & WRK & WEB
+  API & WEB & WRK -.-> CW[CloudWatch Logs]
+  EB[EventBridge schedule] -.->|schedule:run task| API
+```
+
+MVP deliberately leaves out:
+
+- ElastiCache. Sessions, cache and queue use the **database** driver, which is enough at this scale. Switching to Redis is a config change.
+- NAT-free VPC endpoints and WAF. Both are documented as hardening steps.
+
+Configuration is read from environment variables only. Secrets come from Secrets Manager, injected through ECS task definitions. No AWS resource names appear in application code. Files go through Laravel's `Storage` facade (`s3` disk in production, `local` disk in development).
+
+## 9. Key decisions
+
+| # | Decision | Alternatives considered | Why |
+|---|---|---|---|
+| D1 | Sanctum SPA cookie auth | JWT in localStorage, Next.js BFF proxy | Tokens can't be read by scripts, CSRF protection is built in, and it's the least custom code. The cost is the same-site domain constraint. |
+| D2 | Modules under `app/Modules`, shared `app/Models` | Full DDD packages, nwidart/modules | Clear boundaries without a framework that fights Laravel's conventions |
+| D3 | Rule-based personalization | ML or LLM recommendations | Transparent, testable, and honest about what it is |
+| D4 | Roadmap snapshot plus computed status | Store status per node | No derived state that can drift, and history is kept across versions |
+| D5 | OpenAPI (Scramble) to generated TS types | Hand-written types | One source of truth for the contract |
+| D6 | Database queue, cache and session in the MVP | Redis | Fewer moving parts on AWS. Easy to switch later. |
+| D7 | next-intl with a cookie locale | URL-prefixed locales | Simpler routing for an app that is mostly behind auth |
+| D8 | Browser-simulated labs | Live containers | Safe by construction. A provider interface leaves room for containers later. |
+| D9 | Next.js 16 with **Cache Components off** | Cache Components + `use cache: private` | Every route reads request cookies (locale, theme, session), and user data comes from the API on the client. With it on, every cookie read would need its own Suspense boundary for no real gain. Public catalog pages can opt into `fetch` revalidation. |
+| D10 | Route protection in **`proxy.ts`** (Next 16 renamed `middleware.ts`) | | Only an optimistic cookie-presence redirect. The API stays the authority. |
+
+## 10. Risks
+
+| Risk | Mitigation |
+|---|---|
+| Cookie auth breaks across domains in deployment | Document the domain setup, and test the deployed CSRF/login flow in Phase 7 |
+| Writing lesson content takes most of the time | Fixed content budget per phase; see IMPLEMENTATION_ROADMAP |
+| Roadmap graph readability on mobile | A list/outline view of the same data below the `md` breakpoint |
+| 3D adds bundle weight | Dynamic import per lesson, and a static fallback image |
+| Bilingual content doubles authoring | See open decision in IMPLEMENTATION_ROADMAP |

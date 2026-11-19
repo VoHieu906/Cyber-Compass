@@ -1,0 +1,20 @@
+# Environment and secrets: never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Design tooling output (screenshots from Hallmark sweeps)
+**/.hallmark/shots/
+**/.hallmark/before/
+
+# Logs
+*.log
