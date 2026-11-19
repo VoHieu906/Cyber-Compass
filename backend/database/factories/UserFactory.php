@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -31,6 +33,23 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Every user has a profile (created with the account in RegisterUser), so factories keep that invariant.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if (! $user->profile()->exists()) {
+                UserProfile::factory()->for($user)->create();
+            }
+        });
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn () => ['role' => UserRole::Admin]);
     }
 
     /**

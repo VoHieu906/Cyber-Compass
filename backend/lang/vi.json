@@ -1,0 +1,21 @@
+{
+    "The given data was invalid.": "Dữ liệu chưa hợp lệ.",
+    "Unauthenticated.": "Bạn cần đăng nhập.",
+    "This action is unauthorized.": "Bạn không có quyền thực hiện thao tác này.",
+    "Resource not found.": "Không tìm thấy dữ liệu.",
+    "Your session has expired. Refresh and try again.": "Phiên làm việc đã hết hạn. Hãy tải lại trang và thử lại.",
+    "Method not allowed.": "Phương thức không được hỗ trợ.",
+    "Too many requests. Try again shortly.": "Quá nhiều yêu cầu. Vui lòng thử lại sau ít phút.",
+    "Something went wrong on our side.": "Đã có lỗi xảy ra từ phía máy chủ.",
+    "Request failed.": "Yêu cầu không thành công.",
+    "You are receiving this email because we received a password reset request for your account.": "Bạn nhận được email này vì chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.",
+    "Reset Password": "Đặt lại mật khẩu",
+    "This password reset link will expire in :count minutes.": "Liên kết đặt lại mật khẩu sẽ hết hạn sau :count phút.",
+    "If you did not request a password reset, no further action is required.": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn không cần làm gì thêm.",
+    "Hello!": "Xin chào!",
+    "Regards,": "Trân trọng,",
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Nếu bạn không bấm được nút \":actionText\", hãy sao chép và dán đường dẫn dưới đây\nvào trình duyệt:",
+    "Reset your password": "Đặt lại mật khẩu CyberCompass",
+    "Whoops!": "Rất tiếc!",
+    "All rights reserved.": "Bảo lưu mọi quyền."
+}

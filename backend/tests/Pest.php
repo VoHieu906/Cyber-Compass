@@ -10,6 +10,13 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    ->beforeEach(function () {
+        // Requests come from the SPA origin, so Sanctum treats them as stateful (session cookie auth).
+        $this->withHeaders([
+            'Origin' => config('app.frontend_url'),
+            'Referer' => config('app.frontend_url').'/',
+        ]);
+    })
     ->in('Feature');
 
 pest()->extend(TestCase::class)

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->name('v1.')->group(function () {
     foreach ([
         'System',
+        'Auth',
+        'Profile',
     ] as $module) {
         require app_path("Modules/{$module}/routes.php");
     }

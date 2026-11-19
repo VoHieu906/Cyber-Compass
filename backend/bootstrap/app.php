@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\SetRequestLocale;
 use App\Support\Http\ApiExceptionRenderer;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum SPA authentication: session cookies + CSRF for requests from the frontend origin.
         $middleware->statefulApi();
         $middleware->throttleApi('api');
+        $middleware->appendToGroup('api', SetRequestLocale::class);
         // Behind the AWS ALB, trust X-Forwarded-* so URLs and secure cookies are correct.
         $middleware->trustProxies(at: '*');
     })

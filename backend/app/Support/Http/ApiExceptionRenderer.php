@@ -68,7 +68,7 @@ final class ApiExceptionRenderer
     private function describe(Throwable $e): array
     {
         return match (true) {
-            $e instanceof ValidationException => [422, __('The given data was invalid.'), []],
+            $e instanceof ValidationException => [$e->status, __('The given data was invalid.'), []],
             $e instanceof AuthenticationException => [401, __('Unauthenticated.'), []],
             $e instanceof AuthorizationException => [403, __('This action is unauthorized.'), []],
             // Another user's record is reported as missing, not forbidden, so ids never leak.
