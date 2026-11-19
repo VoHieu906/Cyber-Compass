@@ -13,6 +13,9 @@ Route::prefix('v1')->name('v1.')->group(function () {
         'System',
         'Auth',
         'Profile',
+        'Catalog',
+        'Careers',
+        'Learning',
     ] as $module) {
         require app_path("Modules/{$module}/routes.php");
     }
