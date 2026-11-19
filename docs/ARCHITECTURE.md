@@ -12,7 +12,7 @@ flowchart LR
   end
   subgraph API["api service (Laravel, PHP-FPM + Nginx)"]
     R[/api/v1 routes/] --> M[Modules<br/>controllers, actions, policies]
-    M --> DB[(MySQL 8)]
+    M --> DB[(MySQL 8.4)]
     M --> Q[[Queue: database driver]]
     W[queue worker] --> Q
     M --> S3[(Object storage<br/>S3 / local disk)]
@@ -27,7 +27,7 @@ There are two independently deployable applications in one monorepo:
 | App | Path | Runtime | Responsibility |
 |---|---|---|---|
 | Frontend | `frontend/` | Next.js (App Router), Node 22 | UI, routing, i18n, client state, rendering visuals and lab simulations |
-| Backend | `backend/` | Laravel 12, PHP 8.3 | Auth, business rules, scoring, roadmap generation, persistence, notifications |
+| Backend | `backend/` | Laravel 13, PHP 8.5 | Auth, business rules, scoring, roadmap generation, persistence, notifications |
 
 The frontend contains no business rules such as scoring, unlock logic or progress completion. It renders what the API returns. The only logic duplicated on the client is form validation for UX, and the server validates again as the authority.
 
@@ -188,7 +188,7 @@ flowchart TB
   ALB -->|"host: app."| WEB[ECS Fargate: web<br/>Next.js standalone]
   ALB -->|"host: api."| API[ECS Fargate: api<br/>Laravel nginx + php-fpm]
   WRK[ECS Fargate: worker<br/>same api image, queue:work] --> RDS
-  API --> RDS[(RDS MySQL 8)]
+  API --> RDS[(RDS MySQL 8.4)]
   API --> S3U[(S3 uploads: avatars, lesson media)]
   API --> SES[SES mail]
   SM[Secrets Manager] -.-> API & WRK & WEB
@@ -217,6 +217,8 @@ Configuration is read from environment variables only. Secrets come from Secrets
 | D8 | Browser-simulated labs | Live containers | Safe by construction. A provider interface leaves room for containers later. |
 | D9 | Next.js 16 with **Cache Components off** | Cache Components + `use cache: private` | Every route reads request cookies (locale, theme, session), and user data comes from the API on the client. With it on, every cookie read would need its own Suspense boundary for no real gain. Public catalog pages can opt into `fetch` revalidation. |
 | D10 | Route protection in **`proxy.ts`** (Next 16 renamed `middleware.ts`) | | Only an optimistic cookie-presence redirect. The API stays the authority. |
+| D11 | Dev containers keep `vendor/` in a named volume, with OPcache on and timestamp validation | Plain bind mount of the whole tree | On Docker Desktop for Windows, reading vendor files through the 9p mount made each boot about 6s. With the volume it is under 1s, and the test suite runs in 2s instead of 85s. |
+| D12 | Backend tests run on MySQL (`cybercompass_testing`), not SQLite | In-memory SQLite | The schema uses MySQL features (FULLTEXT, enums, JSON). Tests run against the engine that runs in production. |
 
 ## 10. Risks
 

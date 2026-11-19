@@ -12,16 +12,18 @@ flowchart LR
   P6 --> P7[7 Quality + deployment]
 ```
 
-## Phase 1: Foundation
+## Phase 1: Foundation ✅ (completed 2026-11-19)
 
-- Monorepo skeleton, `.gitignore`, `.env.example`, git init
-- `frontend/`: Next.js (App Router, TS strict), Tailwind v4, shadcn/ui init, tokens.css + theme mapping, next-themes, next-intl (en/vi), fonts, ESLint/Prettier, Vitest + Testing Library
-- `backend/`: Laravel 12, Sanctum, CORS, module folder structure, error envelope, `/api/v1/health`, Scramble, Pest
-- `docker-compose.yml`: mysql 8, mailpit, api, worker, web
-- Global layouts: marketing header and footer, auth layout, app shell. Theme and language switchers working.
-- README foundation
+- Monorepo, git, `.env.example` files, `.gitattributes` (LF)
+- `frontend/`: Next.js 16 (TS strict), Tailwind 4, design tokens with light/dark/system, next-intl (en/vi), TanStack Query, typed API client, Vitest
+- `backend/`: Laravel 13 on PHP 8.5, Sanctum (SPA mode), CORS with credentials, module structure (`app/Modules`), central error envelope, `/api/v1/health`, Scramble OpenAPI, Pest on MySQL, rate limiting
+- `docker-compose.yml`: mysql 8.4 (with a separate test database), mailpit, api, worker, web. Production Dockerfile targets for api and web.
+- Marketing layout, foundation home page with live system status, `/design-system` reference
+- README with Docker setup
 
-**Exit:** `docker compose up` gives a web page that calls `/api/v1/health` and shows the DB status. Theme and language switch and persist. Lint, type checks and tests are green.
+**Exit, verified:** the web container calls `/api/v1/health` from a real browser and shows the API and database as reachable, with no console errors. Frontend: typecheck, lint, 8 tests. Backend: Pint, 14 Pest tests. Hallmark sloplint is clean. Both production images build and serve.
+
+**Moved to Phase 2:** the auth layout and the app shell (they need auth to be meaningful) and `proxy.ts` route protection. shadcn primitives are added per component as screens need them, rather than initialised up front.
 
 ## Phase 2: Auth and user management
 
