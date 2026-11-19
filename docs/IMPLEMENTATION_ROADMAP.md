@@ -23,12 +23,14 @@ flowchart LR
 
 **Exit, verified:** the web container calls `/api/v1/health` from a real browser and shows the API and database as reachable, with no console errors. Frontend: typecheck, lint, 8 tests. Backend: Pint, 14 Pest tests. Hallmark sloplint is clean. Both production images build and serve.
 
-**Moved to Phase 2:** the auth layout and the app shell (they need auth to be meaningful) and `proxy.ts` route protection. shadcn primitives are added per component as screens need them, rather than initialised up front.
+**Moved to Phase 2:** the auth layout and the app shell (they need auth to be meaningful) and route protection. shadcn primitives are added per component as screens need them, rather than initialised up front.
 
-## Phase 2: Auth and user management
+## Phase 2: Auth and user management ✅ (completed 2026-11-20)
 
-Register, login (remember me), logout, forgot and reset password (Mailpit locally), protected routes, profile tabs (personal info, avatar upload, security, preferences), notification-preference defaults.
-**Tests:** auth feature tests (happy path, validation, throttling, CSRF), profile policy tests, form component tests.
+- **API:** `Auth` module (register, login with remember me and per-account lockout, logout, forgot and reset password, `/me`) and `Profile` module (personal info, avatar upload re-encoded to WebP, preferences, password change). `users.role` and `user_profiles` migrations. Vietnamese validation, auth and email strings. The reset email follows the user's language. Demo user seeder.
+- **Web:** login, register, forgot and reset password screens. The header account menu. The `(app)` area behind `RequireAuth`. Settings with three routed tabs: personal information (with avatar), security (password, log out) and preferences (theme and language, saved to the account and applied on login).
+- **Exit, verified:** 66 Pest tests and 29 Vitest tests. A real-browser journey through the Docker stack covered guest redirect, register, profile edit, avatar upload, preferences in Vietnamese and dark, logout, wrong password then login with remember me, and forgot then reset through the Mailpit email. Phone width has no overflow. Hallmark sloplint is clean on every public auth page.
+- **Deferred, with reasons:** the *Learning goals* tab moves to Phase 4, because it needs careers and domains, which arrive in Phases 3 and 4. *Notification preferences* move to Phase 6 with notifications. *Email verification* (O4) is not built; accounts work unverified, and `email_verified_at` is already in the schema. *Changing the email address* is not offered yet.
 
 ## Phase 3: Learning content and the landing page
 
@@ -61,4 +63,4 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 
 ## Open decisions
 | O3 | **Production domain layout.** Sanctum needs the frontend and API on the same site. | `app.<domain>` and `api.<domain>` behind one ALB | AWS docs, CORS config |
-| O4 | **Email verification required before learning?** | Not required in the MVP; verification email sent, banner shown | Auth flow |
+| O4 | **Email verification required before learning?** | Not required in the MVP. No verification email yet. | Auth flow |

@@ -55,16 +55,18 @@ These are Laravel API Resources. Pagination is `?page=` and `?per_page=` (max 50
 
 `?filter[domain]=networking&filter[difficulty]=2&q=dns&sort=-published_at`, where `sort` takes a comma-separated list of fields and `-` means descending. Each endpoint whitelists its filter and sort fields.
 
-## Authentication
+## Authentication (✅ Phase 2)
+
+Passwords: 8 to 128 characters, at least one letter and one number.
 
 | Method | Path | Notes |
 |---|---|---|
 | GET | `/sanctum/csrf-cookie` | Sets `XSRF-TOKEN`. Call it before login and register. |
-| POST | `/api/v1/auth/register` | name, email, password, password_confirmation. Logs in on success. |
-| POST | `/api/v1/auth/login` | email, password, remember (bool) |
+| POST | `/api/v1/auth/register` | name, email, password, password_confirmation. Logs in on success (201). 10 per hour per IP. |
+| POST | `/api/v1/auth/login` | email, password, remember (bool). 5 failures per email+IP lock it for 60 s (429 with `errors.email`). |
 | POST | `/api/v1/auth/logout` | |
 | POST | `/api/v1/auth/forgot-password` | email. Always returns 202, so it never reveals whether an email exists. |
-| POST | `/api/v1/auth/reset-password` | token, email, password, password_confirmation |
+| POST | `/api/v1/auth/reset-password` | token, email, password, password_confirmation. Ends every session of that user. |
 | GET | `/api/v1/me` | Current user with profile, goal and preferences |
 
 ## Endpoint map
@@ -73,14 +75,15 @@ These are Laravel API Resources. Pagination is `?page=` and `?per_page=` (max 50
 
 ### Profile and preferences
 
-| | Method | Path |
-|---|---|---|
-| 🔒 | PATCH | `/me/profile` (name, phone, date_of_birth, education_level) |
-| 🔒 | POST | `/me/avatar` (multipart image ≤ 2 MB, jpg/png/webp; re-encoded server-side) |
-| 🔒 | PUT | `/me/learning-goal` (career_id, self_level, weekly_minutes, domain_ids[]) |
-| 🔒 | PATCH | `/me/preferences` (locale, theme) |
-| 🔒 | PUT | `/me/password` (current_password, password, password_confirmation) |
-| 🔒 | GET/PUT | `/me/notification-preferences` |
+| | Method | Path | Status |
+|---|---|---|---|
+| 🔒 | PATCH | `/me/profile` (name, phone, date_of_birth, education_level) | ✅ Phase 2 |
+| 🔒 | POST | `/me/avatar` (multipart `avatar`: jpg/png/webp, 64–6000 px, ≤ 2 MB; stored as a 256 px WebP under a random name) | ✅ Phase 2 |
+| 🔒 | DELETE | `/me/avatar` | ✅ Phase 2 |
+| 🔒 | PATCH | `/me/preferences` (locale, theme; either or both) | ✅ Phase 2 |
+| 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
+| 🔒 | PUT | `/me/learning-goal` (career_id, self_level, weekly_minutes, domain_ids[]) | Phase 4 |
+| 🔒 | GET/PUT | `/me/notification-preferences` | Phase 6 |
 
 ### Taxonomy and careers
 

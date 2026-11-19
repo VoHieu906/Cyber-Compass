@@ -99,7 +99,9 @@ One exception renderer in `bootstrap/app.php` produces the error envelope descri
 - "Remember me" uses Laravel's remember-token cookie.
 - Password reset uses Laravel's password broker. The reset link points to the frontend route `/reset-password?token=…&email=…`.
 - **Constraint:** the frontend and the API must share a registrable domain (for example `app.example.com` and `api.example.com`, or a single host with the ALB routing `/api/*`). Locally this means `localhost:3000` and `localhost:8000`. `SANCTUM_STATEFUL_DOMAINS` and `CORS_ALLOWED_ORIGINS` list the frontend origin, and CORS uses `supports_credentials`.
-- **Route protection on the frontend:** `proxy.ts` (Next 16's name for middleware) checks only that the session cookie exists and redirects to `/login` when it doesn't. That is a UX convenience. The API's `auth:sanctum` middleware is the real gate.
+- **Route protection on the frontend:** the `(app)` route group is wrapped in `RequireAuth`, which asks `GET /api/v1/me` and redirects guests to `/login?next=…`. Laravel issues a session cookie to *every* visitor, so a cookie-presence check (the original `proxy.ts` plan) cannot tell guests from learners. The API's `auth:sanctum` middleware is the real gate. `next` only accepts same-site paths, so login cannot become an open redirect.
+- **Brute force:** login locks an email+IP pair for 60 s after 5 failures. Register is limited to 10 per hour per IP, and password endpoints to 5 per minute.
+- **Session hygiene:** the session id is regenerated on login. Logout invalidates the session and rotates the CSRF token. A password change ends all *other* sessions, and a password reset ends *all* of them.
 - **Rate limits:** `login` allows 5 requests per minute per email+IP, `password` 3 per minute, `api` 120 per minute per user.
 - **Roles:** `learner` and `admin`, as an enum column on `users`. Admin endpoints for content authoring are not in the MVP. Seeders write the content.
 
@@ -216,7 +218,7 @@ Configuration is read from environment variables only. Secrets come from Secrets
 | D7 | next-intl with a cookie locale | URL-prefixed locales | Simpler routing for an app that is mostly behind auth |
 | D8 | Browser-simulated labs | Live containers | Safe by construction. A provider interface leaves room for containers later. |
 | D9 | Next.js 16 with **Cache Components off** | Cache Components + `use cache: private` | Every route reads request cookies (locale, theme, session), and user data comes from the API on the client. With it on, every cookie read would need its own Suspense boundary for no real gain. Public catalog pages can opt into `fetch` revalidation. |
-| D10 | Route protection in **`proxy.ts`** (Next 16 renamed `middleware.ts`) | | Only an optimistic cookie-presence redirect. The API stays the authority. |
+| D10 | Route protection by a client `RequireAuth` gate backed by `/me` (revised in Phase 2) | Cookie-presence check in `proxy.ts`; server-side `/me` call per navigation | Laravel gives guests a session cookie too, so its presence means nothing. A server-side check would add an API round trip to every navigation. The API enforces auth on every route regardless. |
 | D11 | Dev containers keep `vendor/` in a named volume, with OPcache on and timestamp validation | Plain bind mount of the whole tree | On Docker Desktop for Windows, reading vendor files through the 9p mount made each boot about 6s. With the volume it is under 1s, and the test suite runs in 2s instead of 85s. |
 | D12 | Backend tests run on MySQL (`cybercompass_testing`), not SQLite | In-memory SQLite | The schema uses MySQL features (FULLTEXT, enums, JSON). Tests run against the engine that runs in production. |
 

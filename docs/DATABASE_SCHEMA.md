@@ -78,9 +78,9 @@ erDiagram
 **users**: `name`, `email` (unique), `email_verified_at`, `password`, `role` enum(`learner`,`admin`) default learner, `remember_token`.
 Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
-**user_profiles**: `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`.
+**user_profiles** (✅ Phase 2): `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`.
 
-**learning_goals**: `user_id` (unique FK), `career_id` FK null, `self_level` enum(`beginner`,`intermediate`,`advanced`), `weekly_minutes` smallint.
+**learning_goals** (Phase 4): `user_id` (unique FK), `career_id` FK null, `self_level` enum(`beginner`,`intermediate`,`advanced`), `weekly_minutes` smallint.
 **learning_goal_domains**: `learning_goal_id`, `domain_id`. The primary key is the pair (areas of interest).
 
 ### Taxonomy

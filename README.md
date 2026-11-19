@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phase 1 (Foundation) complete.** The frontend, the API, MySQL and the Docker environment run end to end. Product features start in Phase 2. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phase 2 (Auth and user management) complete.** Accounts, sessions, password reset and profile settings work end to end. Learning content arrives in Phase 3. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 
@@ -13,7 +13,8 @@ A personalized learning platform for cybersecurity. Take a knowledge assessment,
 | Typed API client (Sanctum cookie auth, XSRF, error envelope) | ✅ Built, unit-tested |
 | Versioned REST API: error envelope, CORS, rate limiting, health, OpenAPI docs | ✅ Built, feature-tested |
 | Docker development environment and production images | ✅ Built |
-| Auth: register, login, remember me, password reset | Planned (Phase 2) |
+| Auth: register, login, remember me, logout, password reset by email | ✅ Built, feature- and browser-tested |
+| Profile settings: personal info, avatar, password, theme and language saved to the account | ✅ Built |
 | Course catalog, course detail, lesson reader | Planned (Phase 3) |
 | Initial knowledge assessment with transparent scoring | Planned (Phase 4) |
 | Personalized, interactive learning roadmap | Planned (Phase 4–5) |
@@ -75,8 +76,11 @@ cp frontend/.env.example frontend/.env.local
 docker compose up -d --build               # mysql, mailpit, api, worker, web
 docker compose exec -u root api chmod -R a+rwX storage bootstrap/cache   # once; see note below
 docker compose exec api php artisan key:generate
-docker compose exec api php artisan migrate
+docker compose exec api php artisan migrate --seed
+docker compose exec -u root api php artisan storage:link              # serves uploaded avatars
 ```
+
+Seeding creates a demo account, `demo@cybercompass.test`. Its password is whatever you set as `DEMO_USER_PASSWORD` in `backend/.env`. If that is empty, the seeder skips the account.
 
 On first start, the API container runs `composer install` into its `vendor` volume, which takes about a minute.
 
@@ -85,7 +89,7 @@ On first start, the API container runs `composer install` into its `vendor` volu
 | http://localhost:3000 | Web app. The home page shows live API and database status. |
 | http://localhost:8000/api/v1/health | API health |
 | http://localhost:8000/docs/api | OpenAPI documentation (local only) |
-| http://localhost:8025 | Mailpit, which catches outgoing email |
+| http://localhost:8025 | Mailpit, which catches outgoing email such as password resets |
 
 ### Everyday commands
 
