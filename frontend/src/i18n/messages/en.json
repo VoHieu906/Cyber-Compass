@@ -1,0 +1,68 @@
+{
+  "common": {
+    "brand": "CyberCompass",
+    "skipToContent": "Skip to content"
+  },
+  "metadata": {
+    "title": "CyberCompass",
+    "description": "A personalized learning platform for cybersecurity: assessment, career goals and a roadmap built from what you already know."
+  },
+  "preferences": {
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "language": "Language",
+    "languageEn": "English",
+    "languageVi": "Tiếng Việt"
+  },
+  "home": {
+    "title": "CyberCompass",
+    "lede": "Foundation build. The learning platform is being built phase by phase.",
+    "statusTitle": "System status",
+    "designSystemLink": "Open the design system"
+  },
+  "health": {
+    "api": "API",
+    "database": "Database",
+    "version": "Version",
+    "latency": "Latency",
+    "checking": "Checking",
+    "ok": "Reachable",
+    "down": "Unreachable",
+    "unknown": "Unknown",
+    "retry": "Check again",
+    "downHint": "Start the backend with docker compose up, then check again."
+  },
+  "footer": {
+    "tagline": "Personalized cybersecurity learning.",
+    "project": "Academic software engineering project."
+  },
+  "designSystem": {
+    "title": "Design system",
+    "lede": "Tokens and component states, rendered from the live stylesheet.",
+    "colours": "Colour roles",
+    "type": "Type",
+    "controls": "Controls",
+    "nodeStates": "Roadmap node states",
+    "feedback": "Answer feedback",
+    "primary": "Start lesson",
+    "secondary": "View details",
+    "ghost": "Skip for now",
+    "danger": "Delete",
+    "loading": "Saving",
+    "disabled": "Locked",
+    "inputLabel": "Email",
+    "inputPlaceholder": "you@example.com",
+    "inputError": "Enter a valid email address.",
+    "locked": "Locked",
+    "available": "Available",
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "review": "Review",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "displaySample": "Learn the network before you defend it",
+    "bodySample": "A subnet mask splits an IP address into a network part and a host part. Every device on the same subnet shares the network part."
+  }
+}

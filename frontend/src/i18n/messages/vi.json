@@ -1,0 +1,68 @@
+{
+  "common": {
+    "brand": "CyberCompass",
+    "skipToContent": "Chuyển đến nội dung"
+  },
+  "metadata": {
+    "title": "CyberCompass",
+    "description": "Nền tảng học an ninh mạng cá nhân hóa: đánh giá năng lực, mục tiêu nghề nghiệp và lộ trình xây dựng từ những gì bạn đã biết."
+  },
+  "preferences": {
+    "theme": "Giao diện",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống",
+    "language": "Ngôn ngữ",
+    "languageEn": "English",
+    "languageVi": "Tiếng Việt"
+  },
+  "home": {
+    "title": "CyberCompass",
+    "lede": "Bản dựng nền tảng. Nền tảng học tập đang được xây dựng theo từng giai đoạn.",
+    "statusTitle": "Trạng thái hệ thống",
+    "designSystemLink": "Mở hệ thống thiết kế"
+  },
+  "health": {
+    "api": "API",
+    "database": "Cơ sở dữ liệu",
+    "version": "Phiên bản",
+    "latency": "Độ trễ",
+    "checking": "Đang kiểm tra",
+    "ok": "Kết nối được",
+    "down": "Không kết nối được",
+    "unknown": "Chưa rõ",
+    "retry": "Kiểm tra lại",
+    "downHint": "Khởi động backend bằng docker compose up, rồi kiểm tra lại."
+  },
+  "footer": {
+    "tagline": "Học an ninh mạng theo cách của bạn.",
+    "project": "Đồ án môn công nghệ phần mềm."
+  },
+  "designSystem": {
+    "title": "Hệ thống thiết kế",
+    "lede": "Token và trạng thái thành phần, hiển thị từ stylesheet thực tế.",
+    "colours": "Vai trò màu",
+    "type": "Kiểu chữ",
+    "controls": "Điều khiển",
+    "nodeStates": "Trạng thái nút lộ trình",
+    "feedback": "Phản hồi câu trả lời",
+    "primary": "Bắt đầu bài học",
+    "secondary": "Xem chi tiết",
+    "ghost": "Bỏ qua lúc này",
+    "danger": "Xóa",
+    "loading": "Đang lưu",
+    "disabled": "Đã khóa",
+    "inputLabel": "Email",
+    "inputPlaceholder": "ban@vidu.com",
+    "inputError": "Nhập địa chỉ email hợp lệ.",
+    "locked": "Đã khóa",
+    "available": "Sẵn sàng",
+    "inProgress": "Đang học",
+    "completed": "Hoàn thành",
+    "review": "Ôn tập",
+    "correct": "Đúng",
+    "incorrect": "Sai",
+    "displaySample": "Hiểu mạng trước khi bảo vệ nó",
+    "bodySample": "Mặt nạ mạng con chia địa chỉ IP thành phần mạng và phần máy. Mọi thiết bị trong cùng mạng con có chung phần mạng."
+  }
+}

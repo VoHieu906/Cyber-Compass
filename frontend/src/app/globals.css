@@ -1,0 +1,167 @@
+/* Hallmark · see src/styles/tokens.css for the stamp and docs/DESIGN_SYSTEM.md for the system.
+ * Hallmark · pre-emit critique: tokens-only colour and type, no transition:all, focus-visible on every control, reduced motion honoured */
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Tailwind utilities map to the role tokens: bg-paper-2, text-muted, border-rule, font-measured …
+ * Same-name entries (e.g. --color-paper: var(--color-paper)) only register the utility; Tailwind emits
+ * them inside @layer theme, and the unlayered values in tokens.css always win over layered ones. */
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-paper-2: var(--color-paper-2);
+  --color-paper-3: var(--color-paper-3);
+  --color-ink: var(--color-ink);
+  --color-ink-2: var(--color-ink-2);
+  --color-muted: var(--color-muted);
+  --color-rule: var(--color-rule);
+  --color-rule-2: var(--color-rule-2);
+  --color-field-edge: var(--color-field-edge);
+  --color-accent: var(--color-accent);
+  --color-accent-ink: var(--color-accent-ink);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-attn: var(--color-attn);
+  --color-attn-soft: var(--color-attn-soft);
+  --color-ok: var(--color-ok);
+  --color-ok-soft: var(--color-ok-soft);
+  --color-bad: var(--color-bad);
+  --color-bad-soft: var(--color-bad-soft);
+  --color-focus: var(--color-focus);
+
+  /* shadcn/ui aliases, so generated primitives inherit the system */
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-paper-2);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-paper-2);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-accent);
+  --color-primary-foreground: var(--color-accent-ink);
+  --color-secondary: var(--color-paper-3);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted-foreground: var(--color-muted);
+  --color-destructive: var(--color-bad);
+  --color-border: var(--color-rule);
+  --color-input: var(--color-rule);
+  --color-ring: var(--color-focus);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+  --font-measured: var(--font-measured);
+  --font-mono: var(--font-measured);
+
+  --radius-card: var(--radius-card);
+  --radius-control: var(--radius-control);
+  --radius-chip: var(--radius-chip);
+
+  --ease-out: var(--ease-out);
+}
+
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+  }
+
+  html {
+    scrollbar-color: var(--color-rule-2) var(--color-paper);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-paper);
+    color: var(--color-muted);
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: var(--color-ink);
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    letter-spacing: var(--tracking-display);
+    line-height: 1.06;
+    overflow-wrap: break-word;
+    min-width: 0;
+    text-wrap: balance;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-rule);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    transition: none;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 28%, transparent);
+    color: var(--color-ink);
+  }
+
+  a {
+    color: inherit;
+  }
+}
+
+@layer components {
+  /* Page container: capped and centred; gutters grow at wide viewports, the grid does not. */
+  .container-page {
+    width: 100%;
+    max-width: calc(var(--container) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Hairline panels: one surface divided by 1px seams (docs/DESIGN_SYSTEM.md §5). */
+  .panels {
+    display: grid;
+    gap: var(--rule-hair);
+    background: var(--color-rule);
+    color: var(--color-muted);
+    border: var(--rule-hair) solid var(--color-rule);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .panels > * {
+    background: var(--color-paper-2);
+    color: var(--color-muted);
+    min-width: 0;
+  }
+
+  .panel {
+    background: var(--color-paper-2);
+    color: var(--color-muted);
+    border: var(--rule-hair) solid var(--color-rule);
+    border-radius: var(--radius-card);
+  }
+
+  /* What an instrument measured: scores, durations, ids, commands. */
+  .measured {
+    font-family: var(--font-measured);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
