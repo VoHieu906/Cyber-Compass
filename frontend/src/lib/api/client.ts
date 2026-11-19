@@ -67,6 +67,10 @@ async function parseBody(response: Response): Promise<unknown> {
 export async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: "application/json",
+    // Server messages (validation, auth) come back in the language the UI is showing.
+    ...(typeof document !== "undefined" && document.documentElement.lang
+      ? { "Accept-Language": document.documentElement.lang }
+      : {}),
     ...options.headers,
   };
   if (options.body !== undefined && !(options.body instanceof FormData)) {

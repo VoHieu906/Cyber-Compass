@@ -1,7 +1,9 @@
 {
   "common": {
     "brand": "CyberCompass",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "loading": "Loading",
+    "optional": "optional"
   },
   "metadata": {
     "title": "CyberCompass",
@@ -64,5 +66,109 @@
     "incorrect": "Incorrect",
     "displaySample": "Learn the network before you defend it",
     "bodySample": "A subnet mask splits an IP address into a network part and a host part. Every device on the same subnet shares the network part."
+  },
+  "nav": {
+    "login": "Log in",
+    "register": "Sign up",
+    "settings": "Settings",
+    "logout": "Log out",
+    "account": "Account"
+  },
+  "validation": {
+    "required": "This field is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordMin": "Use at least {min} characters.",
+    "passwordLetter": "Include at least one letter.",
+    "passwordNumber": "Include at least one number.",
+    "passwordMismatch": "The passwords don't match.",
+    "passwordSameAsCurrent": "Choose a password different from the current one.",
+    "phoneInvalid": "Use digits, spaces, dashes and an optional leading +.",
+    "dateInvalid": "Enter a date in the past."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "loginTitle": "Log in",
+    "loginLede": "Pick up where you left off.",
+    "remember": "Keep me signed in",
+    "forgotLink": "Forgot password?",
+    "loginSubmit": "Log in",
+    "noAccount": "New to CyberCompass?",
+    "registerLink": "Create an account",
+    "registerTitle": "Create your account",
+    "registerLede": "One account for your assessment, roadmap and progress.",
+    "name": "Full name",
+    "passwordConfirm": "Confirm password",
+    "passwordHint": "At least 8 characters, with letters and numbers.",
+    "registerSubmit": "Create account",
+    "haveAccount": "Already have an account?",
+    "loginLink": "Log in",
+    "forgotTitle": "Reset your password",
+    "forgotLede": "Enter your account email and we'll send you a reset link.",
+    "forgotSubmit": "Send reset link",
+    "forgotSent": "If an account exists for {email}, a reset link is on its way. The link expires in 60 minutes.",
+    "backToLogin": "Back to log in",
+    "resetTitle": "Choose a new password",
+    "resetLede": "Resetting the password for {email}.",
+    "resetSubmit": "Save new password",
+    "resetDone": "Your password has been reset. Log in with your new password.",
+    "resetInvalidLink": "This reset link is incomplete. Request a new one.",
+    "requestNewLink": "Request a new link",
+    "genericError": "Something went wrong. Try again.",
+    "networkError": "Can't reach the server. Check your connection and try again."
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "profile": "Personal information",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "profile": {
+      "avatar": "Photo",
+      "avatarHint": "JPEG, PNG or WebP, up to 2 MB. Cropped to a square.",
+      "avatarUpload": "Upload photo",
+      "avatarReplace": "Replace photo",
+      "avatarRemove": "Remove",
+      "avatarUpdated": "Photo updated.",
+      "avatarRemoved": "Photo removed.",
+      "name": "Full name",
+      "email": "Email",
+      "emailHint": "Email changes aren't available yet.",
+      "phone": "Phone number",
+      "dob": "Date of birth",
+      "education": "Education level",
+      "educationNone": "Not specified",
+      "levels": {
+        "high_school": "High school",
+        "undergraduate": "Undergraduate",
+        "graduate": "Graduate",
+        "other": "Other"
+      },
+      "save": "Save changes",
+      "saved": "Changes saved."
+    },
+    "security": {
+      "passwordTitle": "Change password",
+      "passwordLede": "Changing your password signs out your other devices.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "submit": "Update password",
+      "done": "Password updated. Your other devices have been signed out.",
+      "sessionTitle": "This device",
+      "memberSince": "Account created {date}",
+      "logout": "Log out"
+    },
+    "preferences": {
+      "appearance": "Appearance",
+      "appearanceHint": "System follows your device's light or dark setting.",
+      "language": "Language",
+      "languageHint": "Used for the interface and for emails we send you.",
+      "saved": "Saved to your account.",
+      "saveFailed": "Couldn't save to your account. It still applies on this device."
+    }
   }
 }

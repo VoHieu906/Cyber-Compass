@@ -1,7 +1,9 @@
 {
   "common": {
     "brand": "CyberCompass",
-    "skipToContent": "Chuyển đến nội dung"
+    "skipToContent": "Chuyển đến nội dung",
+    "loading": "Đang tải",
+    "optional": "không bắt buộc"
   },
   "metadata": {
     "title": "CyberCompass",
@@ -64,5 +66,109 @@
     "incorrect": "Sai",
     "displaySample": "Hiểu mạng trước khi bảo vệ nó",
     "bodySample": "Mặt nạ mạng con chia địa chỉ IP thành phần mạng và phần máy. Mọi thiết bị trong cùng mạng con có chung phần mạng."
+  },
+  "nav": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "settings": "Cài đặt",
+    "logout": "Đăng xuất",
+    "account": "Tài khoản"
+  },
+  "validation": {
+    "required": "Vui lòng điền trường này.",
+    "emailInvalid": "Nhập địa chỉ email hợp lệ.",
+    "passwordMin": "Dùng ít nhất {min} ký tự.",
+    "passwordLetter": "Cần ít nhất một chữ cái.",
+    "passwordNumber": "Cần ít nhất một chữ số.",
+    "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+    "passwordSameAsCurrent": "Chọn mật khẩu khác với mật khẩu hiện tại.",
+    "phoneInvalid": "Chỉ dùng chữ số, khoảng trắng, gạch nối và dấu + ở đầu.",
+    "dateInvalid": "Nhập một ngày trong quá khứ."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "showPassword": "Hiện mật khẩu",
+    "hidePassword": "Ẩn mật khẩu",
+    "loginTitle": "Đăng nhập",
+    "loginLede": "Tiếp tục từ nơi bạn đã dừng.",
+    "remember": "Duy trì đăng nhập",
+    "forgotLink": "Quên mật khẩu?",
+    "loginSubmit": "Đăng nhập",
+    "noAccount": "Mới đến CyberCompass?",
+    "registerLink": "Tạo tài khoản",
+    "registerTitle": "Tạo tài khoản",
+    "registerLede": "Một tài khoản cho bài đánh giá, lộ trình và tiến độ của bạn.",
+    "name": "Họ và tên",
+    "passwordConfirm": "Xác nhận mật khẩu",
+    "passwordHint": "Ít nhất 8 ký tự, gồm cả chữ và số.",
+    "registerSubmit": "Tạo tài khoản",
+    "haveAccount": "Đã có tài khoản?",
+    "loginLink": "Đăng nhập",
+    "forgotTitle": "Đặt lại mật khẩu",
+    "forgotLede": "Nhập email tài khoản, chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+    "forgotSubmit": "Gửi liên kết",
+    "forgotSent": "Nếu {email} có tài khoản, liên kết đặt lại mật khẩu đang được gửi đến. Liên kết hết hạn sau 60 phút.",
+    "backToLogin": "Quay lại đăng nhập",
+    "resetTitle": "Chọn mật khẩu mới",
+    "resetLede": "Đặt lại mật khẩu cho {email}.",
+    "resetSubmit": "Lưu mật khẩu mới",
+    "resetDone": "Mật khẩu đã được đặt lại. Hãy đăng nhập bằng mật khẩu mới.",
+    "resetInvalidLink": "Liên kết đặt lại không đầy đủ. Hãy yêu cầu liên kết mới.",
+    "requestNewLink": "Yêu cầu liên kết mới",
+    "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+    "networkError": "Không kết nối được máy chủ. Kiểm tra kết nối mạng và thử lại."
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "tabs": {
+      "profile": "Thông tin cá nhân",
+      "security": "Bảo mật",
+      "preferences": "Tùy chọn"
+    },
+    "profile": {
+      "avatar": "Ảnh đại diện",
+      "avatarHint": "JPEG, PNG hoặc WebP, tối đa 2 MB. Ảnh được cắt vuông.",
+      "avatarUpload": "Tải ảnh lên",
+      "avatarReplace": "Thay ảnh",
+      "avatarRemove": "Xóa",
+      "avatarUpdated": "Đã cập nhật ảnh.",
+      "avatarRemoved": "Đã xóa ảnh.",
+      "name": "Họ và tên",
+      "email": "Email",
+      "emailHint": "Chưa hỗ trợ đổi email.",
+      "phone": "Số điện thoại",
+      "dob": "Ngày sinh",
+      "education": "Trình độ học vấn",
+      "educationNone": "Không xác định",
+      "levels": {
+        "high_school": "Trung học phổ thông",
+        "undergraduate": "Đại học",
+        "graduate": "Sau đại học",
+        "other": "Khác"
+      },
+      "save": "Lưu thay đổi",
+      "saved": "Đã lưu thay đổi."
+    },
+    "security": {
+      "passwordTitle": "Đổi mật khẩu",
+      "passwordLede": "Đổi mật khẩu sẽ đăng xuất các thiết bị khác của bạn.",
+      "current": "Mật khẩu hiện tại",
+      "new": "Mật khẩu mới",
+      "confirm": "Xác nhận mật khẩu mới",
+      "submit": "Cập nhật mật khẩu",
+      "done": "Đã cập nhật mật khẩu. Các thiết bị khác đã được đăng xuất.",
+      "sessionTitle": "Thiết bị này",
+      "memberSince": "Tạo tài khoản ngày {date}",
+      "logout": "Đăng xuất"
+    },
+    "preferences": {
+      "appearance": "Giao diện",
+      "appearanceHint": "Hệ thống sẽ theo chế độ sáng hoặc tối của thiết bị.",
+      "language": "Ngôn ngữ",
+      "languageHint": "Dùng cho giao diện và email chúng tôi gửi cho bạn.",
+      "saved": "Đã lưu vào tài khoản.",
+      "saveFailed": "Không lưu được vào tài khoản. Thiết lập vẫn áp dụng trên thiết bị này."
+    }
   }
 }
