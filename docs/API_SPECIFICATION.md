@@ -89,26 +89,27 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 
 | | Method | Path |
 |---|---|---|
-| 🔓 | GET | `/domains` |
-| 🔓 | GET | `/careers` |
-| 🔓 | GET | `/careers/{slug}` (responsibilities, domains, skills, suggested courses, roadmap preview) |
+| 🔓 | GET | `/domains` (with published course counts). ✅ Phase 3 |
+| 🔓 | GET | `/careers`. ✅ Phase 3 |
+| 🔓 | GET | `/careers/{slug}` (responsibilities, domains with required level, skills, suggested courses, `roadmap.stages[].topics[]` with `requires`). ✅ Phase 3 |
 
 ### Catalog
 
 | | Method | Path |
 |---|---|---|
-| 🔓 | GET | `/courses` (q, filter[domain], filter[difficulty], filter[favorited] 🔒, sort, page) |
-| 🔓 | GET | `/courses/{slug}` (chapters, lessons, objectives, skills, prerequisites, related; plus `viewer` state when authenticated) |
-| 🔒 | POST/DELETE | `/courses/{slug}/favorite` |
-| 🔒 | POST | `/courses/{slug}/enroll` |
+| 🔓 | GET | `/courses` (q, filter[domain], filter[difficulty], filter[favorited] for signed-in viewers, sort = newest, title, -title, difficulty, -difficulty, duration, -duration; page, per_page default 6). Signed-in viewers get `is_favorited`. ✅ Phase 3 |
+| 🔓 | GET | `/courses/{slug}` (chapters, lessons, objectives, skills, prerequisites, up to 3 related). The same for every viewer. ✅ Phase 3 |
+| 🔒 | GET | `/courses/{slug}/progress` (enrolled, favorited, completed/total lessons, percent, next lesson, status of each lesson). ✅ Phase 3 |
+| 🔒 | POST/DELETE | `/courses/{slug}/favorite` (idempotent). ✅ Phase 3 |
+| 🔒 | POST | `/courses/{slug}/enroll` (idempotent: 201 the first time, then 200). ✅ Phase 3 |
 
 ### Learning
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/lessons/{slug}` (sections, objectives, takeaways, resources, prerequisites, progress) |
-| 🔒 | POST | `/lessons/{slug}/start` |
-| 🔒 | POST | `/lessons/{slug}/complete-reading` (time_spent_seconds) |
+| 🔒 | GET | `/lessons/{slug}` (typed sections, objectives, takeaways, resources, course prerequisites, previous and next lesson across chapters, my progress). ✅ Phase 3 |
+| 🔒 | POST | `/lessons/{slug}/start` (idempotent). ✅ Phase 3 |
+| 🔒 | POST | `/lessons/{slug}/complete` (time_spent_seconds, capped at 4 h per call; returns the course progress). ✅ Phase 3 |
 | 🔒 | GET | `/lessons/{slug}/exercise` (questions **without answers**) |
 | 🔒 | POST | `/lessons/{slug}/exercise/attempts` (answers[]), which returns per-question correctness, the correct answer, the explanation and the section reference |
 | 🔒 | GET | `/exercise-attempts/{id}` |
@@ -179,7 +180,7 @@ The response shape is graph-ready but layout-free. The client computes positions
 
 | | Method | Path |
 |---|---|---|
-| 🔓 | GET | `/search?q=` (courses, lessons, careers, grouped; max 5 each) |
+| 🔓 | GET | `/search?q=` (courses, lessons, careers, grouped; max 5 each). Phase 6; the catalog has its own search today. |
 
 ## Security notes
 

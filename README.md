@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phase 2 (Auth and user management) complete.** Accounts, sessions, password reset and profile settings work end to end. Learning content arrives in Phase 3. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phase 3 (Learning content) complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 
@@ -15,7 +15,10 @@ A personalized learning platform for cybersecurity. Take a knowledge assessment,
 | Docker development environment and production images | ✅ Built |
 | Auth: register, login, remember me, logout, password reset by email | ✅ Built, feature- and browser-tested |
 | Profile settings: personal info, avatar, password, theme and language saved to the account | ✅ Built |
-| Course catalog, course detail, lesson reader | Planned (Phase 3) |
+| Course catalog (search, filters, sort, favorites, pagination), course detail, enrollment | ✅ Built |
+| Lesson reader with interactive diagrams (OSI, TCP handshake, CIA triad) and progress | ✅ Built |
+| Career catalog and career pages with roadmap templates | ✅ Built |
+| Landing page | ✅ Built |
 | Initial knowledge assessment with transparent scoring | Planned (Phase 4) |
 | Personalized, interactive learning roadmap | Planned (Phase 4–5) |
 | Exercises (7 question types) and browser-based labs | Planned (Phase 5) |
@@ -73,7 +76,7 @@ cp .env.example .env                       # compose variables: DB credentials, 
 cp backend/.env.example backend/.env       # Laravel settings (DB_PASSWORD must match .env)
 cp frontend/.env.example frontend/.env.local
 
-docker compose up -d --build               # mysql, mailpit, api, worker, web
+docker compose up -d --build               # mysql, mailpit, api, worker
 docker compose exec -u root api chmod -R a+rwX storage bootstrap/cache   # once; see note below
 docker compose exec api php artisan key:generate
 docker compose exec api php artisan migrate --seed
@@ -82,11 +85,19 @@ docker compose exec -u root api php artisan storage:link              # serves u
 
 Seeding creates a demo account, `demo@cybercompass.test`. Its password is whatever you set as `DEMO_USER_PASSWORD` in `backend/.env`. If that is empty, the seeder skips the account.
 
-On first start, the API container runs `composer install` into its `vendor` volume, which takes about a minute.
+On first start, the API container runs `composer install` into its `vendor` volume, which takes about a minute. Seeding loads all learning content (8 courses, 30 lessons, 7 careers) and the demo account.
+
+Then start the frontend on your machine. Hot reload inside Docker is unreliable on Windows and macOS (see ARCHITECTURE.md D13):
+
+```bash
+cd frontend && npm install && npm run dev      # http://localhost:3000
+```
+
+To run the frontend in Docker as well, for example to test the container, use `docker compose --profile web up -d`.
 
 | URL | What |
 |---|---|
-| http://localhost:3000 | Web app. The home page shows live API and database status. |
+| http://localhost:3000 | Web app (run `npm run dev` in `frontend/`, see below). `/status` shows live API and database status. |
 | http://localhost:8000/api/v1/health | API health |
 | http://localhost:8000/docs/api | OpenAPI documentation (local only) |
 | http://localhost:8025 | Mailpit, which catches outgoing email such as password resets |

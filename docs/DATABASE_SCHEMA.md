@@ -73,6 +73,8 @@ erDiagram
 
 ## Tables
 
+Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3). The rest is designed and arrives with its phase.
+
 ### Identity
 
 **users**: `name`, `email` (unique), `email_verified_at`, `password`, `role` enum(`learner`,`admin`) default learner, `remember_token`.
@@ -103,13 +105,13 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Courses and lessons
 
-**courses**: `domain_id` FK, `slug` (unique), `title`, `summary`, `description`, `difficulty` tinyint (1 to 3), `thumbnail_path`, `objectives` JSON, `is_published`, `published_at`. Indexes: (`domain_id`,`difficulty`), and FULLTEXT(`title`,`summary`) for search.
+**courses**: `domain_id` FK, `slug` (unique), `title`, `summary`, `description`, `difficulty` tinyint (1 to 3), `thumbnail_path`, `objectives` JSON, `is_published`, `published_at`. Indexes: (`is_published`,`domain_id`,`difficulty`) and (`is_published`,`published_at`). Search uses a substring match rather than FULLTEXT (ARCHITECTURE D15).
 `estimated_minutes` and `lesson_count` are **not stored**. They are aggregated with `withSum`/`withCount` in queries.
 **course_prerequisites**: `course_id`, `prerequisite_course_id`.
 **course_skills**: `course_id`, `skill_id`.
 **course_chapters**: `course_id` FK cascade, `title`, `position`.
 **lessons**: `course_chapter_id` FK cascade, `slug` (unique), `title`, `summary`, `objectives` JSON, `key_takeaways` JSON, `resources` JSON (a list of {label, url}), `estimated_minutes` smallint, `position`.
-**lesson_sections**: `lesson_id` FK cascade, `position`, `type` enum(`prose`,`callout`,`diagram`,`steps`,`code`,`visual_3d`), `heading` null, `payload` JSON. Index (`lesson_id`,`position`).
+**lesson_sections**: `lesson_id` FK cascade, `position`, `type` enum(`prose`,`callout`,`diagram`,`steps`,`code`,`visual_3d`), `heading` null, `payload` JSON. Unique (`lesson_id`,`position`). Payloads: prose `{text}`, callout `{text, tone}`, steps `{items}`, code `{code, language}`, diagram `{key, caption, data}`. The diagram's data is the content the component draws (ARCHITECTURE D14).
 
 ### Exercises
 

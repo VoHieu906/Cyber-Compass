@@ -65,13 +65,19 @@ services:
       test: ["CMD", "healthcheck-queue"]
       start_period: 10s
 
+  # Opt-in: `docker compose --profile web up`. For day-to-day frontend work run `npm run dev`
+  # in frontend/ on the host instead: Docker Desktop's file sharing on Windows/macOS delays or
+  # drops file events, so hot reload in this container is unreliable (docs/ARCHITECTURE.md D13).
   web:
+    profiles: ["web"]
     build:
       context: ./frontend
       target: development
     image: cybercompass-web:dev
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      # Server Components reach the API over the compose network, not through the host port.
+      INTERNAL_API_URL: http://api:8080
       WATCHPACK_POLLING: "true"
     ports:
       - "${FORWARD_WEB_PORT:-3000}:3000"
