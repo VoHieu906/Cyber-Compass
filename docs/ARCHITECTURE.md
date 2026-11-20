@@ -145,7 +145,8 @@ Rule-based, deterministic and documented, so a learner can see why a node was re
 - Unanswered questions count as incorrect once the attempt is submitted.
 - Bands: **gap** below 40, **developing** from 40 to 74, **strength** from 75 up.
 - The overall score uses the same weighted formula across all questions.
-- The result page shows the formula and the counts per domain.
+- The result page shows the formula and the counts per domain. For questions answered wrongly (or left unanswered) it shows the correct option and the explanation; correctly answered questions only show that they were correct (D26).
+- The bank is fixed (5 questions per domain, difficulties 1, 1, 2, 2, 3). This is a transparent questionnaire, not an adaptive or AI assessment, and the UI says so.
 
 ### 6.2 Roadmap generation
 
@@ -157,6 +158,8 @@ For each topic in the career template:
 |---|---|---|
 | Domain score ≥ 75 and the topic's level ≤ intermediate | `review`: optional, unlocked | "You scored 82% in Networking" |
 | Domain score below 40 | `required`, with foundation topics of that domain inserted before it if they're missing | "Networking is a gap (31%)" |
+
+Foundation topics are the domain's lowest-level topics. An inserted topic goes into the same stage, just before the first topic that needed it, together with any of its own prerequisites that are missing, in prerequisite order; its reason is "foundation for <topic>". Topics with no learner-visible lessons are left out of a generated path. Without a submitted attempt every topic is `required`.
 | Otherwise | `required` | "Needed for SOC Analyst" |
 
 The path is stored as a snapshot (`learning_paths` and `learning_path_nodes`), so it stays stable while the learner works through it. Reassessing or changing career creates a **new version** and archives the old one. Progress lives in `lesson_progress` and is never copied, so it carries over automatically.
@@ -236,6 +239,9 @@ Configuration is read from environment variables only. Secrets come from Secrets
 | D21 | One MySQL schema, with table ownership per module | A separate content database | Foreign keys from progress, topics and future exercises to lessons and sections, and the transactions across them, need one schema. No new AWS service. |
 | D22 | Interactive 3D lesson blocks run only in a sandbox: `<iframe sandbox="allow-scripts">` (opaque origin) under a no-network CSP, with Three.js in a Web Worker on an OffscreenCanvas and a watchdog. Two block types share it: `scene-3d` (declarative, the default) and `script-3d` (admin-written Three.js, operator kill switch `CONTENT_SCRIPTED_3D`) | Author JS in the page; sanitising JS; a sandboxed iframe running code on its own thread; declarative-only | Admins asked for creative freedom up to code. Code on the app origin would be account takeover; a same-thread sandbox can still freeze the page and phish by navigating. The worker has no DOM, origin, storage or network and can be terminated. Decision record and threat model: [SANDBOXED_3D.md](SANDBOXED_3D.md). |
 | D23 | Lesson graph blocks (`flow`, `tree`, `topology`) render as static, themed SVG. `flow` and `tree` are laid out by a pure dagre function (`lib/graph/layout.ts`); `topology` uses the author's positions. Nodes with details are keyboard buttons, and every graph has a text version | React Flow for lesson diagrams | Lesson diagrams are read-only. A pan-and-zoom canvas traps page scrolling and touch, and React Flow adds about 50 KB plus its CSS for no interaction a reader needs. SVG prints, follows theme tokens and stays legible because wide graphs scroll in their own box. dagre (about 19 KB gzip) loads only on lessons with a flow or tree. The Phase 5 roadmap can still use React Flow, fed by the same `layoutGraph()`. |
+| D24 | The `Assessment` module owns its tables (`assessments`, questions, options, attempts, answers) and its own content loader (`seeders/content/assessment.php`). D17 covers lesson content only | Routing question import through the `Content` module | Questions are not lesson blocks and have no draft, revision or block registry. The loader follows the same rules as the content importer: questions are matched by a stable `key`, removed questions are archived (`is_archived`) rather than deleted, and the file is validated before anything is written. A question admin, when built, belongs to this module (Phase 4 impact check, 2026-11-21). |
+| D25 | Phase 4 ships the personal roadmap as an **outline** (`/roadmap`: stages, topics with status and reason, lessons). Phase 5 adds the interactive graph, expand and collapse, the lesson drawer and the knowledge map on the same `GET /learning-path` response; the outline stays as the phone view | Graph in Phase 4; generate-only in Phase 4 | A generated roadmap with nothing to show it would be a fake interaction. The outline is the view Phase 5 needed for phones anyway. The graph library (React Flow or the D23 static SVG) is decided in Phase 5. |
+| D26 | The assessment result shows every domain score, band and the formula, and **reveals the correct answer and explanation only for questions the learner got wrong**. Correct answers are listed as correct without the key being restated. A new roadmap version is created only by an explicit "Update my roadmap" action | Revealing every question; regenerating automatically on submit | Learners learn from their mistakes without the whole key being handed out, which keeps retakes somewhat meaningful until the question pool grows (a follow-up content task: a larger pool with random selection per attempt). An explicit update means the path never changes behind the learner's back. |
 
 ## 10. Risks
 

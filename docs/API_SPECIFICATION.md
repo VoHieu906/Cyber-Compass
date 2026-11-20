@@ -123,7 +123,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | GET | `/assessment-attempts/{id}` (questions + the learner's saved answers) |
 | 🔒 | PUT | `/assessment-attempts/{id}/answers/{questionId}` (option_id), which autosaves |
 | 🔒 | POST | `/assessment-attempts/{id}/submit` (409 if already submitted) |
-| 🔒 | GET | `/assessment-attempts/{id}/result` (overall, per-domain score + band, strengths, gaps, next steps, formula) |
+| 🔒 | GET | `/assessment-attempts/{id}/result` (overall, per-domain score + band, strengths, gaps, next steps, formula; per question: correct or not, and for wrong or unanswered ones only, the correct option and the explanation, D26) |
 | 🔒 | GET | `/assessment-attempts` (history) |
 
 ### Roadmap
@@ -133,9 +133,8 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | GET | `/learning-path` (the active path: nodes with computed status, edges, lessons per node with status, completion %) |
 | 🔒 | POST | `/learning-path/generate` (career_id optional; uses the goal and the latest attempt) |
 | 🔒 | GET | `/learning-paths` (versions) |
-| 🔓 | GET | `/careers/{slug}/roadmap` (template preview, with no personal status) |
 
-The response shape is graph-ready but layout-free. The client computes positions.
+The career template is already part of `GET /careers/{slug}` (`roadmap.stages`), so there is no separate template endpoint. The response shape is graph-ready but layout-free. The client computes positions.
 
 ```json
 { "data": {

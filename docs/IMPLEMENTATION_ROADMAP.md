@@ -85,12 +85,21 @@ Inserted between Phase 3 and Phase 4 by the Phase 3.5 prompt. Design and every c
 
 ## Phase 4: Assessment and personalization
 
-Assessment (about 40 questions), autosaving attempt flow, scoring service, result page with domain bands and the formula, career goal selection, the roadmap generator and versioning.
-**Tests:** scoring unit tests (weights, bands, unanswered questions), answer keys never leak, generator rules, single active path.
+Impact check (2026-11-21, CLAUDE.md §5) against Phase 3.5's changes, with the user's decisions: D24 (the `Assessment` module owns its question bank and loader), D25 (the personal roadmap ships as an outline in Phase 4; the graph stays in Phase 5), D26 (the result reveals answers and explanations only for wrongly answered questions; the roadmap updates only on request). The planned `GET /careers/{slug}/roadmap` endpoint was dropped as a duplicate of `GET /careers/{slug}`.
+
+Delivered in three gated parts:
+
+- **Part A, assessment backend:** assessment tables (questions carry a stable `key` and `is_archived`), a 40-question bank in `seeders/content/assessment.php` (5 per domain, difficulties 1, 1, 2, 2, 3, each with an explanation, none reused from lesson practice checks), `ScoringService`, start or resume, autosave, submit (one transaction, 409 on resubmit, fires `AssessmentSubmitted` for Phase 6 listeners), result and history endpoints.
+- **Part B, assessment UI:** intro (states that this is a fixed questionnaire), the attempt flow grouped by domain with progress, previous and next, autosave and a review step, the result page (overall and domain scores, bands, formula, strengths, gaps, rule-based next steps, review of wrong answers), history, and the header link.
+- **Part C, goals and the personal roadmap:** `learning_goals` with `PUT /me/learning-goal` and the goal in `/me`, the Learning goals settings tab, "Set as my goal" on career pages, the `RoadmapGenerator` (ARCHITECTURE §6.2) with versioning and a single active path, `GET /learning-path` with computed statuses and the next lesson, `POST /learning-path/generate`, `GET /learning-paths`, the `/roadmap` outline page, the header link, and a demo learner with a submitted attempt and an active path.
+
+**Tests:** scoring unit tests (weights, bands, unanswered questions), answer keys never leak before submission and only for wrong answers after, attempt ownership (404), generator rules (review, gap with inserted foundations, no assessment, hidden lessons), single active path, status computation.
+
+**Shifts recorded:** the outline view moves here from Phase 5 (D25); the next-lesson calculation moves here from Phase 6 and is reused by `/progress/next`. Activity records and the assessment-result notification stay in Phase 6, as listeners on `AssessmentSubmitted`.
 
 ## Phase 5: Interactive learning
 
-Roadmap graph (React Flow + dagre): expand and collapse, statuses, prerequisites, lesson drawer, mobile outline view. Knowledge map by domain. Exercise mode in all seven question types, split-screen and mobile tabs, feedback with theory references, completion rules. Labs: `linux-shell`, `firewall-rules`, `http-inspector` engines with server checkpoint validation. One 3D visual (packet traversal across a topology), lazy-loaded.
+Roadmap graph on the Phase 4 `GET /learning-path` response, laid out by `lib/graph` (whether it renders with React Flow or the D23 static SVG is decided at the start of this phase): expand and collapse, statuses, prerequisites, lesson drawer. The outline view from Phase 4 (D25) stays as the phone view. Knowledge map by domain. Exercise mode in all seven question types, split-screen and mobile tabs, feedback with theory references, completion rules. Labs: `linux-shell`, `firewall-rules`, `http-inspector` engines with server checkpoint validation. ~~One 3D visual (packet traversal across a topology)~~: already delivered in Phase 3.5 C3 as the `scene-3d` "follow a packet" scene in the networking intro lesson; new 3D is content on the D22 blocks.
 
 ## Phase 6: Progress and engagement
 
@@ -99,6 +108,11 @@ Activity recording through events, streak calculator (local-date aware), dashboa
 ## Phase 7: Quality and deployment
 
 Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise, dashboard). Security review (OWASP checklist, dependency audit, headers, rate limits). Performance (bundle analysis, image sizes, N+1 checks). Responsive and accessibility audit. Hallmark sweep. Production Dockerfiles, ECS task definitions, step-by-step AWS deployment guide.
+
+## Follow-ups (not scheduled in a phase)
+
+- **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.
+- **Question bank admin area** (D24). Phase 4 keeps the bank in a seed file; an admin area follows the CLAUDE.md §3 admin recipe when needed.
 
 ## Decisions made
 
