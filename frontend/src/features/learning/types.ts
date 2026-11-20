@@ -27,6 +27,13 @@ export type LessonSection =
         height: number | null;
       };
     }
+  | {
+      id: string;
+      /** Interactive 3D, drawn in the sandbox (docs/SANDBOXED_3D.md). script-3d payloads may arrive with disabled: true. */
+      type: "scene-3d" | "script-3d";
+      heading: string | null;
+      payload: Record<string, unknown>;
+    }
   | { id: string; type: "visual_3d"; heading: string | null; payload: Record<string, unknown> };
 
 export type LessonLink = { slug: string; title: string };

@@ -66,7 +66,8 @@ export type BlockTypeInfo = {
   key: string;
   label: string;
   description: string;
-  editor: "form" | "json";
+  /** form: generated fields; json: validated JSON editor; scene / script: the 3D editors with live preview. */
+  editor: "form" | "json" | "scene" | "script";
   schema: Record<string, unknown>;
   example: Record<string, unknown>;
   diagram_keys?: string[];

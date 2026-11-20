@@ -298,7 +298,23 @@
       "controls": "Controls that protect it",
       "layers": "OSI layers"
     },
-    "lessonNav": "Lesson navigation"
+    "lessonNav": "Lesson navigation",
+    "scene": {
+      "untitled": "3D view",
+      "play": "Play",
+      "pause": "Pause",
+      "resetView": "Reset view",
+      "previousStep": "Previous step",
+      "nextStep": "Next step",
+      "stepOf": "Step {current} of {total}",
+      "close": "Close",
+      "hint": "Drag to rotate, scroll to zoom, click a part to learn more",
+      "stalled": "This 3D view stopped responding, so it was closed.",
+      "failed": "This 3D view couldn't start.",
+      "unsupported": "Your browser can't show this 3D view.",
+      "description": "Text description",
+      "descriptionInstead": "Text description (shown instead of the 3D view)"
+    }
   },
   "careers": {
     "title": "Careers",
@@ -760,6 +776,42 @@
       "edited": "{count, plural, one {# block edited} other {# blocks edited}}",
       "reordered": "blocks reordered",
       "noChanges": "Republished without changes"
+    },
+    "scene": {
+      "title": "Title",
+      "titleHint": "Announced to screen readers as the name of the 3D view.",
+      "aspect": "Shape",
+      "description": "Text description",
+      "descriptionHint": "Required. Describe what the 3D view shows: screen-reader users and browsers without 3D get this instead.",
+      "caption": "Caption",
+      "sceneJson": "Scene (JSON)",
+      "code": "Three.js code",
+      "codeHint": "Runs only in an isolated sandbox with no network, cookies or page access. Tab indents; press Escape, then Tab, to leave the editor.",
+      "run": "Run again",
+      "livePreview": "Live preview",
+      "previewWaiting": "The preview appears once the block is valid.",
+      "notYetValid": "Not valid yet, so the preview shows the last valid version:",
+      "runtimeError": "The 3D view stopped with an error.",
+      "stalled": "The 3D view stopped responding (an endless loop, or too much work per frame) and was shut down.",
+      "atLine": "Line {line}:",
+      "reference": {
+        "title": "Scene reference",
+        "camera": "position [x, y, z], optional target, fov, controls (orbit or none), autoRotate.",
+        "objects": "Up to {max}. Each has an id and a shape, and optionally size, position, rotation (degrees), color (#rrggbb), opacity, wireframe, emissive, text (a floating label), info (title and text shown on click) and parent (an id, to move with a group). Shapes:",
+        "animation": "On an object: type spin, bob, pulse or orbit; axis x, y or z; speed; amount.",
+        "links": "Up to {max} lines between object ids: color, dashed, label, and flow (count, speed, color) for moving packets.",
+        "steps": "Up to {max} guided steps: title, text, and show, hide or highlight lists of ids, plus an optional camera. Each step builds on the one before.",
+        "lights": "Up to {max}: ambient, directional, point or hemisphere, with intensity, color and position. Sensible lighting is added when you list none."
+      },
+      "scriptReference": {
+        "title": "Script reference",
+        "intro": "Your code runs once to build the scene. Available names:",
+        "objects": "the Three.js library and the ready-made scene, camera, orbit controls and renderer",
+        "onFrame": "called every frame while playing; use it for animation",
+        "label": "a text label sprite you can position and add to the scene",
+        "flags": "the reader's colour theme, and whether they asked for reduced motion",
+        "limits": "Up to 20,000 characters. Setup must finish within 3 seconds and frames must keep coming, or the view is shut down. No network access, DOM or timers beyond onFrame."
+      }
     }
   }
 }

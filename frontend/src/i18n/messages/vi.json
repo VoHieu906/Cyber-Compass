@@ -298,7 +298,23 @@
       "controls": "Biện pháp bảo vệ",
       "layers": "Các tầng OSI"
     },
-    "lessonNav": "Điều hướng bài học"
+    "lessonNav": "Điều hướng bài học",
+    "scene": {
+      "untitled": "Mô hình 3D",
+      "play": "Phát",
+      "pause": "Tạm dừng",
+      "resetView": "Đặt lại góc nhìn",
+      "previousStep": "Bước trước",
+      "nextStep": "Bước sau",
+      "stepOf": "Bước {current} / {total}",
+      "close": "Đóng",
+      "hint": "Kéo để xoay, cuộn để phóng to, nhấp vào một phần để xem giải thích",
+      "stalled": "Mô hình 3D này không phản hồi nên đã bị đóng.",
+      "failed": "Không thể khởi động mô hình 3D này.",
+      "unsupported": "Trình duyệt của bạn không hiển thị được mô hình 3D này.",
+      "description": "Mô tả bằng văn bản",
+      "descriptionInstead": "Mô tả bằng văn bản (thay cho mô hình 3D)"
+    }
   },
   "careers": {
     "title": "Nghề nghiệp",
@@ -760,6 +776,42 @@
       "edited": "{count, plural, other {sửa # khối}}",
       "reordered": "sắp xếp lại các khối",
       "noChanges": "Xuất bản lại không thay đổi"
+    },
+    "scene": {
+      "title": "Tiêu đề",
+      "titleHint": "Trình đọc màn hình đọc tiêu đề này làm tên của mô hình 3D.",
+      "aspect": "Tỉ lệ khung",
+      "description": "Mô tả bằng văn bản",
+      "descriptionHint": "Bắt buộc. Mô tả nội dung mô hình 3D: người dùng trình đọc màn hình và trình duyệt không hỗ trợ 3D sẽ thấy phần này.",
+      "caption": "Chú thích",
+      "sceneJson": "Cảnh (JSON)",
+      "code": "Mã Three.js",
+      "codeHint": "Chỉ chạy trong vùng cách ly, không có mạng, cookie hay quyền truy cập trang. Phím Tab để thụt lề; nhấn Escape rồi Tab để rời trình soạn.",
+      "run": "Chạy lại",
+      "livePreview": "Xem trước trực tiếp",
+      "previewWaiting": "Bản xem trước xuất hiện khi khối hợp lệ.",
+      "notYetValid": "Chưa hợp lệ, nên bản xem trước đang hiển thị phiên bản hợp lệ gần nhất:",
+      "runtimeError": "Mô hình 3D dừng vì lỗi.",
+      "stalled": "Mô hình 3D không phản hồi (vòng lặp vô hạn hoặc mỗi khung hình quá nặng) nên đã bị tắt.",
+      "atLine": "Dòng {line}:",
+      "reference": {
+        "title": "Tham khảo cảnh",
+        "camera": "position [x, y, z], target (tùy chọn), fov, controls (orbit hoặc none), autoRotate.",
+        "objects": "Tối đa {max}. Mỗi đối tượng có id và shape, tùy chọn size, position, rotation (độ), color (#rrggbb), opacity, wireframe, emissive, text (nhãn nổi), info (tiêu đề và nội dung hiện khi nhấp) và parent (id của nhóm). Các hình:",
+        "animation": "Trên một đối tượng: type spin, bob, pulse hoặc orbit; axis x, y hoặc z; speed; amount.",
+        "links": "Tối đa {max} đường nối giữa các id: color, dashed, label, và flow (count, speed, color) để có gói tin di chuyển.",
+        "steps": "Tối đa {max} bước hướng dẫn: title, text, các danh sách show, hide, highlight theo id, và camera (tùy chọn). Mỗi bước kế thừa bước trước.",
+        "lights": "Tối đa {max}: ambient, directional, point hoặc hemisphere, với intensity, color và position. Nếu không khai báo, hệ thống tự thêm ánh sáng phù hợp."
+      },
+      "scriptReference": {
+        "title": "Tham khảo mã",
+        "intro": "Mã của bạn chạy một lần để dựng cảnh. Các tên có sẵn:",
+        "objects": "thư viện Three.js cùng scene, camera, điều khiển xoay và renderer đã tạo sẵn",
+        "onFrame": "được gọi mỗi khung hình khi đang phát; dùng để tạo chuyển động",
+        "label": "một nhãn chữ có thể đặt vị trí và thêm vào cảnh",
+        "flags": "giao diện sáng/tối của người đọc, và việc họ có yêu cầu giảm chuyển động hay không",
+        "limits": "Tối đa 20.000 ký tự. Phần dựng cảnh phải xong trong 3 giây và khung hình phải liên tục, nếu không mô hình sẽ bị tắt. Không có mạng, DOM hay bộ hẹn giờ ngoài onFrame."
+      }
     }
   }
 }

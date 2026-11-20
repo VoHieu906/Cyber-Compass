@@ -4,6 +4,7 @@ import { AlertTriangle, Check, Copy, Info, Lightbulb } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { SceneFrame } from "../blocks/scene-frame";
 import { Diagram } from "../diagrams/registry";
 import type { CalloutTone, LessonSection } from "../types";
 import { Prose, renderInline } from "./prose";
@@ -148,6 +149,10 @@ export function Section({ section }: { section: LessonSection }) {
           <Diagram diagramKey={section.payload.key} data={section.payload.data} />
         </figure>
       );
+      break;
+    case "scene-3d":
+    case "script-3d":
+      body = <SceneFrame kind={section.type} payload={section.payload} />;
       break;
     case "media":
       if (!section.payload.url) return null;
