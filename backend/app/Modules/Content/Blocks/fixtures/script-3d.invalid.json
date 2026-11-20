@@ -1,0 +1,6 @@
+[
+  { "title": "No code", "description": "A scripted block without any code in it at all.", "code": "" },
+  { "title": "No description", "code": "scene.add(new THREE.Object3D());\n" },
+  { "title": "Odd aspect", "description": "A scripted block with an aspect ratio that is not offered.", "aspect": "3:1", "code": "x\n" },
+  { "title": "Extra", "description": "A scripted block that tries to carry an extra field along.", "code": "x\n", "html": "<script>" }
+]

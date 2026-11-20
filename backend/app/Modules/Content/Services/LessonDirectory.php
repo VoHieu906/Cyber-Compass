@@ -12,7 +12,7 @@ final class LessonDirectory
     public const DEFAULT_PER_PAGE = 20;
 
     /** Block types that count as visuals in the list (Part C adds the generic visual blocks). */
-    public const VISUAL_TYPES = ['diagram', 'media'];
+    public const VISUAL_TYPES = ['diagram', 'media', 'scene-3d', 'script-3d'];
 
     /**
      * @param  array{q?: ?string, filter?: array<string, mixed>, sort?: ?string, per_page?: ?int}  $params

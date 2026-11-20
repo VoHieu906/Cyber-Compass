@@ -4,6 +4,7 @@ namespace App\Modules\Content\Services;
 
 use App\Models\LessonMedia;
 use App\Models\LessonSection;
+use App\Modules\Content\Blocks\Types\Script3dBlock;
 use Illuminate\Support\Collection;
 
 /**
@@ -28,6 +29,13 @@ final class LessonSerializer
                 ? ['id' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload]
                 : ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'] ?? null, 'payload' => $s['payload']])
             ->values();
+
+        // With 3D scripts switched off, the code never leaves the server; the reader shows the description.
+        if (! Script3dBlock::enabled()) {
+            $rows = $rows->map(fn (array $row) => $row['type'] === 'script-3d'
+                ? [...$row, 'payload' => [...collect($row['payload'])->except('code')->all(), 'disabled' => true]]
+                : $row);
+        }
 
         $mediaIds = $rows->where('type', 'media')->pluck('payload.media')->filter()->unique();
         if ($mediaIds->isEmpty()) {

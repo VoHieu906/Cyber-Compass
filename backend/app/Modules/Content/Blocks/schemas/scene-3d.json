@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "scene-3d",
+  "description": "A declarative 3D scene drawn by the sandboxed renderer (docs/SANDBOXED_3D.md). Mirrors frontend/src/sandbox/scene3d/schema.ts. Cross-references (unique ids, parents, link ends, step targets) are checked in Scene3dBlock.",
+  "type": "object",
+  "required": ["title", "description", "camera", "objects"],
+  "additionalProperties": false,
+  "$defs": {
+    "coord": { "type": "number", "minimum": -1000, "maximum": 1000 },
+    "vec3": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/coord" }, { "$ref": "#/$defs/coord" }, { "$ref": "#/$defs/coord" }], "minItems": 3, "maxItems": 3, "items": false },
+    "size": { "type": "number", "minimum": 0.01, "maximum": 500 },
+    "positive3": { "type": "array", "prefixItems": [{ "$ref": "#/$defs/size" }, { "$ref": "#/$defs/size" }, { "$ref": "#/$defs/size" }], "minItems": 3, "maxItems": 3, "items": false },
+    "color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" },
+    "ids": { "type": "array", "items": { "$ref": "#/$defs/id" }, "maxItems": 150 }
+  },
+  "properties": {
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "minLength": 20, "maxLength": 1200 },
+    "caption": { "type": ["string", "null"], "maxLength": 300 },
+    "aspect": { "enum": ["16:9", "4:3", "1:1", "21:9"] },
+    "background": { "anyOf": [{ "$ref": "#/$defs/color" }, { "type": "null" }] },
+    "camera": {
+      "type": "object",
+      "required": ["position"],
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/$defs/vec3" },
+        "target": { "$ref": "#/$defs/vec3" },
+        "fov": { "type": "number", "minimum": 20, "maximum": 100 },
+        "controls": { "enum": ["orbit", "none"] },
+        "autoRotate": { "type": "boolean" }
+      }
+    },
+    "lights": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["type", "intensity"],
+        "additionalProperties": false,
+        "properties": {
+          "type": { "enum": ["ambient", "directional", "point", "hemisphere"] },
+          "color": { "$ref": "#/$defs/color" },
+          "intensity": { "type": "number", "minimum": 0, "maximum": 10 },
+          "position": { "$ref": "#/$defs/vec3" }
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 150,
+      "items": {
+        "type": "object",
+        "required": ["id", "shape"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "shape": { "enum": ["box", "sphere", "cylinder", "cone", "torus", "plane", "capsule", "ring", "label", "group"] },
+          "size": { "$ref": "#/$defs/positive3" },
+          "position": { "$ref": "#/$defs/vec3" },
+          "rotation": { "$ref": "#/$defs/vec3" },
+          "color": { "$ref": "#/$defs/color" },
+          "opacity": { "type": "number", "minimum": 0.05, "maximum": 1 },
+          "wireframe": { "type": "boolean" },
+          "emissive": { "type": "boolean" },
+          "text": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "info": {
+            "type": "object",
+            "required": ["title", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "text": { "type": "string", "minLength": 1, "maxLength": 600 }
+            }
+          },
+          "parent": { "$ref": "#/$defs/id" },
+          "animation": {
+            "type": "object",
+            "required": ["type"],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "enum": ["spin", "bob", "pulse", "orbit"] },
+              "axis": { "enum": ["x", "y", "z"] },
+              "speed": { "type": "number", "minimum": 0.1, "maximum": 10 },
+              "amount": { "type": "number", "minimum": 0, "maximum": 20 }
+            }
+          }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 150,
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "color": { "$ref": "#/$defs/color" },
+          "dashed": { "type": "boolean" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "flow": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "speed": { "type": "number", "minimum": 0.1, "maximum": 5 },
+              "color": { "$ref": "#/$defs/color" },
+              "count": { "type": "integer", "minimum": 1, "maximum": 5 }
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["title", "text"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "text": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "show": { "$ref": "#/$defs/ids" },
+          "hide": { "$ref": "#/$defs/ids" },
+          "highlight": { "$ref": "#/$defs/ids" },
+          "camera": {
+            "type": "object",
+            "required": ["position"],
+            "additionalProperties": false,
+            "properties": { "position": { "$ref": "#/$defs/vec3" }, "target": { "$ref": "#/$defs/vec3" } }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "title": "A packet crossing a small network",
+      "description": "A laptop on the left sends packets through a switch and a router to a web server on the right. Small amber dots travel along the cables to show the traffic.",
+      "aspect": "16:9",
+      "camera": { "position": [0, 3.2, 7], "target": [0, 0.6, 0] },
+      "objects": [
+        { "id": "laptop", "shape": "box", "size": [1.2, 0.15, 0.8], "position": [-4, 0.5, 0], "color": "#64748b", "text": "Laptop", "info": { "title": "Client", "text": "Starts the connection." } },
+        { "id": "switch", "shape": "box", "size": [1.4, 0.3, 0.6], "position": [-1.3, 0.5, 0], "color": "#0ea5e9", "text": "Switch" },
+        { "id": "router", "shape": "cylinder", "size": [1, 0.4, 1], "position": [1.3, 0.5, 0], "color": "#14b8a6", "text": "Router", "animation": { "type": "pulse", "speed": 0.8 } },
+        { "id": "server", "shape": "box", "size": [0.8, 1.6, 0.8], "position": [4, 0.8, 0], "color": "#334155", "text": "Web server", "info": { "title": "Server", "text": "Answers on port 443." } }
+      ],
+      "links": [
+        { "from": "laptop", "to": "switch", "flow": { "count": 2 } },
+        { "from": "switch", "to": "router", "flow": { "count": 2 } },
+        { "from": "router", "to": "server", "label": "internet", "dashed": true, "flow": { "count": 3, "speed": 1.4 } }
+      ],
+      "steps": [
+        { "title": "The whole path", "text": "Traffic from the laptop crosses three hops to reach the server." },
+        { "title": "Inside the LAN", "text": "The switch forwards frames by MAC address.", "highlight": ["laptop", "switch"] },
+        { "title": "Out to the internet", "text": "The router forwards packets by IP address.", "highlight": ["router", "server"], "camera": { "position": [3, 3, 6], "target": [2.5, 0.5, 0] } }
+      ]
+    }
+  ]
+}

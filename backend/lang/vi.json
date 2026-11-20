@@ -56,5 +56,9 @@
     "a number": "một số",
     "true or false": "đúng hoặc sai",
     "nothing": "rỗng",
-    " or ": " hoặc "
+    " or ": " hoặc ",
+    "Duplicate id \":id\".": "Mã \":id\" bị trùng.",
+    "Unknown object \":id\".": "Không có đối tượng \":id\".",
+    "Parents form a loop.": "Quan hệ cha con tạo thành vòng lặp.",
+    "3D scripts are turned off on this server. Use a 3D scene instead.": "Mã 3D đang bị tắt trên máy chủ này. Hãy dùng cảnh 3D thay thế."
 }

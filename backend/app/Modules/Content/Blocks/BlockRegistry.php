@@ -7,6 +7,8 @@ use App\Modules\Content\Blocks\Types\CodeBlock;
 use App\Modules\Content\Blocks\Types\DiagramBlock;
 use App\Modules\Content\Blocks\Types\MediaBlock;
 use App\Modules\Content\Blocks\Types\ProseBlock;
+use App\Modules\Content\Blocks\Types\Scene3dBlock;
+use App\Modules\Content\Blocks\Types\Script3dBlock;
 use App\Modules\Content\Blocks\Types\StepsBlock;
 use Illuminate\Validation\ValidationException;
 
@@ -36,6 +38,8 @@ final class BlockRegistry
             new CodeBlock,
             new DiagramBlock,
             new MediaBlock,
+            new Scene3dBlock,
+            new Script3dBlock,
         ]);
     }
 

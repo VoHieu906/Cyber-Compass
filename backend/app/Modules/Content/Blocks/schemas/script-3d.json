@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "script-3d",
+  "description": "Three.js code run only inside the sandboxed worker (docs/SANDBOXED_3D.md). Mirrors frontend/src/sandbox/scene3d/schema.ts. Can be switched off with CONTENT_SCRIPTED_3D=false.",
+  "type": "object",
+  "required": ["title", "description", "code"],
+  "additionalProperties": false,
+  "properties": {
+    "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "minLength": 20, "maxLength": 1200 },
+    "caption": { "type": ["string", "null"], "maxLength": 300 },
+    "aspect": { "enum": ["16:9", "4:3", "1:1", "21:9"] },
+    "code": { "type": "string", "minLength": 1, "maxLength": 20000 }
+  },
+  "examples": [
+    {
+      "title": "Spinning encryption key",
+      "description": "A golden key slowly turns above a padlock, to show that the same key locks and unlocks symmetric encryption.",
+      "aspect": "16:9",
+      "code": "const gold = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.6, roughness: 0.3 });\nconst ring = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.12, 16, 48), gold);\nconst shaft = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.18, 0.18), gold);\nshaft.position.x = 1.2;\nconst key = new THREE.Group();\nkey.add(ring, shaft);\nkey.position.y = 1.2;\nscene.add(key);\n\nconst lock = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.1, 0.6), new THREE.MeshStandardMaterial({ color: 0x334155 }));\nlock.position.y = -0.6;\nscene.add(lock);\n\nscene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.4));\nconst sun = new THREE.DirectionalLight(0xffffff, 1.5);\nsun.position.set(3, 5, 4);\nscene.add(sun);\n\nconst tag = label('Same key, both ways');\ntag.position.set(0, 2.3, 0);\nscene.add(tag);\n\nonFrame((delta) => {\n  key.rotation.y += delta * 0.8;\n});\n"
+    }
+  ]
+}

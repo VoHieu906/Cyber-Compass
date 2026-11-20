@@ -1,0 +1,4 @@
+[
+  { "title": "Cube", "description": "A cube that spins slowly in the middle of the view.", "aspect": "16:9", "code": "scene.add(new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshNormalMaterial()));\n" },
+  { "title": "Lit", "description": "A sphere lit from the side, with a caption below it.", "aspect": "1:1", "caption": "Caption", "code": "scene.add(new THREE.AmbientLight(0xffffff, 1));\n" }
+]

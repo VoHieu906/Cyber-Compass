@@ -1,0 +1,13 @@
+[
+  { "title": "No objects", "description": "A scene that has nothing in it at all, which is not allowed.", "camera": { "position": [0, 0, 5] }, "objects": [] },
+  { "title": "Short", "description": "Too short.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box" }] },
+  { "title": "Unknown shape", "description": "Uses a teapot, which is not one of the supported shapes.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "teapot" }] },
+  { "title": "Far away", "description": "Places an object far outside the allowed coordinate range.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box", "position": [5000, 0, 0] }] },
+  { "title": "Duplicate ids", "description": "Two objects share the same id, so references would be ambiguous.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box" }, { "id": "a", "shape": "sphere" }] },
+  { "title": "Missing parent", "description": "An object names a parent that does not exist in the scene.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box", "parent": "ghost" }] },
+  { "title": "Parent loop", "description": "Two objects are each other's parent, which would never finish building.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "group", "parent": "b" }, { "id": "b", "shape": "group", "parent": "a" }] },
+  { "title": "Dangling link", "description": "A link points at an object that is not in the scene.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box" }], "links": [{ "from": "a", "to": "b" }] },
+  { "title": "Bad step", "description": "A step highlights an object that does not exist in the scene.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box" }], "steps": [{ "title": "One", "text": "Look.", "highlight": ["nope"] }] },
+  { "title": "Extra field", "description": "Carries a field the schema does not know, such as a script.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box", "onClick": "alert(1)" }] },
+  { "title": "Bad colour", "description": "A colour that is not a six digit hex value is refused.", "camera": { "position": [0, 0, 5] }, "objects": [{ "id": "a", "shape": "box", "color": "red" }] }
+]

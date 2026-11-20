@@ -1,0 +1,29 @@
+[
+  {
+    "title": "One cube",
+    "description": "A single blue cube in the middle of the view, slowly spinning.",
+    "aspect": "16:9",
+    "camera": { "position": [0, 2, 5] },
+    "objects": [{ "id": "cube", "shape": "box", "animation": { "type": "spin" } }]
+  },
+  {
+    "title": "Layers with steps",
+    "description": "Three stacked layers; each step highlights one of them and moves the camera closer.",
+    "aspect": "4:3",
+    "caption": null,
+    "background": "#101820",
+    "camera": { "position": [0, 3, 8], "target": [0, 1, 0], "fov": 45, "controls": "orbit", "autoRotate": true },
+    "lights": [{ "type": "ambient", "intensity": 0.6 }, { "type": "point", "intensity": 2, "color": "#ffffff", "position": [2, 4, 2] }],
+    "objects": [
+      { "id": "stack", "shape": "group" },
+      { "id": "l1", "shape": "box", "size": [3, 0.4, 2], "position": [0, 0, 0], "parent": "stack", "color": "#0EA5E9", "text": "Physical" },
+      { "id": "l2", "shape": "box", "size": [3, 0.4, 2], "position": [0, 0.6, 0], "parent": "stack", "opacity": 0.8, "info": { "title": "Data link", "text": "Frames and MAC addresses." } },
+      { "id": "tag", "shape": "label", "text": "Encapsulation", "position": [0, 2, 0] }
+    ],
+    "links": [{ "from": "l1", "to": "l2", "dashed": true, "label": "frames", "flow": { "speed": 2, "count": 3, "color": "#f59e0b" } }],
+    "steps": [
+      { "title": "Bottom", "text": "Bits on the wire.", "highlight": ["l1"] },
+      { "title": "Up one", "text": "Frames.", "show": ["l2"], "hide": ["tag"], "highlight": ["l2"], "camera": { "position": [0, 2, 4] } }
+    ]
+  }
+]
