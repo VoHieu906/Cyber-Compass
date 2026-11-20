@@ -160,7 +160,7 @@ erDiagram
 | 3 | `lessons`: add `status` (default `published`), `published_at`, `created_by`, `updated_by` | `published_at` is backfilled from the course's `published_at`. |
 | 4 | `lesson_drafts` (unique `lesson_id`, `snapshot`, `lock_version`, `updated_by`) and `lesson_revisions` (`lesson_id`, `version`, `snapshot`, `note`, `created_by`; unique (`lesson_id`, `version`)) | none |
 | 5 | `lesson_media` | none |
-| 6 | `users`: add `suspended_at`, `last_login_at` | none |
+| 6 | `users`: add `suspended_at`, `suspension_reason`, `last_login_at` | none. `suspension_reason` was added during the build, so the user detail page can show why without reading the audit log. |
 | 7 | `admin_audit_logs` (append-only; no update or delete path in code) | none |
 
 Run order on AWS: migrations run as a one-off ECS task *before* the new service revision. Every step is safe with the previous code still running: new columns have defaults, and the enum-to-varchar change accepts the same values.

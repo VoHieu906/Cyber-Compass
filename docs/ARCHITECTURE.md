@@ -59,6 +59,8 @@ backend/app/
 │   ├── Auth/         Http/{Controllers,Requests}, Actions/
 │   ├── Profile/      Http/..., Actions/
 │   ├── Catalog/      courses, chapters, favorites, enrollments
+│   ├── Content/      block registry (JSON Schema per block type), importer, lesson serializer; lesson editor (Phase 3.5)
+│   ├── Admin/        EnsureAdmin, user administration, append-only audit log, make-admin command (Phase 3.5)
 │   ├── Learning/     lessons, lesson progress, exercises, attempts
 │   ├── Assessment/   assessments, attempts, ScoringService
 │   ├── Careers/      careers, goal selection
@@ -103,7 +105,9 @@ One exception renderer in `bootstrap/app.php` produces the error envelope descri
 - **Brute force:** login locks an email+IP pair for 60 s after 5 failures. Register is limited to 10 per hour per IP, and password endpoints to 5 per minute.
 - **Session hygiene:** the session id is regenerated on login. Logout invalidates the session and rotates the CSRF token. A password change ends all *other* sessions, and a password reset ends *all* of them.
 - **Rate limits:** `login` allows 5 requests per minute per email+IP, `password` 3 per minute, `api` 120 per minute per user.
-- **Roles:** `learner` and `admin`, as an enum column on `users`. Admin endpoints for content authoring are not in the MVP. Seeders write the content.
+- **Roles:** `learner` and `admin`, as an enum column on `users`. `role` is not fillable; it changes only through `Admin\Actions\ChangeUserRole` or the `cybercompass:make-admin` command (D16).
+- **Admin console (Phase 3.5, D16):** `/api/v1/admin/*` runs `auth:sanctum`, then `EnsureAdmin` (learners get 403), then the `admin` rate limiter (120 per minute per admin). Each action is also checked by `UserAdminPolicy`. An admin can't demote or suspend themselves, and the last active admin can't lose access; those checks lock the admin rows inside the transaction. Every mutating admin action writes an append-only `admin_audit_logs` row in the same transaction, with secrets stripped from `changes`. Admins never see or set passwords; they can only trigger the standard reset email. The frontend `(admin)` route group is wrapped in `RequireAuth` and `RequireAdmin`, which shape the interface only; the API is the gate.
+- **Suspension:** a suspended account is refused at login (told so only after the correct password). Suspending, and changing a role, deletes the user's sessions and rotates their remember token (`Auth\Actions\EndUserSessions`). `RejectSuspendedUsers` on the `api` group signs out any request that still arrives as a suspended user.
 
 ## 5. Frontend architecture
 
@@ -224,6 +228,12 @@ Configuration is read from environment variables only. Secrets come from Secrets
 | D13 | Next.js dev server runs on the host (`npm run dev`); the `web` container is opt-in (`--profile web`) | Next.js inside Docker for development | Docker Desktop on Windows and macOS delays or drops file events across its file share, so hot reload in the container was unreliable. This is the setup Next.js's own docs recommend. The API, MySQL and the worker stay in Docker. |
 | D14 | Diagram content lives in lesson data (`lesson_sections.payload.data`), validated by a zod schema per diagram; React components only draw it | Text inside diagram components | Keeps learning content out of UI code (master prompt rule 5). A diagram whose data is malformed shows a notice instead of breaking the lesson. |
 | D15 | Catalog search is a case-insensitive substring match on title and summary (`LIKE`, wildcards escaped) | MySQL FULLTEXT | FULLTEXT ignores words under 3 characters and does not match prefixes ("netw"). At catalog scale substring search is predictable and fast enough. Revisit with a search engine if the catalog grows into the thousands. |
+| D16 | An admin console exists: `/api/v1/admin/*` and a `/admin` web area for users and (Part B) lessons | Seeders as the only way to change content or accounts | The Phase 3.5 prompt. One `admin` role (assumption A1), with a policy method per action so finer roles change one class. Details: [PHASE_3_5_CONTENT_AND_ADMIN.md](PHASE_3_5_CONTENT_AND_ADMIN.md) §5, §8. |
+| D17 | One `Content` module owns every write to content tables, through one `BlockRegistry` | The seeder and the admin each validating payloads their own way | Block rules exist once. The importer (seeder, `content:import`) and the admin actions call the same registry. |
+| D18 | JSON Schema per block type is the canonical contract (backend, opis/json-schema); zod mirrors it for rendering; shared fixtures are checked by both test suites | zod only; PHP rules only | The backend must reject bad content before it is stored, and errors name the exact field (`sections.1.payload.items.1`). Fixtures stop the two schemas drifting. |
+| D19 | Once a lesson is edited in the admin (`updated_by` set, or a draft exists), the database owns it; imports skip it unless `--force` | The seeder always overwrites | Re-seeding must never destroy an admin's work. Lessons removed from a content file are archived, never deleted. |
+| D20 | Lesson sections have stable UUIDs (uuid5 of lesson slug + section key for seeded content); the API's section `id` is the UUID | Position-based ids | Phase 5 exercises link to theory sections; references must survive edits, reordering and re-imports. |
+| D21 | One MySQL schema, with table ownership per module | A separate content database | Foreign keys from progress, topics and future exercises to lessons and sections, and the transactions across them, need one schema. No new AWS service. |
 
 ## 10. Risks
 

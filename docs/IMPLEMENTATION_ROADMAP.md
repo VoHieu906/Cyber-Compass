@@ -41,6 +41,25 @@ flowchart LR
 - **Deferred, with reasons:** exercises (Phase 5); recording `learning_activities` for streaks and weekly time (Phase 6, when the dashboard reads them); global `/search` (Phase 6); "choose this career as my goal" (Phase 4, with the assessment); the interactive personal roadmap graph (Phase 5). The landing's roadmap is the career template, and the page says so.
 - **Content budget change:** the plan said 6 full courses plus outline-only ones. Instead, all 8 courses are complete and nothing is outline-only, because outline lessons would have been empty pages.
 
+## Phase 3.5: Content platform and admin console (in progress)
+
+Inserted between Phase 3 and Phase 4 by the Phase 3.5 prompt. Design and every change to the prompt: [PHASE_3_5_CONTENT_AND_ADMIN.md](PHASE_3_5_CONTENT_AND_ADMIN.md). Delivered in three gated parts.
+
+### Part A: content core and user management ✅ (completed 2026-11-20)
+
+- **Content core:** a `Content` module with one `BlockRegistry`; a JSON Schema per block type (prose, callout, steps, code, diagram) with valid and invalid fixtures; errors keyed to the exact field. A `ContentImporter` (used by the seeder and `php artisan content:import [--force]`) gives sections stable UUIDs, renumbers lessons without tripping the unique index, archives lessons removed from a file, and skips lessons an admin owns. Lessons have a status (draft, published, archived), and one visibility scope hides drafts and archived lessons from every learner query.
+- **Admin foundation:** `Admin` module with `EnsureAdmin`, an `admin` rate limiter, `UserAdminPolicy`, an append-only audit log, `cybercompass:make-admin {email}` for the first admin and recovery, and a demo admin (`admin@cybercompass.test`) whose password comes from `DEMO_ADMIN_PASSWORD` in `backend/.env`.
+- **User management:** overview, user list (search, role and status filters, sort, pagination), user detail, role change, suspend with reason, reactivate, send the standard reset email, and the audit log, in the API and the `/admin` web area (en and vi). Safety rules: no self-demotion or self-suspension, the last active admin is protected, and role changes and suspensions end the user's sessions. Suspended users are refused at login and signed out mid-session. Logins record `last_login_at`.
+- **Exit, verified:** 178 Pest tests (81 new in Phase 3.5, including guest 401 and learner 403 on every admin route read from the router) and 45 Vitest tests; Pint, tsc and ESLint clean; Hallmark sloplint clean on the admin code. A headless-browser run as the demo admin covered the overview, search, row navigation, suspend (with reason validation), the suspended learner refused at login, reactivate, own-account protections, the audit log, phone layouts with no horizontal scroll, and the learner seeing "Admins only" and a 403 from the API.
+
+### Part B: lesson editor (next)
+
+Drafts with `lock_version`, publish, revisions and restore, archive, delete a never-published draft, chapters, media upload (raster only, re-encoded to WebP), the block-types endpoint, and a preview that uses the learner renderer.
+
+### Part C: visual blocks and pilot content
+
+The block library (`layer-stack`, `sequence`, `flow`, `tree`, `topology`, `comparison`, `timeline`, `bitfield`, `calculator`, `step-through`, `media`, `knowledge-check`) on one `lib/graph`, zod contract tests against the backend fixtures, OSI and TCP moved to generic blocks, the two pilot courses rewritten, `content:export`, and the content authoring guide.
+
 ## Phase 4: Assessment and personalization
 
 Assessment (about 40 questions), autosaving attempt flow, scoring service, result page with domain bands and the formula, career goal selection, the roadmap generator and versioning.

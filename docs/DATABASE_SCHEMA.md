@@ -73,12 +73,14 @@ erDiagram
 
 ## Tables
 
-Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3). The rest is designed and arrives with its phase.
+Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3), plus the lesson lifecycle, section UUIDs, lesson drafts and revisions, account suspension and the admin audit log (Phase 3.5 Part A). `lesson_media` arrives with the lesson editor (Phase 3.5 Part B). The rest is designed and arrives with its phase. Every Phase 3.5 migration is additive (expand only) and safe to run while the previous release is still serving.
 
 ### Identity
 
-**users**: `name`, `email` (unique), `email_verified_at`, `password`, `role` enum(`learner`,`admin`) default learner, `remember_token`.
+**users**: `name`, `email` (unique), `email_verified_at`, `password`, `role` enum(`learner`,`admin`) default learner, `suspended_at` null, `suspension_reason` varchar(300) null, `last_login_at` null, `remember_token`. Index (`role`,`suspended_at`) for the active-admin count. `role`, `suspended_at`, `suspension_reason` and `last_login_at` are not fillable (Phase 3.5).
 Plus the Laravel defaults `password_reset_tokens` and `sessions`.
+
+**admin_audit_logs** (✅ Phase 3.5): `actor_id` FK users null (null on delete; null for the command line), `action` varchar(60) (e.g. `user.role_changed`), `subject_type` varchar(40) (`user`, `lesson`, `chapter`), `subject_id` null, `changes` JSON null (`{field: [from, to]}` plus context such as `reason`; passwords and tokens are stripped at any depth), `ip`, `created_at`. No `updated_at`. Append-only: the model throws on update and delete, and no code path does either. Indexes (`subject_type`,`subject_id`,`id`), (`actor_id`,`id`), `action`.
 
 **user_profiles** (✅ Phase 2): `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`.
 
@@ -110,8 +112,10 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 **course_prerequisites**: `course_id`, `prerequisite_course_id`.
 **course_skills**: `course_id`, `skill_id`.
 **course_chapters**: `course_id` FK cascade, `title`, `position`.
-**lessons**: `course_chapter_id` FK cascade, `slug` (unique), `title`, `summary`, `objectives` JSON, `key_takeaways` JSON, `resources` JSON (a list of {label, url}), `estimated_minutes` smallint, `position`.
-**lesson_sections**: `lesson_id` FK cascade, `position`, `type` enum(`prose`,`callout`,`diagram`,`steps`,`code`,`visual_3d`), `heading` null, `payload` JSON. Unique (`lesson_id`,`position`). Payloads: prose `{text}`, callout `{text, tone}`, steps `{items}`, code `{code, language}`, diagram `{key, caption, data}`. The diagram's data is the content the component draws (ARCHITECTURE D14).
+**lessons**: `course_chapter_id` FK cascade, `slug` (unique), `title`, `summary`, `objectives` JSON, `key_takeaways` JSON, `resources` JSON (a list of {label, url}), `estimated_minutes` smallint, `position`, `status` enum(`draft`,`published`,`archived`) default `published` (Phase 3.5), `published_at` null, `created_by` and `updated_by` FK users null (null on delete). Index `status`. Learners only ever see published lessons in published courses: one scope, `Lesson::scopeVisibleToLearners`, is used by every learner query (reader, counts and durations, curriculum, progress and navigation, career topics).
+**lesson_sections**: `lesson_id` FK cascade, `uuid` char(36) unique (Phase 3.5, ARCHITECTURE D20), `position`, `type` varchar(40) (was an enum; the `BlockRegistry` validates it), `heading` null, `payload` JSON. Unique (`lesson_id`,`position`). Each type's payload is defined by a JSON Schema in `backend/app/Modules/Content/Blocks/schemas/` (D18): prose `{text}`, callout `{text, tone}`, steps `{items}`, code `{code, language}`, diagram `{key, caption, data}`. The diagram's data is the content the component draws (D14).
+**lesson_drafts** (Phase 3.5): `lesson_id` unique FK cascade, `snapshot` JSON (metadata plus ordered sections with UUIDs, registry-validated), `lock_version` int default 1 (optimistic locking), `updated_by` FK users null. Edits go here; the live `lessons`/`lesson_sections` rows change only on publish. Used by the lesson editor (Part B).
+**lesson_revisions** (Phase 3.5): `lesson_id` FK cascade, `version` int, `snapshot` JSON, `note` varchar(300) null, `created_by` FK users null, `created_at`. Unique (`lesson_id`,`version`). One row per publish.
 
 ### Exercises
 

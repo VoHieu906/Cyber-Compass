@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phase 3 (Learning content) complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phase 3 complete; Phase 3.5 Part A complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins can manage accounts in the admin console at `/admin`; the lesson editor is next. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 
@@ -83,7 +83,14 @@ docker compose exec api php artisan migrate --seed
 docker compose exec -u root api php artisan storage:link              # serves uploaded avatars
 ```
 
-Seeding creates a demo account, `demo@cybercompass.test`. Its password is whatever you set as `DEMO_USER_PASSWORD` in `backend/.env`. If that is empty, the seeder skips the account.
+Seeding creates two demo accounts. Their passwords are whatever you set in `backend/.env`; an account whose variable is empty is skipped. Never commit real values.
+
+| Account | Role | Password variable |
+|---|---|---|
+| `demo@cybercompass.test` | learner | `DEMO_USER_PASSWORD` |
+| `admin@cybercompass.test` | admin | `DEMO_ADMIN_PASSWORD` |
+
+To make an existing account an admin (the first admin of a real deployment, or recovery if every admin is locked out), run `docker compose exec api php artisan cybercompass:make-admin you@example.com`. It never creates accounts or touches passwords, and it is recorded in the audit log. Content files are re-imported with `php artisan content:import`; lessons edited in the admin are skipped unless you add `--force`.
 
 On first start, the API container runs `composer install` into its `vendor` volume, which takes about a minute. Seeding loads all learning content (8 courses, 30 lessons, 7 careers) and the demo account.
 

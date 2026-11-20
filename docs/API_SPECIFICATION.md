@@ -176,6 +176,28 @@ The response shape is graph-ready but layout-free. The client computes positions
 | 🔒 | POST | `/notifications/read-all` |
 | 🔒 | DELETE | `/notifications/{id}` |
 
+### Admin (✅ Phase 3.5 Part A)
+
+🛡 = `auth:sanctum` + `EnsureAdmin` + the `admin` rate limiter (120 per minute per admin). Guests get 401, learners 403 (`forbidden`). Every mutating call writes an audit log entry. Full design: [PHASE_3_5_CONTENT_AND_ADMIN.md](PHASE_3_5_CONTENT_AND_ADMIN.md) §5.1.
+
+| | Method | Path | |
+|---|---|---|---|
+| 🛡 | GET | `/admin/overview` (user counts: total, admins, suspended, new and signed in over 7 days; lessons by status; last 5 audit entries) | ✅ |
+| 🛡 | GET | `/admin/users` (q on name and email, filter[role] = learner, admin; filter[status] = active, suspended; sort = name, -name, created_at, -created_at (default), last_login_at, -last_login_at; page, per_page default 20, max 50). Phone and date of birth are never included. | ✅ |
+| 🛡 | GET | `/admin/users/{id}` (role, status, suspension {at, reason}, `is_last_active_admin`, stats {enrollments, completed_lessons}, last 10 audit entries about the user) | ✅ |
+| 🛡 | PATCH | `/admin/users/{id}/role` (role). Ends the user's sessions. 422 `role` for self-demotion or the last active admin. Same role: no-op, no audit entry. | ✅ |
+| 🛡 | POST | `/admin/users/{id}/suspend` (reason, 5 to 300 chars, admin-only). Ends sessions and rotates the remember token. 422 `user` for your own account, the last active admin, or an already suspended account. | ✅ |
+| 🛡 | POST | `/admin/users/{id}/reactivate`. 422 `user` if not suspended. | ✅ |
+| 🛡 | POST | `/admin/users/{id}/password-reset`. 202; sends the standard reset email to the account's own address. 429 if one was sent in the last minute, 422 for a suspended account. | ✅ |
+| 🛡 | GET | `/admin/audit-logs` (filter[actor], filter[subject_type] = user, lesson, chapter; filter[subject_id], filter[action]; newest first; per_page default 25) | ✅ |
+| 🛡 | … | `/admin/content/*` (lesson editor, block types, chapters, media) | Part B |
+
+Audit entry shape: `{ id, action, actor: {id, name} | null, subject: {type, id, label}, changes, created_at }`. `actor` is null for the `cybercompass:make-admin` command.
+
+**Login change:** a suspended account gets 422 with `errors.email = auth.suspended`, only after the correct password; a wrong password still gets `auth.failed`. Successful logins set `last_login_at`. Any request from a session that belongs to a suspended user is answered 401.
+
+**Lesson change (additive):** `GET /lessons/{slug}` section `id`s are now stable UUIDs (were `section-{position}`). Draft and archived lessons answer 404 and are left out of every count, curriculum and roadmap.
+
 ### Search
 
 | | Method | Path |
@@ -185,6 +207,8 @@ The response shape is graph-ready but layout-free. The client computes positions
 ## Security notes
 
 - Exercise and assessment answer keys never appear in a response before the attempt is submitted. Feature tests assert this.
-- Policies scope every user-owned record. Another user's record returns 404, not 403.
+- Policies scope every user-owned record. Another user's record returns 404, not 403. Admin routes are the exception by design: a learner gets 403 on every `/admin/*` route (AdminAccessTest checks all of them, read from the router).
+- Admins never see password hashes, remember tokens or reset tokens, and the audit log strips them from `changes`.
+- Phase 6 global search must use `Lesson::scopeVisibleToLearners`, so drafts never leak through it.
 - Uploads are validated by MIME type and dimensions, stored under random names, and served from S3 or CloudFront. User-supplied SVG is never served.
 - Lesson content is structured JSON rendered by React components. There is no `dangerouslySetInnerHTML` with user or content HTML.
