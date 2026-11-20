@@ -28,6 +28,7 @@ const user = {
   email_verified_at: null,
   created_at: null,
   profile: { avatar_url: null, phone: null, date_of_birth: null, education_level: null, locale: "en", theme: "dark" },
+  learning_goal: null,
 };
 
 async function fill(email: string, password: string) {

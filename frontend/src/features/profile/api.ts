@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import { api } from "@/lib/api/client";
-import type { EducationLevel, ThemePreference, User } from "@/features/auth/types";
+import type { EducationLevel, SelfLevel, ThemePreference, User } from "@/features/auth/types";
 
 export type ProfileInput = {
   name: string;
@@ -24,5 +24,10 @@ export function uploadAvatar(file: File): Promise<User> {
 export const removeAvatar = () => api.delete<User>("/api/v1/me/avatar");
 
 export const updatePreferences = (input: PreferencesInput) => api.patch<User>("/api/v1/me/preferences", input);
+
+/** Only the fields given change; null clears one. */
+export type LearningGoalInput = Partial<{ career: string | null; self_level: SelfLevel | null; weekly_minutes: number | null; domains: string[] }>;
+
+export const updateLearningGoal = (input: LearningGoalInput) => api.put<User>("/api/v1/me/learning-goal", input);
 
 export const changePassword = (input: PasswordInput) => api.put<void>("/api/v1/me/password", input);

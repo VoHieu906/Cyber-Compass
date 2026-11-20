@@ -8,5 +8,6 @@ Route::middleware('auth:sanctum')->prefix('me')->name('me.')->controller(Profile
     Route::post('avatar', 'storeAvatar')->middleware('throttle:uploads')->name('avatar.store');
     Route::delete('avatar', 'destroyAvatar')->name('avatar.destroy');
     Route::patch('preferences', 'updatePreferences')->name('preferences.update');
+    Route::put('learning-goal', 'updateLearningGoal')->name('learning-goal.update');
     Route::put('password', 'updatePassword')->middleware('throttle:password')->name('password.update');
 });

@@ -19,6 +19,17 @@ export type User = {
     locale: Locale;
     theme: ThemePreference;
   };
+  learning_goal: LearningGoal | null;
+};
+
+export type SelfLevel = "beginner" | "intermediate" | "advanced";
+
+/** The learner's goal (PUT /api/v1/me/learning-goal). Careers and domains are named by slug. */
+export type LearningGoal = {
+  career: { slug: string; title: string } | null;
+  self_level: SelfLevel | null;
+  weekly_minutes: number | null;
+  domains: string[];
 };
 
 export type LoginInput = { email: string; password: string; remember: boolean };

@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phases 1 to 3.5 complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins manage accounts and write, preview and publish lessons in the admin console at `/admin`; lessons can include interactive 3D scenes and sandboxed Three.js scripts (docs/SANDBOXED_3D.md) and eleven 2D blocks (layer stacks, sequences, flows, trees, network topologies, comparisons, timelines, bit fields, calculators, step-throughs and practice questions). The two pilot courses (Networking Fundamentals, Security Fundamentals) use them throughout, with a practice check in every lesson; [docs/CONTENT_AUTHORING_GUIDE.md](docs/CONTENT_AUTHORING_GUIDE.md) explains how to write lessons, and `content:export` writes curated lessons back to the content files. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phases 1 to 4 complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins manage accounts and write, preview and publish lessons in the admin console at `/admin`; lessons can include interactive 3D scenes and sandboxed Three.js scripts (docs/SANDBOXED_3D.md) and eleven 2D blocks (layer stacks, sequences, flows, trees, network topologies, comparisons, timelines, bit fields, calculators, step-throughs and practice questions). The two pilot courses (Networking Fundamentals, Security Fundamentals) use them throughout, with a practice check in every lesson; [docs/CONTENT_AUTHORING_GUIDE.md](docs/CONTENT_AUTHORING_GUIDE.md) explains how to write lessons, and `content:export` writes curated lessons back to the content files. Learners take a 40-question knowledge assessment scored with a published formula, choose a career goal, and get a personal roadmap built from both, shown as an outline; the interactive roadmap graph arrives in Phase 5. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 
@@ -19,8 +19,9 @@ A personalized learning platform for cybersecurity. Take a knowledge assessment,
 | Lesson reader with interactive diagrams (OSI, TCP handshake, CIA triad) and progress | ✅ Built |
 | Career catalog and career pages with roadmap templates | ✅ Built |
 | Landing page | ✅ Built |
-| Initial knowledge assessment with transparent scoring | Planned (Phase 4) |
-| Personalized, interactive learning roadmap | Planned (Phase 4–5) |
+| Initial knowledge assessment with transparent scoring, result review and history | ✅ Built |
+| Career goal, learning goals, and a personalized roadmap (outline view, versioned) | ✅ Built |
+| Interactive roadmap graph and knowledge map | Planned (Phase 5) |
 | Exercises (7 question types) and browser-based labs | Planned (Phase 5) |
 | Dashboard, analytics, streaks, notifications | Planned (Phase 6) |
 
@@ -32,7 +33,7 @@ _Screenshots are added as features ship._
 
 | Layer | Stack |
 |---|---|
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, TanStack Query, next-intl, next-themes, Motion, Lucide. React Flow and Recharts arrive with the roadmap and dashboard. |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, TanStack Query, next-intl, next-themes, Motion, Lucide. React Flow and Recharts arrive with the roadmap graph (if Phase 5 chooses it over the D23 SVG) and the dashboard. |
 | Backend | Laravel 13, PHP 8.5, Sanctum (SPA cookie auth), MySQL 8.4, Scramble (OpenAPI) |
 | Testing | Vitest + Testing Library (frontend), Pest on MySQL (backend), Playwright (E2E, Phase 7) |
 | Infrastructure | Docker, AWS ECS Fargate, ECR, RDS MySQL, S3, CloudFront, ALB, Secrets Manager, CloudWatch |

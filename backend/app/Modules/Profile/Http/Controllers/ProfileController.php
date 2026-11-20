@@ -5,8 +5,10 @@ namespace App\Modules\Profile\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Auth\Http\Resources\UserResource;
 use App\Modules\Profile\Actions\ChangePassword;
+use App\Modules\Profile\Actions\SaveLearningGoal;
 use App\Modules\Profile\Actions\StoreAvatar;
 use App\Modules\Profile\Actions\UpdateProfile;
+use App\Modules\Profile\Http\Requests\UpdateLearningGoalRequest;
 use App\Modules\Profile\Http\Requests\UpdatePasswordRequest;
 use App\Modules\Profile\Http\Requests\UpdatePreferencesRequest;
 use App\Modules\Profile\Http\Requests\UpdateProfileRequest;
@@ -45,6 +47,20 @@ final class ProfileController extends Controller
         $user->profile()->updateOrCreate([], $request->validated());
 
         return new UserResource($user->load('profile'));
+    }
+
+    /**
+     * Set my learning goal.
+     *
+     * Career (slug), self-rated level, weekly study time and areas of interest (domain slugs).
+     * Only the fields sent change; null clears one. Returns me, with the goal.
+     */
+    public function updateLearningGoal(UpdateLearningGoalRequest $request, SaveLearningGoal $action): UserResource
+    {
+        $action->handle($request->user(), $request->validated());
+
+        // Drop a goal loaded earlier in this request, so the response shows the saved one.
+        return new UserResource($request->user()->unsetRelation('learningGoal')->load('profile'));
     }
 
     /** Change the password. Signs out all other sessions. */

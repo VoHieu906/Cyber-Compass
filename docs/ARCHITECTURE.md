@@ -148,28 +148,33 @@ Rule-based, deterministic and documented, so a learner can see why a node was re
 - The result page shows the formula and the counts per domain. For questions answered wrongly (or left unanswered) it shows the correct option and the explanation; correctly answered questions only show that they were correct (D26).
 - The bank is fixed (5 questions per domain, difficulties 1, 1, 2, 2, 3). This is a transparent questionnaire, not an adaptive or AI assessment, and the UI says so.
 
-### 6.2 Roadmap generation
+### 6.2 Roadmap generation (✅ Phase 4, `Roadmap\Services\RoadmapGenerator`)
 
-Input: the career goal's ordered topics (each with a required domain level) and the latest submitted assessment attempt.
+Input: the learner's career goal (its template: topics in stages) and the domain scores of the latest submitted assessment attempt.
 
-For each topic in the career template:
+For each topic in the career template, in order:
 
 | Condition | Node recommendation | Reason shown |
 |---|---|---|
-| Domain score ≥ 75 and the topic's level ≤ intermediate | `review`: optional, unlocked | "You scored 82% in Networking" |
-| Domain score below 40 | `required`, with foundation topics of that domain inserted before it if they're missing | "Networking is a gap (31%)" |
-
-Foundation topics are the domain's lowest-level topics. An inserted topic goes into the same stage, just before the first topic that needed it, together with any of its own prerequisites that are missing, in prerequisite order; its reason is "foundation for <topic>". Topics with no learner-visible lessons are left out of a generated path. Without a submitted attempt every topic is `required`.
+| Domain score ≥ 75 and the topic's level ≤ 2 (intermediate) | `review`: optional | "You scored 82% in Networking" |
+| Domain score below 40 | `required`, with the domain's foundation topics inserted before it when they are missing | "Networking is a gap (31%)" |
 | Otherwise | `required` | "Needed for SOC Analyst" |
 
-The path is stored as a snapshot (`learning_paths` and `learning_path_nodes`), so it stays stable while the learner works through it. Reassessing or changing career creates a **new version** and archives the old one. Progress lives in `lesson_progress` and is never copied, so it carries over automatically.
+- **Foundations:** a domain's lowest-level topics. They are inserted only when the gap topic sits above that level; a gap in a foundation topic itself inserts nothing. An inserted topic goes into the same stage, just before the topic that needed it, after any of its own missing prerequisites; its reason is "Foundation for <topic>". A topic is never placed twice.
+- **Left out:** topics with no lesson a learner can see.
+- **No assessment:** every topic is `required`.
+- **Versions:** the path is a snapshot (`learning_paths`, `learning_path_nodes`), so it stays stable while the learner works through it. Only `POST /learning-path/generate` creates a version (D26); it archives the active one in the same transaction. A unique index on a generated column keeps one active path per learner. Progress lives in `lesson_progress` and is never copied, so it carries over.
+- **Out of date:** the path reports `career_changed` when the goal's career differs from the path's, and `new_assessment` when a newer attempt was submitted. The learner decides when to update.
+- **Other goal fields:** areas of interest order the assessment's next steps within a band; the weekly study time gives the estimate (remaining required minutes ÷ weekly minutes, rounded up to weeks); the self-rated level is shown beside the result and never affects scoring or generation.
 
-### 6.3 Node status (computed on read, never stored)
+### 6.3 Node status (computed on read, never stored; `Roadmap\Services\PathProgress`)
 
-- **completed:** every required lesson in the topic is completed.
+- **completed:** every required lesson in the topic is completed (all its lessons, if none is marked required). A topic whose lessons were all archived after generation counts as completed, so it never blocks the next one.
 - **in_progress:** at least one lesson started or completed.
-- **available:** every prerequisite topic is completed, or marked `review`.
-- **locked:** otherwise.
+- **available:** every prerequisite topic that is part of the path is completed or marked `review`. Prerequisites outside the path are not part of the plan and are ignored.
+- **locked:** otherwise. Locking is guidance: the lessons themselves stay open.
+
+Completion counts the required lessons of `required` topics only. The next lesson is the first unfinished lesson of the first open `required` topic, else of the first open `review` topic.
 
 Lesson completion rule: the learner marks the lesson complete at its end (the client reports time on page, capped at 4 hours per visit) **and**, from Phase 5, has a passing attempt if the lesson has an exercise (score at or above the exercise's `pass_percent`). Completing the last lesson of an enrolled course stamps `enrollments.completed_at` once.
 

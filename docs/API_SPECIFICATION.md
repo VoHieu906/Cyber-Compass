@@ -82,7 +82,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | DELETE | `/me/avatar` | ✅ Phase 2 |
 | 🔒 | PATCH | `/me/preferences` (locale, theme; either or both) | ✅ Phase 2 |
 | 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
-| 🔒 | PUT | `/me/learning-goal` (career_id, self_level, weekly_minutes, domain_ids[]) | Phase 4 |
+| 🔒 | PUT | `/me/learning-goal` (`career` slug, `self_level` beginner/intermediate/advanced, `weekly_minutes` 30 to 2400, `domains[]` slugs). Every field is optional and only the ones sent change; null clears. Returns me, whose `learning_goal` is `{career {slug, title} \| null, self_level, weekly_minutes, domains[]}` or null. Changing the career never rebuilds the roadmap. | ✅ Phase 4 |
 | 🔒 | GET/PUT | `/me/notification-preferences` | Phase 6 |
 
 ### Taxonomy and careers
@@ -143,27 +143,35 @@ Result shape (D26: `correct_option` and `explanation` are null when the answer w
 } }
 ```
 
-### Roadmap
+### Roadmap (✅ Phase 4 Part C)
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/learning-path` (the active path: nodes with computed status, edges, lessons per node with status, completion %) |
-| 🔒 | POST | `/learning-path/generate` (career_id optional; uses the goal and the latest attempt) |
-| 🔒 | GET | `/learning-paths` (versions) |
+| 🔒 | GET | `/learning-path`: my active roadmap, or `{"data": null}` before the first one |
+| 🔒 | POST | `/learning-path/generate`: no body. Builds a new version from my career goal and latest submitted assessment, archives the old one, 201. 422 (`errors.career`) without a career goal. |
+| 🔒 | GET | `/learning-paths`: my versions, newest first: id, version, status, generated_at, career, assessment_score, topic_count |
 
-The career template is already part of `GET /careers/{slug}` (`roadmap.stages`), so there is no separate template endpoint. The response shape is graph-ready but layout-free. The client computes positions.
+Every route acts on the signed-in learner, so there is no id to address someone else's roadmap. The career template is already part of `GET /careers/{slug}` (`roadmap.stages`), so there is no separate template endpoint. The response is graph-ready but layout-free; the client computes positions (Phase 5 reuses it for the graph).
 
 ```json
 { "data": {
-  "id": 7, "version": 2, "career": { "slug": "soc-analyst", "title": "SOC Analyst" },
+  "id": 7, "version": 2, "status": "active", "generated_at": "...",
+  "career": { "slug": "soc-analyst", "title": "SOC Analyst" },
+  "assessment": { "attempt_id": 12, "score": 53, "submitted_at": "..." },
   "completion_percent": 34,
-  "nodes": [{ "topic": { "slug": "networking-fundamentals", "title": "...", "domain": "networking" },
-              "stage": 1, "recommendation": "required", "status": "in_progress",
-              "reason": { "key": "gap", "params": { "domain": "networking", "score": 31 } },
-              "lessons": [{ "slug": "osi-model", "title": "...", "status": "completed", "is_required": true }] }],
-  "edges": [{ "from": "networking-fundamentals", "to": "tcp-ip-deep-dive" }]
+  "estimate": { "remaining_minutes": 219, "weekly_minutes": 240, "weeks": 1 },
+  "next_lesson": { "slug": "threats-vulnerabilities-risk", "title": "...", "topic": "Security principles" },
+  "outdated": ["new_assessment"],
+  "nodes": [{ "topic": { "slug": "linux-shell", "title": "...", "summary": "...", "level": 1, "domain": { "slug": "linux", "name": "Linux" } },
+              "stage": 1, "position": 3, "recommendation": "required", "status": "in_progress", "percent": 50,
+              "reason": { "key": "gap", "params": { "domain": "Linux", "score": 22 } },
+              "requires": [],
+              "lessons": [{ "slug": "linux-file-permissions", "title": "...", "estimated_minutes": 18, "is_required": true, "status": "completed" }] }],
+  "edges": [{ "from": "linux-shell", "to": "linux-investigation" }]
 } }
 ```
+
+`status` is `locked`, `available`, `in_progress` or `completed`; lesson `status` is `not_started`, `started` or `completed`. `reason.key` is `career` {career}, `gap` {domain, score}, `strength` {domain, score} or `foundation` {topic, domain}; the UI renders it through i18n. `outdated` lists `career_changed` and `new_assessment`.
 
 ### Labs
 

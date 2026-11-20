@@ -84,7 +84,8 @@
     "menu": "Menu",
     "closeMenu": "Close menu",
     "admin": "Admin console",
-    "assessment": "Assessment"
+    "assessment": "Assessment",
+    "roadmap": "Roadmap"
   },
   "validation": {
     "required": "This field is required.",
@@ -136,7 +137,8 @@
     "tabs": {
       "profile": "Personal information",
       "security": "Security",
-      "preferences": "Preferences"
+      "preferences": "Preferences",
+      "goals": "Learning goals"
     },
     "profile": {
       "avatar": "Photo",
@@ -181,6 +183,25 @@
       "languageHint": "Used for the interface and for emails we send you.",
       "saved": "Saved to your account.",
       "saveFailed": "Couldn't save to your account. It still applies on this device."
+    },
+    "goals": {
+      "title": "Learning goals",
+      "lede": "Your goal shapes your roadmap. Changing it doesn't rebuild the roadmap until you ask.",
+      "career": "Career goal",
+      "careerNone": "No career chosen",
+      "careerHint": "Your roadmap is built from this career's topics.",
+      "selfLevel": "How would you rate your security knowledge?",
+      "selfLevelHint": "Shown beside your assessment result for comparison. It never changes your score.",
+      "clearLevel": "Clear rating",
+      "weekly": "Study time per week (hours)",
+      "weeklyHint": "Used to estimate how long your roadmap will take.",
+      "hoursRange": "Enter between {min} and {max} hours.",
+      "interests": "Areas of interest",
+      "interestsHint": "Courses in these domains come first in your assessment's next steps.",
+      "save": "Save goals",
+      "saved": "Goals saved.",
+      "savedCareer": "Goals saved. Update your roadmap to use the new career.",
+      "openRoadmap": "Open my roadmap"
     }
   },
   "units": {
@@ -416,7 +437,17 @@
     "stage": "Stage {number}",
     "requires": "After {topics}",
     "suggestedCourses": "Suggested courses",
-    "goalLater": "Choosing a career goal and a personalised roadmap arrive with the knowledge assessment."
+    "goal": {
+      "label": "Career goal",
+      "guest": "Sign in to make this your career goal and get a roadmap built around it.",
+      "signIn": "Log in to set your goal",
+      "lede": "Make this your career goal to build a personal roadmap from these topics, shaped by your assessment.",
+      "replace": "Your current goal is {current}. Switch to this career to build your roadmap from it instead.",
+      "set": "Set as my goal",
+      "isGoal": "{career} is your career goal.",
+      "isGoalLede": "Your roadmap is built from this career's topics and your latest assessment.",
+      "openRoadmap": "Open my roadmap"
+    }
   },
   "landing": {
     "metaTitle": "CyberCompass: find your path into security",
@@ -1041,7 +1072,65 @@
       "overview": "Assessment overview",
       "loadError": "This result couldn't be loaded.",
       "notFound": "This result doesn't exist.",
-      "question": "Question {position}"
+      "question": "Question {position}",
+      "selfRating": "Your own rating: {level}"
     }
+  },
+  "roadmap": {
+    "title": "Your roadmap",
+    "loadError": "Your roadmap couldn't be loaded. Try again in a moment.",
+    "build": "Build my roadmap",
+    "update": "Update my roadmap",
+    "open": "Open my roadmap",
+    "chooseCareer": "Choose a career goal",
+    "editGoal": "Edit learning goals",
+    "takeAssessment": "Take the assessment first",
+    "empty": {
+      "noGoal": "Your roadmap is built from the career you're aiming for. Choose one to begin.",
+      "goal": "Your goal is {career}.",
+      "withAssessment": "The roadmap will use your latest assessment ({score}% on {date}): topics in your strong domains become optional review, and gaps get their foundations first.",
+      "withoutAssessment": "You haven't taken the assessment yet. Take it first to skip what you already know, or build the roadmap now and every topic will be required."
+    },
+    "version": "Version {version}",
+    "generated": "Built {date}",
+    "basedOn": "Based on an assessment score of {score}%",
+    "noAssessment": "Built without an assessment",
+    "outdatedTitle": "This roadmap is out of date",
+    "outdated": {
+      "career_changed": "Your career goal has changed since it was built.",
+      "new_assessment": "You've submitted a newer assessment since it was built."
+    },
+    "summary": "Roadmap summary",
+    "completion": "Required lessons completed",
+    "remaining": "Time left",
+    "weeks": "{weeks, plural, =1 {About 1 week} other {About # weeks}} at {hours} h a week",
+    "setWeekly": "Set your weekly study time to see an estimate",
+    "next": "Next lesson",
+    "continue": "Continue",
+    "allDone": "Every required lesson is complete.",
+    "legend": "Topics are grouped into stages. A topic opens when the topics it builds on are complete or marked for review. Review topics are optional: your assessment shows you already know their domain.",
+    "stage": "Stage {stage}",
+    "status": {
+      "locked": "Locked",
+      "available": "Available",
+      "in_progress": "In progress",
+      "completed": "Completed"
+    },
+    "reviewChip": "Review",
+    "reason": {
+      "career": "Needed for {career}.",
+      "gap": "{domain} is a gap ({score}%), so this topic is required.",
+      "strength": "You scored {score}% in {domain}. Review it if you like, or skip ahead.",
+      "foundation": "Foundation for {topic}, because {domain} is a gap."
+    },
+    "needs": "Needs: {topics}",
+    "lessons": "{count, plural, =1 {# lesson} other {# lessons}}",
+    "lessonStatus": {
+      "not_started": "Not started",
+      "started": "Started",
+      "completed": "Completed"
+    },
+    "optional": "Optional",
+    "versions": "Earlier versions"
   }
 }

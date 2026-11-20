@@ -7,6 +7,7 @@ use App\Models\AssessmentAnswer;
 use App\Models\AssessmentAttempt;
 use App\Models\Course;
 use App\Models\Domain;
+use App\Models\LearningGoal;
 use Illuminate\Support\Collection;
 
 /**
@@ -44,7 +45,7 @@ final class AttemptResult
             'domains' => $domainRows->all(),
             'strengths' => $domainRows->where('band', ScoreBand::Strength->value)->pluck('domain.slug')->values()->all(),
             'gaps' => $domainRows->where('band', ScoreBand::Gap->value)->pluck('domain.slug')->values()->all(),
-            'next_steps' => $this->nextSteps($domainRows),
+            'next_steps' => $this->nextSteps($domainRows, $this->interests($attempt)),
             'formula' => self::formula(),
             'review' => $attempt->answers->map(fn (AssessmentAnswer $answer) => $this->review($answer))->all(),
         ];
@@ -93,16 +94,18 @@ final class AttemptResult
 
     /**
      * Rule-based next steps: the introductory course of each gap domain, then of each developing
-     * domain, weakest first. Strength domains need no course.
+     * domain. Within a band, the learner's areas of interest come first, then the weakest.
+     * Strength domains need no course.
      *
      * @param  Collection<int, array<string, mixed>>  $domainRows
+     * @param  list<string>  $interests  domain slugs
      * @return list<array<string, mixed>>
      */
-    private function nextSteps(Collection $domainRows): array
+    private function nextSteps(Collection $domainRows, array $interests): array
     {
         $weak = $domainRows
             ->whereIn('band', [ScoreBand::Gap->value, ScoreBand::Developing->value])
-            ->sortBy(fn (array $row) => [$row['band'] === ScoreBand::Gap->value ? 0 : 1, $row['score']])
+            ->sortBy(fn (array $row) => [$row['band'] === ScoreBand::Gap->value ? 0 : 1, in_array($row['domain']['slug'], $interests, true) ? 0 : 1, $row['score']])
             ->values();
 
         $courses = Course::query()
@@ -127,6 +130,12 @@ final class AttemptResult
             ])
             ->values()
             ->all();
+    }
+
+    /** @return list<string> the attempt owner's areas of interest (domain slugs) */
+    private function interests(AssessmentAttempt $attempt): array
+    {
+        return LearningGoal::query()->where('user_id', $attempt->user_id)->first()?->domains()->pluck('slug')->all() ?? [];
     }
 
     /** @return array<string, mixed> */

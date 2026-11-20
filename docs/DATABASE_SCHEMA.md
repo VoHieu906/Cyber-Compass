@@ -73,7 +73,7 @@ erDiagram
 
 ## Tables
 
-Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3), plus the lesson lifecycle, section UUIDs, lesson drafts and revisions, account suspension and the admin audit log (Phase 3.5 Part A), and `lesson_media` (Part B), plus the assessment tables (Phase 4 Part A). The rest is designed and arrives with its phase. Every Phase 3.5 migration is additive (expand only) and safe to run while the previous release is still serving.
+Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3), plus the lesson lifecycle, section UUIDs, lesson drafts and revisions, account suspension and the admin audit log (Phase 3.5 Part A), and `lesson_media` (Part B), plus the assessment tables, learning goals and personal roadmaps (Phase 4). The rest is designed and arrives with its phase. Every Phase 3.5 migration is additive (expand only) and safe to run while the previous release is still serving.
 
 ### Identity
 
@@ -84,7 +84,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 **user_profiles** (✅ Phase 2): `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`.
 
-**learning_goals** (Phase 4): `user_id` (unique FK), `career_id` FK null, `self_level` enum(`beginner`,`intermediate`,`advanced`), `weekly_minutes` smallint.
+**learning_goals** (✅ Phase 4): `user_id` (unique FK cascade), `career_id` FK null (null on delete), `self_level` enum(`beginner`,`intermediate`,`advanced`) null, `weekly_minutes` smallint null (30 to 2400).
 **learning_goal_domains**: `learning_goal_id`, `domain_id`. The primary key is the pair (areas of interest).
 
 ### Taxonomy
@@ -135,8 +135,8 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Personalized paths
 
-**learning_paths**: `user_id`, `career_id`, `assessment_attempt_id` null, `version` smallint, `status` enum(`active`,`archived`), `generated_at`. Only one `active` path per user, enforced in the generator action inside a transaction.
-**learning_path_nodes**: `learning_path_id` FK cascade, `topic_id`, `stage`, `position`, `recommendation` enum(`required`,`review`), `reason_key` + `reason_params` JSON (rendered through i18n). Unique (`learning_path_id`,`topic_id`).
+**learning_paths** (✅ Phase 4): `user_id`, `career_id`, `assessment_attempt_id` null (null on delete), `version` smallint, `status` enum(`active`,`archived`), `generated_at`, `active_marker` (generated: 1 while active, null once archived). Unique (`user_id`,`version`) and (`user_id`,`active_marker`): one active path per user, also serialised by a row lock in the generator.
+**learning_path_nodes** (✅ Phase 4): `learning_path_id` FK cascade, `topic_id`, `stage`, `position`, `recommendation` enum(`required`,`review`), `reason_key` + `reason_params` JSON (rendered through i18n). Unique (`learning_path_id`,`topic_id`).
 
 ### Progress and engagement
 

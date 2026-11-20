@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
-import { Alert } from "@/components/ui/alert";
+import { CareerGoalPanel } from "@/features/careers/components/career-goal-panel";
 import { LevelMeter } from "@/features/careers/components/level-meter";
 import { RoadmapPreview } from "@/features/careers/components/roadmap-preview";
 import type { CareerDetail } from "@/features/careers/types";
@@ -76,9 +76,7 @@ export default async function CareerPage({ params }: PageProps<"/careers/[slug]"
           <p>{t("careers.roadmapLede")}</p>
         </div>
         <RoadmapPreview stages={career.roadmap.stages} />
-        <Alert tone="info" className="max-w-[44rem]">
-          {t("careers.goalLater")}
-        </Alert>
+        <CareerGoalPanel career={{ slug: career.slug, title: career.title }} />
       </section>
 
       {career.suggested_courses.length ? (

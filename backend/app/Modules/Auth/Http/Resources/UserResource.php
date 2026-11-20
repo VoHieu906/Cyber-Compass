@@ -17,6 +17,8 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $profile = $this->profile;
+        // Loaded here so every endpoint that returns the user includes the goal, without lazy loading.
+        $goal = $this->resource->loadMissing(['learningGoal.career:id,slug,title', 'learningGoal.domains:id,slug,position'])->learningGoal;
 
         return [
             'id' => $this->id,
@@ -35,6 +37,12 @@ class UserResource extends JsonResource
                 'locale' => $profile?->locale?->value ?? 'en',
                 'theme' => $profile?->theme?->value ?? 'system',
             ],
+            'learning_goal' => $goal ? [
+                'career' => $goal->career ? ['slug' => $goal->career->slug, 'title' => $goal->career->title] : null,
+                'self_level' => $goal->self_level,
+                'weekly_minutes' => $goal->weekly_minutes,
+                'domains' => $goal->domains->sortBy('position')->pluck('slug')->values()->all(),
+            ] : null,
         ];
     }
 }

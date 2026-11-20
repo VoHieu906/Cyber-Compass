@@ -8,7 +8,9 @@ import { useEffect } from "react";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
 import { Alert } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
+import { useCurrentUser } from "@/features/auth/hooks";
 import { renderInline } from "@/features/learning/components/prose";
+import { RoadmapCta } from "@/features/roadmap/components/roadmap-cta";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { useAttemptResult } from "../hooks";
@@ -46,7 +48,9 @@ export function ResultView({ id }: { id: number }) {
 function Result({ result }: { result: AttemptResult }) {
   const t = useTranslations("assessment");
   const tc = useTranslations("common");
+  const tl = useTranslations("difficulty");
   const format = useFormatter();
+  const selfLevel = useCurrentUser().data?.learning_goal?.self_level ?? null;
   const names = new Map(result.domains.map((d) => [d.domain.slug, d.domain.name]));
   const listOf = (slugs: string[]) => (slugs.length ? slugs.map((s) => names.get(s) ?? s).join(", ") : t("result.none"));
   const missed = result.review.filter((r) => !r.is_correct);
@@ -68,6 +72,7 @@ function Result({ result }: { result: AttemptResult }) {
             <span className="measured">{t("result.points", { earned: result.overall.earned, possible: result.overall.possible })}</span>
             <span className="measured">{t("result.answered", { answered: result.overall.answered, total: result.overall.total })}</span>
           </div>
+          {selfLevel ? <p className="text-sm">{t("result.selfRating", { level: tl(selfLevel) })}</p> : null}
         </div>
         <dl className="grid content-start gap-5 bg-paper-2 p-6 text-sm">
           <div className="flex flex-col gap-1">
@@ -152,10 +157,7 @@ function Result({ result }: { result: AttemptResult }) {
               <p>{t("result.allStrong")}</p>
             )}
             <div className="flex flex-wrap items-start gap-3 pt-2">
-              <Link href="/careers" className={buttonVariants()}>
-                {t("result.chooseCareer")}
-                <ArrowRight aria-hidden />
-              </Link>
+              <RoadmapCta />
               <StartAttemptButton slug={result.assessment.slug} variant="secondary">
                 {t("result.retake")}
               </StartAttemptButton>

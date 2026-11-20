@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useCurrentUser, useLogout } from "@/features/auth/hooks";
 import { AvatarUploader } from "./avatar-uploader";
+import { LearningGoalForm } from "./learning-goal-form";
 import { PasswordForm } from "./password-form";
 import { PreferencesPanel } from "./preferences-panel";
 import { ProfileForm } from "./profile-form";
@@ -25,6 +26,17 @@ export function ProfileSettings() {
         <ProfileForm key={user.id} user={user} />
       </SettingsSection>
     </div>
+  );
+}
+
+export function GoalSettings() {
+  const t = useTranslations("settings.goals");
+  const { data: user } = useCurrentUser();
+  if (!user) return null;
+  return (
+    <SettingsSection title={t("title")} description={t("lede")}>
+      <LearningGoalForm key={user.id} user={user} />
+    </SettingsSection>
   );
 }
 
