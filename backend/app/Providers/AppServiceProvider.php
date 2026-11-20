@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Modules\Content\Blocks\BlockRegistry;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // The single source of lesson block types (ARCHITECTURE D17).
+        $this->app->singleton(BlockRegistry::class, fn () => BlockRegistry::default());
     }
 
     public function boot(): void

@@ -7,7 +7,6 @@ use App\Models\Lesson;
 use App\Modules\Catalog\Services\CourseProgress;
 use App\Modules\Learning\Actions\RecordLessonProgress;
 use App\Modules\Learning\Http\Resources\LessonResource;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -73,7 +72,7 @@ final class LessonController extends Controller
     {
         return Lesson::query()
             ->where('slug', $slug)
-            ->whereHas('chapter.course', fn (Builder $q) => $q->where('is_published', true))
+            ->visibleToLearners()
             ->with('chapter.course')
             ->firstOrFail();
     }

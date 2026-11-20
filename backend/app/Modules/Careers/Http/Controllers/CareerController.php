@@ -38,7 +38,8 @@ final class CareerController extends Controller
             ->with([
                 'domains',
                 'skills',
-                'topics' => fn ($q) => $q->with(['domain', 'prerequisites:id,slug'])->withCount('lessons'),
+                'topics' => fn ($q) => $q->with(['domain', 'prerequisites:id,slug'])
+                    ->withCount(['lessons' => fn ($l) => $l->visibleToLearners()]),
             ])
             ->withCount('topics')
             ->firstOrFail();

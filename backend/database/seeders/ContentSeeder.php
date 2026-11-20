@@ -3,11 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Career;
-use App\Models\Course;
 use App\Models\Domain;
 use App\Models\Lesson;
 use App\Models\Skill;
 use App\Models\Topic;
+use App\Modules\Content\Services\ContentImporter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -15,42 +15,47 @@ use InvalidArgumentException;
 /**
  * Loads learning content from database/seeders/content/*.php.
  *
- * Content is upserted by slug, so re-running the seeder updates text without
- * deleting lessons and therefore without touching learners' progress. Lesson
- * sections are replaced wholesale (nothing references them). The data is
- * validated first; a broken reference stops the seed before anything is written.
+ * Courses, chapters, lessons and sections go through the Content module's ContentImporter,
+ * which validates every block with the BlockRegistry (the same rules as the admin console)
+ * and never overwrites lessons edited in the admin unless $force is set (ARCHITECTURE D19).
+ * Domains, topics and careers are seeded here. Everything is validated before anything is
+ * written; a broken reference stops the seed.
  */
 class ContentSeeder extends Seeder
 {
-    /** Diagram components the frontend can render (frontend/src/features/learning/diagrams). */
-    private const DIAGRAMS = ['osi-model', 'tcp-handshake', 'cia-triad'];
+    /** Set by `php artisan content:import --force` to overwrite admin-edited lessons. */
+    public bool $force = false;
 
-    private const CALLOUT_TONES = ['info', 'tip', 'warning'];
-
-    private string $dir;
-
-    public function run(): void
+    public function run(ContentImporter $importer): void
     {
-        $this->dir = database_path('seeders/content');
+        $dir = database_path('seeders/content');
 
-        $domains = require "{$this->dir}/domains.php";
-        $courses = array_map(fn ($file) => require $file, glob("{$this->dir}/courses/*.php"));
-        $topics = require "{$this->dir}/topics.php";
-        $careers = require "{$this->dir}/careers.php";
+        $domains = require "{$dir}/domains.php";
+        $courses = array_map(fn ($file) => require $file, glob("{$dir}/courses/*.php"));
+        $topics = require "{$dir}/topics.php";
+        $careers = require "{$dir}/careers.php";
 
-        $this->validate($domains, $courses, $topics, $careers);
+        $this->validate($domains, ContentImporter::lessonSlugs($courses), $topics, $careers);
 
-        DB::transaction(function () use ($domains, $courses, $topics, $careers) {
+        $report = DB::transaction(function () use ($domains, $courses, $topics, $careers, $importer) {
             $this->seedDomains($domains);
-            $this->seedCourses($courses);
+            $report = $importer->import($courses, $this->force);
             $this->seedTopics($topics);
             $this->seedCareers($careers);
+
+            return $report;
         });
 
         $this->command?->info(sprintf(
-            'Content: %d domains, %d courses, %d lessons, %d topics, %d careers.',
-            count($domains), count($courses), Lesson::query()->count(), count($topics), count($careers),
+            'Content: %d domains, %d courses (%d lessons written), %d topics, %d careers.',
+            count($domains), $report['courses'], $report['lessons_written'], count($topics), count($careers),
         ));
+        if ($report['skipped']) {
+            $this->command?->warn('Skipped (edited in the admin; use content:import --force to overwrite): '.implode(', ', $report['skipped']));
+        }
+        if ($report['archived']) {
+            $this->command?->warn('Archived (no longer in the content files): '.implode(', ', $report['archived']));
+        }
     }
 
     /** @param  array<string, array<string, mixed>>  $domains */
@@ -69,88 +74,17 @@ class ContentSeeder extends Seeder
         }
     }
 
-    /** @param  list<array<string, mixed>>  $courses */
-    private function seedCourses(array $courses): void
-    {
-        $domainIds = Domain::query()->pluck('id', 'slug');
-        $skillIds = Skill::query()->pluck('id', 'slug');
-
-        foreach ($courses as $data) {
-            $course = Course::query()->updateOrCreate(['slug' => $data['slug']], [
-                'domain_id' => $domainIds[$data['domain']],
-                'title' => $data['title'],
-                'summary' => $data['summary'],
-                'description' => $data['description'],
-                'difficulty' => $data['difficulty'],
-                'objectives' => $data['objectives'],
-                'is_published' => true,
-                'published_at' => $data['published_at'],
-            ]);
-            $course->skills()->sync($skillIds->only($data['skills'])->values());
-
-            foreach ($data['chapters'] as $chapterIndex => $chapterData) {
-                $chapter = $course->chapters()->updateOrCreate(
-                    ['position' => $chapterIndex + 1],
-                    ['title' => $chapterData['title']],
-                );
-
-                foreach ($chapterData['lessons'] as $lessonIndex => $l) {
-                    $lesson = Lesson::query()->updateOrCreate(['slug' => $l['slug']], [
-                        'course_chapter_id' => $chapter->id,
-                        'position' => $lessonIndex + 1,
-                        'title' => $l['title'],
-                        'summary' => $l['summary'],
-                        'objectives' => $l['objectives'],
-                        'key_takeaways' => $l['takeaways'],
-                        'resources' => array_map(fn ($r) => ['label' => $r[0], 'url' => $r[1]], $l['resources']),
-                        'estimated_minutes' => $l['minutes'],
-                    ]);
-
-                    $lesson->sections()->delete();
-                    foreach ($l['sections'] as $sectionIndex => $section) {
-                        $lesson->sections()->create(['position' => $sectionIndex + 1, ...$this->section($section)]);
-                    }
-                }
-            }
-        }
-
-        // Second pass: prerequisites may point at courses defined in later files.
-        $courseIds = Course::query()->pluck('id', 'slug');
-        foreach ($courses as $data) {
-            Course::query()->find($courseIds[$data['slug']])
-                ->prerequisites()->sync($courseIds->only($data['prerequisites'])->values());
-        }
-    }
-
     /**
-     * Compact content format => stored section.
-     * [type, heading, body, extra, data] where extra is the callout tone, code language or diagram
-     * caption, and data (diagrams only) is the content the diagram component renders.
+     * Topic links are synced for seed-owned lessons only: links to lessons created or
+     * edited in the admin are left alone.
      *
-     * @param  array<int, mixed>  $s
-     * @return array{type: string, heading: ?string, payload: array<string, mixed>}
+     * @param  array<string, array<string, mixed>>  $topics
      */
-    private function section(array $s): array
-    {
-        [$type, $heading, $body] = $s;
-        $extra = $s[3] ?? null;
-
-        $payload = match ($type) {
-            'prose' => ['text' => trim($body)],
-            'callout' => ['text' => trim($body), 'tone' => $extra ?? 'info'],
-            'steps' => ['items' => array_values($body)],
-            'code' => ['code' => rtrim($body), 'language' => $extra ?? 'text'],
-            'diagram' => ['key' => $body, 'caption' => $extra, 'data' => $s[4] ?? []],
-        };
-
-        return ['type' => $type, 'heading' => $heading, 'payload' => $payload];
-    }
-
-    /** @param  array<string, array<string, mixed>>  $topics */
     private function seedTopics(array $topics): void
     {
         $domainIds = Domain::query()->pluck('id', 'slug');
-        $lessonIds = Lesson::query()->pluck('id', 'slug');
+        $lessons = Lesson::query()->get(['id', 'slug', 'created_by', 'updated_by'])->keyBy('slug');
+        $seedOwned = $lessons->filter(fn (Lesson $l) => $l->created_by === null && $l->updated_by === null)->pluck('id');
 
         foreach ($topics as $slug => $data) {
             $topic = Topic::query()->updateOrCreate(['slug' => $slug], [
@@ -159,9 +93,12 @@ class ContentSeeder extends Seeder
                 'summary' => $data['summary'],
                 'level' => $data['level'],
             ]);
-            $topic->lessons()->sync(collect($data['lessons'])->mapWithKeys(fn ($lessonSlug, $i) => [
-                $lessonIds[$lessonSlug] => ['position' => $i + 1, 'is_required' => true],
-            ]));
+
+            $wanted = collect($data['lessons'])->mapWithKeys(fn ($lessonSlug, $i) => [
+                $lessons[$lessonSlug]->id => ['position' => $i + 1, 'is_required' => true],
+            ]);
+            $topic->lessons()->syncWithoutDetaching($wanted);
+            $topic->lessons()->detach($seedOwned->diff($wanted->keys())->intersect($topic->lessons()->pluck('lessons.id')));
         }
 
         $topicIds = Topic::query()->pluck('id', 'slug');
@@ -203,45 +140,18 @@ class ContentSeeder extends Seeder
     }
 
     /**
+     * Domain, topic and career references. Course and section rules live in ContentImporter
+     * and the BlockRegistry.
+     *
      * @param  array<string, array<string, mixed>>  $domains
-     * @param  list<array<string, mixed>>  $courses
+     * @param  list<string>  $lessonSlugs
      * @param  array<string, array<string, mixed>>  $topics
      * @param  array<string, array<string, mixed>>  $careers
      */
-    private function validate(array $domains, array $courses, array $topics, array $careers): void
+    private function validate(array $domains, array $lessonSlugs, array $topics, array $careers): void
     {
         $errors = [];
         $skills = array_merge(...array_map(fn ($d) => array_keys($d['skills']), array_values($domains)));
-        $courseSlugs = array_column($courses, 'slug');
-        $lessonSlugs = [];
-
-        foreach ($courses as $course) {
-            $where = "course {$course['slug']}";
-            isset($domains[$course['domain']]) || $errors[] = "{$where}: unknown domain {$course['domain']}";
-            in_array($course['difficulty'], [1, 2, 3], true) || $errors[] = "{$where}: difficulty must be 1-3";
-            foreach (array_diff($course['skills'], $skills) as $s) {
-                $errors[] = "{$where}: unknown skill {$s}";
-            }
-            foreach (array_diff($course['prerequisites'], $courseSlugs) as $p) {
-                $errors[] = "{$where}: unknown prerequisite course {$p}";
-            }
-            foreach ($course['chapters'] as $chapter) {
-                foreach ($chapter['lessons'] as $lesson) {
-                    in_array($lesson['slug'], $lessonSlugs, true) && $errors[] = "duplicate lesson slug {$lesson['slug']}";
-                    $lessonSlugs[] = $lesson['slug'];
-                    foreach ($lesson['sections'] as $i => $s) {
-                        $at = "lesson {$lesson['slug']} section ".($i + 1);
-                        match ($s[0]) {
-                            'prose', 'steps', 'code' => null,
-                            'callout' => in_array($s[3] ?? 'info', self::CALLOUT_TONES, true) || $errors[] = "{$at}: unknown callout tone",
-                            'diagram' => in_array($s[2], self::DIAGRAMS, true) && ! empty($s[4])
-                                || $errors[] = "{$at}: diagram {$s[2]} is unknown or has no data",
-                            default => $errors[] = "{$at}: unknown section type {$s[0]}",
-                        };
-                    }
-                }
-            }
-        }
 
         foreach ($topics as $slug => $topic) {
             isset($domains[$topic['domain']]) || $errors[] = "topic {$slug}: unknown domain";

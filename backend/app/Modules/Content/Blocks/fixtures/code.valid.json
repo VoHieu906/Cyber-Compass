@@ -1,0 +1,10 @@
+[
+  {
+    "code": "ls -la",
+    "language": "bash"
+  },
+  {
+    "code": "print(1)",
+    "language": "python"
+  }
+]

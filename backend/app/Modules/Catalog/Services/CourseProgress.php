@@ -48,7 +48,8 @@ final class CourseProgress
     }
 
     /**
-     * Lessons in reading order: chapter position, then lesson position.
+     * Published lessons in reading order: chapter position, then lesson position.
+     * Drafts and archived lessons never count towards progress or navigation.
      *
      * @return Collection<int, Lesson>
      */
@@ -59,6 +60,7 @@ final class CourseProgress
             ->join('course_chapters', 'course_chapters.id', '=', 'lessons.course_chapter_id')
             ->where('course_chapters.course_id', $course->id)
             ->orderBy('course_chapters.position')
+            ->published()
             ->orderBy('lessons.position')
             ->get();
     }

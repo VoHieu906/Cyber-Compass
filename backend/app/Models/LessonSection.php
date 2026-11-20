@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
-use App\Enums\LessonSectionType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['lesson_id', 'position', 'type', 'heading', 'payload'])]
+/**
+ * One block of a lesson. `type` is a block type key validated by
+ * App\Modules\Content\Blocks\BlockRegistry (the single source of allowed types);
+ * `uuid` is the stable identity that survives reordering and edits.
+ */
+#[Fillable(['uuid', 'lesson_id', 'position', 'type', 'heading', 'payload'])]
 class LessonSection extends Model
 {
     /** @return BelongsTo<Lesson, $this> */
@@ -18,9 +22,6 @@ class LessonSection extends Model
 
     protected function casts(): array
     {
-        return [
-            'type' => LessonSectionType::class,
-            'payload' => 'array',
-        ];
+        return ['payload' => 'array'];
     }
 }

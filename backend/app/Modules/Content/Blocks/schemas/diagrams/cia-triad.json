@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "diagram: cia-triad",
+  "type": "object",
+  "required": ["properties"],
+  "properties": {
+    "properties": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["key", "name", "definition", "example", "controls"],
+        "properties": {
+          "key": { "type": "string" },
+          "name": { "type": "string", "minLength": 1 },
+          "definition": { "type": "string" },
+          "example": { "type": "string" },
+          "controls": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

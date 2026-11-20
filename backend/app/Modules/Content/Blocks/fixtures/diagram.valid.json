@@ -1,0 +1,57 @@
+[
+  {
+    "key": "cia-triad",
+    "caption": null,
+    "data": {
+      "properties": [
+        {
+          "key": "c",
+          "name": "Confidentiality",
+          "definition": "d",
+          "example": "e",
+          "controls": [
+            "Encryption"
+          ]
+        },
+        {
+          "key": "i",
+          "name": "Integrity",
+          "definition": "d",
+          "example": "e",
+          "controls": []
+        },
+        {
+          "key": "a",
+          "name": "Availability",
+          "definition": "d",
+          "example": "e",
+          "controls": [
+            "Backups"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "key": "tcp-handshake",
+    "caption": "Step through it.",
+    "data": {
+      "participants": {
+        "client": "Client",
+        "server": "Server"
+      },
+      "steps": [
+        {
+          "from": "client",
+          "label": "SYN",
+          "fields": "seq=1",
+          "explanation": "Opens.",
+          "states": {
+            "client": "SYN-SENT",
+            "server": "LISTEN"
+          }
+        }
+      ]
+    }
+  }
+]

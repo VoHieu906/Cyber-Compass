@@ -1,0 +1,36 @@
+[
+  {
+    "key": "pie-chart",
+    "data": {}
+  },
+  {
+    "key": "cia-triad",
+    "data": {
+      "properties": []
+    }
+  },
+  {
+    "key": "tcp-handshake",
+    "data": {
+      "participants": {
+        "client": "C",
+        "server": "S"
+      },
+      "steps": [
+        {
+          "from": "router",
+          "label": "SYN",
+          "fields": "",
+          "explanation": "",
+          "states": {
+            "client": "",
+            "server": ""
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": "cia-triad"
+  }
+]

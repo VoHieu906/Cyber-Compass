@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Difficulty;
+use App\Enums\LessonStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -63,13 +64,16 @@ class Course extends Model
     }
 
     /**
-     * Lesson count and total minutes, aggregated in the query rather than stored.
+     * Count and total minutes of the lessons a learner can see, aggregated in the query
+     * rather than stored. Drafts and archived lessons are not counted.
      *
      * @param  Builder<Course>  $query
      */
     public function scopeWithLessonStats(Builder $query): void
     {
-        $query->withCount('lessons')->withSum('lessons as estimated_minutes', 'estimated_minutes');
+        $published = fn (Builder $q) => $q->where('lessons.status', LessonStatus::Published->value);
+        $query->withCount(['lessons' => $published])
+            ->withSum(['lessons as estimated_minutes' => $published], 'estimated_minutes');
     }
 
     public function getRouteKeyName(): string

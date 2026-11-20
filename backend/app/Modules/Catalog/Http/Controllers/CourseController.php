@@ -40,7 +40,12 @@ final class CourseController extends Controller
         $course = Course::query()
             ->published()
             ->where('slug', $slug)
-            ->with(['domain', 'skills', 'prerequisites:id,slug,title', 'chapters.lessons'])
+            ->with([
+                'domain',
+                'skills',
+                'prerequisites:id,slug,title',
+                'chapters.lessons' => fn ($q) => $q->published(),
+            ])
             ->withLessonStats()
             ->firstOrFail();
 

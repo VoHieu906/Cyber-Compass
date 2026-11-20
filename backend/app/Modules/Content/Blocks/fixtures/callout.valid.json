@@ -1,0 +1,10 @@
+[
+  {
+    "text": "Keep a session open.",
+    "tone": "tip"
+  },
+  {
+    "text": "Heads up.",
+    "tone": "warning"
+  }
+]

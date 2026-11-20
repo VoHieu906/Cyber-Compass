@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "callout",
+  "type": "object",
+  "required": ["text", "tone"],
+  "additionalProperties": false,
+  "properties": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "tone": { "enum": ["info", "tip", "warning"] }
+  },
+  "examples": [{ "text": "Never fix a permissions problem with chmod 777.", "tone": "warning" }]
+}

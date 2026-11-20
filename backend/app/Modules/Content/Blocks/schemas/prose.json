@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "prose",
+  "description": "Paragraphs separated by blank lines, '- ' bullet lists, **bold** and `inline code`. Rendered as text, never HTML.",
+  "type": "object",
+  "required": ["text"],
+  "additionalProperties": false,
+  "properties": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 20000 }
+  },
+  "examples": [{ "text": "A subnet mask splits an address into a **network** part and a **host** part.\n\n- `255.255.255.0` is a /24\n- `255.255.255.192` is a /26" }]
+}

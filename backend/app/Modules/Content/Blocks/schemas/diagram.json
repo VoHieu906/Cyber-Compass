@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "diagram",
+  "description": "A bespoke diagram chosen by key. The data shape depends on the key (schemas/diagrams/<key>.json).",
+  "type": "object",
+  "required": ["key", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "key": { "type": "string", "pattern": "^[a-z0-9-]{1,40}$" },
+    "caption": { "type": ["string", "null"], "maxLength": 300 },
+    "data": { "type": "object" }
+  },
+  "examples": [{
+    "key": "cia-triad",
+    "caption": "Select each property.",
+    "data": { "properties": [
+      { "key": "confidentiality", "name": "Confidentiality", "definition": "Only authorised people can read it.", "example": "A stolen unencrypted laptop.", "controls": ["Encryption"] },
+      { "key": "integrity", "name": "Integrity", "definition": "Only authorised changes.", "example": "A changed invoice.", "controls": ["Signatures"] },
+      { "key": "availability", "name": "Availability", "definition": "Usable when needed.", "example": "Ransomware.", "controls": ["Backups"] }
+    ] }
+  }]
+}

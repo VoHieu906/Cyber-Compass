@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Module console commands (content:import, cybercompass:make-admin, …).
+    ->withCommands([
+        __DIR__.'/../app/Modules/Content/Console',
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum SPA authentication: session cookies + CSRF for requests from the frontend origin.
         $middleware->statefulApi();

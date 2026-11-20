@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "diagram: tcp-handshake",
+  "type": "object",
+  "required": ["participants", "steps"],
+  "properties": {
+    "participants": {
+      "type": "object",
+      "required": ["client", "server"],
+      "properties": { "client": { "type": "string" }, "server": { "type": "string" } }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["from", "label", "fields", "explanation", "states"],
+        "properties": {
+          "from": { "enum": ["client", "server"] },
+          "label": { "type": "string" },
+          "fields": { "type": "string" },
+          "explanation": { "type": "string" },
+          "states": {
+            "type": "object",
+            "required": ["client", "server"],
+            "properties": { "client": { "type": "string" }, "server": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}
