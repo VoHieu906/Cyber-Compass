@@ -42,6 +42,7 @@ export function GraphView({
   edges,
   direction = "TB",
   arrows = true,
+  order,
   selected,
   onSelect,
   label,
@@ -49,6 +50,8 @@ export function GraphView({
   nodes: GraphViewNode[];
   edges: GraphViewEdge[];
   direction?: "TB" | "LR";
+  /** Same-rank pairs that must keep this left-to-right order. */
+  order?: [string, string][];
   arrows?: boolean;
   selected?: string | null;
   onSelect?: (id: string) => void;
@@ -61,9 +64,9 @@ export function GraphView({
       layoutGraph(
         nodes.map((n) => ({ id: n.id, ...sized.get(n.id)! })),
         edges,
-        { direction, rankGap: edges.some((e) => e.label) ? 56 : 44 },
+        { direction, rankGap: edges.some((e) => e.label) ? 56 : 44, order },
       ),
-    [nodes, edges, direction, sized],
+    [nodes, edges, direction, sized, order],
   );
 
   const keyDown = (id: string) => (event: KeyboardEvent<SVGGElement>) => {

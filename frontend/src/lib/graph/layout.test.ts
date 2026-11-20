@@ -30,6 +30,19 @@ describe("layoutGraph", () => {
     expect(g.edges[0].labelAt).not.toBeNull();
     expect(g.edges[1].labelAt).toBeNull();
   });
+
+  it("keeps siblings in the given left-to-right order", () => {
+    const kids = ["first", "second", "third"];
+    const tree = [{ id: "root", width: 80, height: 30 }, ...kids.map((id) => ({ id, width: 80, height: 30 }))];
+    const edges = kids.map((id) => ({ from: "root", to: id }));
+    const order: [string, string][] = [
+      ["first", "second"],
+      ["second", "third"],
+    ];
+    const g = layoutGraph(tree, edges, { order });
+    const xs = kids.map((id) => g.nodes.get(id)!.x);
+    expect(xs).toEqual([...xs].sort((a, b) => a - b));
+  });
 });
 
 describe("helpers", () => {

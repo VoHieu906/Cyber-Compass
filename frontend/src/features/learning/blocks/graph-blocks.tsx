@@ -140,6 +140,11 @@ export function Tree({ data }: { data: TreeData }) {
     () => data.nodes.filter((n) => n.parent).map((n) => ({ from: n.parent!, to: n.id })),
     [data.nodes],
   );
+  // Children keep the author's order left to right (the layout would otherwise pick any order).
+  const order = useMemo<[string, string][]>(
+    () => [...childrenOf.values()].flatMap((kids) => kids.slice(1).map((k, i): [string, string] => [kids[i].id, k.id])),
+    [childrenOf],
+  );
   const root = data.nodes.find((n) => !n.parent)!;
   const current = selected ? byId.get(selected) : undefined;
 
@@ -149,6 +154,7 @@ export function Tree({ data }: { data: TreeData }) {
         nodes={nodes}
         edges={edges}
         arrows={false}
+        order={order}
         selected={selected}
         onSelect={(id) => setSelected((s) => (s === id ? null : id))}
         label={t("treeLabel", { root: root.label })}

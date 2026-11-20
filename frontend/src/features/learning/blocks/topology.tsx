@@ -49,6 +49,7 @@ const HEIGHT = { "16:9": 562, "4:3": 750, "2:1": 500 } as const;
 const ICON = 48;
 // Devices may sit on the 0 and 100 edges; the drawing area is inset so they stay whole.
 const INSET = { x: 80, top: 44, bottom: 84 };
+const ZONE_PAD = { x: 50, top: 40, bottom: 70 };
 
 /** Devices and links at the author's positions (percent of the canvas), with optional zones. */
 export function Topology({ data }: { data: TopologyData }) {
@@ -79,10 +80,12 @@ export function Topology({ data }: { data: TopologyData }) {
         >
           {(data.zones ?? []).map((z) => {
             const colour = ZONE_TONE[z.tone ?? "neutral"];
-            const x = px(z.x) - INSET.x / 2;
-            const y = py(z.y) - INSET.top / 2 - 6;
-            const w = (z.w / 100) * (WIDTH - INSET.x * 2) + INSET.x;
-            const h = (z.h / 100) * (height - INSET.top - INSET.bottom) + INSET.top / 2 + INSET.bottom - 4;
+            // The zone covers its devices' icons and labels: icon radius plus label room below,
+            // and room for the zone's own label above. Authors leave about 18% between zones.
+            const x = px(z.x) - ZONE_PAD.x;
+            const y = py(z.y) - ZONE_PAD.top;
+            const w = (z.w / 100) * (WIDTH - INSET.x * 2) + ZONE_PAD.x * 2;
+            const h = (z.h / 100) * (height - INSET.top - INSET.bottom) + ZONE_PAD.top + ZONE_PAD.bottom;
             return (
               <g key={z.id} aria-hidden>
                 <rect

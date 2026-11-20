@@ -24,7 +24,15 @@ export function layoutGraph(
     nodeGap = 28,
     rankGap = 44,
     margin = 12,
-  }: Partial<{ direction: "TB" | "LR"; nodeGap: number; rankGap: number; margin: number }> = {},
+    order = [],
+  }: Partial<{
+    direction: "TB" | "LR";
+    nodeGap: number;
+    rankGap: number;
+    margin: number;
+    /** Pairs [left, right] of nodes in the same rank that must keep this order (tree siblings). */
+    order: [string, string][];
+  }> = {},
 ): GraphLayout {
   const g = new Graph({ multigraph: true });
   g.setGraph({ rankdir: direction, nodesep: nodeGap, ranksep: rankGap, marginx: margin, marginy: margin, edgesep: 16 });
@@ -36,7 +44,7 @@ export function layoutGraph(
     g.setEdge(e.from, e.to, label, String(i));
   });
 
-  layout(g);
+  layout(g, order.length ? { constraints: order.map(([left, right]) => ({ left, right })) } : undefined);
 
   const placed = new Map<string, PlacedNode>();
   for (const n of nodes) {
