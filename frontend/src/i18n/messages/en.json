@@ -285,18 +285,12 @@
     },
     "diagramUnavailable": "This diagram isn't available.",
     "diagrams": {
-      "layer": "Layer {number}",
-      "unit": "Data unit",
-      "protocols": "Examples",
-      "attack": "Attack at this layer",
       "step": "Step {current} of {total}",
       "previousStep": "Previous step",
       "nextStep": "Next step",
       "restart": "Start over",
-      "state": "State",
       "example": "When it breaks",
-      "controls": "Controls that protect it",
-      "layers": "OSI layers"
+      "controls": "Controls that protect it"
     },
     "lessonNav": "Lesson navigation",
     "scene": {
@@ -314,6 +308,92 @@
       "unsupported": "Your browser can't show this 3D view.",
       "description": "Text description",
       "descriptionInstead": "Text description (shown instead of the 3D view)"
+    },
+    "blocks": {
+      "layers": "Layers",
+      "examples": "Examples",
+      "messageAlt": "{from} to {to}: {label}",
+      "stateOf": "{actor} state",
+      "selectNode": "Select a step marked with a dot to read more.",
+      "selectDevice": "Select a device marked with a dot to read more.",
+      "textVersion": "Text version",
+      "flowLabel": "Flow diagram with {count} steps",
+      "treeLabel": "Hierarchy under {root}",
+      "decision": "decision",
+      "goesTo": "goes to {target}",
+      "topologyLabel": "Network diagram with {count} devices",
+      "zoneOutline": "{zone}: {devices}",
+      "connectsTo": "Connects to {peers}",
+      "bitsAlt": "{label}: {bits}, {value} in decimal",
+      "parts": "Parts",
+      "changed": "changed",
+      "checkIntro": "Check your understanding. This isn't graded.",
+      "chooseAll": "Choose all that apply.",
+      "correctOption": "Correct answer",
+      "wrongOption": "Not correct",
+      "checkAnswer": "Check answer",
+      "tryAgain": "Try again",
+      "rightAnswer": "Correct.",
+      "notQuite": "Not quite."
+    },
+    "calculator": {
+      "cidrInput": "Address with prefix",
+      "cidrHint": "For example 10.0.5.20/22.",
+      "cidrInvalid": "Type an IPv4 address with a prefix, like 192.168.1.10/24.",
+      "mask": "Subnet mask",
+      "network": "Network address",
+      "broadcast": "Broadcast address",
+      "hostRange": "Usable host range",
+      "usableHosts": "Usable hosts",
+      "wildcard": "Wildcard mask",
+      "inBinary": "Address and mask in binary",
+      "binaryKey": "The first {prefix} bits (highlighted) are the network part; the rest identify the host.",
+      "chmodInput": "Mode",
+      "chmodHint": "Octal like 754 or letters like rwxr-xr--, or tick the boxes.",
+      "chmodInvalid": "Use three or four octal digits (0 to 7), or nine letters like rwxr-xr--.",
+      "permissions": "Permissions",
+      "read": "Read",
+      "write": "Write",
+      "execute": "Execute",
+      "owner": "Owner",
+      "group": "Group",
+      "others": "Others",
+      "octal": "Octal",
+      "symbolic": "Symbolic",
+      "command": "Command",
+      "special": "Special bits",
+      "none": "none",
+      "worldWritable": "Anyone on the system can change this file. That is rarely what you want.",
+      "entropyWarning": "Don't type a real password. Nothing here is sent or saved, but practise with made-up examples.",
+      "entropyInput": "Example password",
+      "entropyHint": "Make it longer, then add other kinds of characters, and compare.",
+      "showPassword": "Show characters",
+      "rating": {
+        "very-weak": "Very weak",
+        "weak": "Weak",
+        "fair": "Fair",
+        "strong": "Strong",
+        "very-strong": "Very strong"
+      },
+      "length": "Length",
+      "pool": "Possible characters per position",
+      "bits": "Entropy (bits)",
+      "crackTime": "Time to guess at 10 billion tries a second",
+      "time": {
+        "instant": "Instantly",
+        "seconds": "{count, plural, one {# second} other {# seconds}}",
+        "minutes": "{count, plural, one {# minute} other {# minutes}}",
+        "hours": "{count, plural, one {# hour} other {# hours}}",
+        "days": "{count, plural, one {# day} other {# days}}",
+        "years": "{count, plural, one {# year} other {# years}}",
+        "eons": "Longer than the age of the universe"
+      },
+      "warnings": {
+        "common": "This is one of the most common passwords, so attackers try it first.",
+        "repeated": "Repeated characters are easy to guess.",
+        "sequence": "Sequences like 1234 or abcd are easy to guess."
+      },
+      "entropyCaveat": "This estimate assumes every character was picked at random. Words, names and patterns make real passwords much weaker than this number."
     }
   },
   "careers": {
@@ -684,7 +764,7 @@
       "calloutTitle": "Callout title",
       "optional": "optional",
       "text": "Text",
-      "proseHint": "Separate paragraphs with a blank line. Start lines with \"- \" for a list. Use **bold** and `code`.",
+      "proseHint": "Separate paragraphs with a blank line. Start lines with \"- \" for a bullet list or \"1. \" for a numbered list. Use **bold**, `code` and [link text](https://...).",
       "inlineHint": "Use **bold** and `code`.",
       "tone": "Tone",
       "tones": {
@@ -727,7 +807,14 @@
       "note": "Note for the history",
       "notePlaceholder": "What changed, e.g. Clarified the salting example",
       "previewStale": "The preview shows the last saved draft. Save to see your latest changes here.",
-      "previewFrame": "Preview: what learners will see after you publish"
+      "previewFrame": "Preview: what learners will see after you publish",
+      "blockGroups": {
+        "text": "Text and media",
+        "diagrams": "Diagrams",
+        "practice": "Practice",
+        "threeD": "3D",
+        "other": "Other"
+      }
     },
     "media": {
       "image": "Image",
@@ -812,6 +899,50 @@
         "flags": "the reader's colour theme, and whether they asked for reduced motion",
         "limits": "Up to 20,000 characters. Setup must finish within 3 seconds and frames must keep coming, or the view is shut down. No network access, DOM or timers beyond onFrame."
       }
+    },
+    "visual": {
+      "livePreview": "Live preview",
+      "previewWaiting": "The preview appears once the block is complete.",
+      "fieldReference": "Field reference",
+      "fieldReferenceHint": "Fields marked * are required. ids are short lowercase names you choose and refer to elsewhere in the block.",
+      "columns": "Things compared",
+      "columnN": "Column {n}",
+      "addColumn": "Add column",
+      "rows": "Attributes",
+      "rowN": "Row {n}",
+      "rowLabel": "Attribute",
+      "addRow": "Add attribute",
+      "events": "Events",
+      "eventN": "Event {n}",
+      "when": "When",
+      "eventTitle": "What happened",
+      "detail": "Detail",
+      "detailOptional": "Detail (optional)",
+      "addEvent": "Add event",
+      "tool": "Tool",
+      "tools": {
+        "cidr": "Subnet calculator (CIDR)",
+        "chmod": "Linux permissions (chmod)",
+        "password-entropy": "Password strength (entropy)"
+      },
+      "initial": "Starting value",
+      "initialInvalid": "This starting value doesn't fit the tool.",
+      "initialHint": {
+        "cidr": "An address with a prefix, like 192.168.1.130/26.",
+        "chmod": "Octal like 754 or letters like rwxr-xr--.",
+        "password-entropy": "An obviously fake example, or leave empty."
+      },
+      "ungradedNote": "Practice questions are ungraded: they never affect progress, and the answers ship with the lesson.",
+      "questionN": "Question {n}",
+      "prompt": "Question",
+      "options": "Options",
+      "optionsHint": "Tick every correct option. More than one correct option makes it a choose-all question.",
+      "optionN": "Option {n}",
+      "correct": "Correct",
+      "addOption": "Add option",
+      "explanation": "Explanation",
+      "explanationHint": "Shown after the learner checks their answer, right or wrong.",
+      "addQuestion": "Add question"
     }
   }
 }

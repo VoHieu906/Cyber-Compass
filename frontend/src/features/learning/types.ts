@@ -34,7 +34,26 @@ export type LessonSection =
       heading: string | null;
       payload: Record<string, unknown>;
     }
-  | { id: string; type: "visual_3d"; heading: string | null; payload: Record<string, unknown> };
+  | {
+      id: string;
+      /** The generic 2D blocks; each payload is checked against its zod contract when rendered (blocks/schemas.ts). */
+      type: VisualBlockType;
+      heading: string | null;
+      payload: Record<string, unknown>;
+    };
+
+export type VisualBlockType =
+  | "layer-stack"
+  | "sequence"
+  | "flow"
+  | "tree"
+  | "topology"
+  | "comparison"
+  | "timeline"
+  | "bitfield"
+  | "calculator"
+  | "step-through"
+  | "knowledge-check";
 
 export type LessonLink = { slug: string; title: string };
 

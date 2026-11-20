@@ -118,7 +118,7 @@ function LivePreview({
   );
 }
 
-function ClientIssues({ issues }: { issues: { path: string; message: string }[] }) {
+export function ClientIssues({ issues }: { issues: { path: string; message: string }[] }) {
   const t = useTranslations("content.scene");
   if (issues.length === 0) return null;
   return (
@@ -255,7 +255,9 @@ function SceneReference() {
   const t = useTranslations("content.scene.reference");
   return (
     <details className="rounded-control border border-rule px-3 py-2 text-sm">
-      <summary className="cursor-pointer rounded-chip font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("title")}</summary>
+      <summary className="cursor-pointer rounded-chip font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+        {t("title")}
+      </summary>
       <dl className="[&_code]:measured mt-2 flex flex-col gap-2 [&_code]:text-xs [&_code]:text-ink [&_dt]:font-medium [&_dt]:text-ink">
         <div>
           <dt>camera</dt>
@@ -292,7 +294,9 @@ function ScriptReference() {
   const t = useTranslations("content.scene.scriptReference");
   return (
     <details className="rounded-control border border-rule px-3 py-2 text-sm">
-      <summary className="cursor-pointer rounded-chip font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{t("title")}</summary>
+      <summary className="cursor-pointer rounded-chip font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+        {t("title")}
+      </summary>
       <div className="mt-2 flex flex-col gap-2">
         <p>{t("intro")}</p>
         <ul className="[&_code]:measured flex flex-col gap-1 [&_code]:text-xs [&_code]:text-ink">

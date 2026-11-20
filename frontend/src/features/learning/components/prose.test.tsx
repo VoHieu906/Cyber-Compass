@@ -14,6 +14,10 @@ describe("parseBlocks", () => {
     expect(parseBlocks("- first\n- second")).toEqual([{ kind: "list", items: ["first", "second"] }]);
   });
 
+  it("recognises numbered lists and keeps their starting number", () => {
+    expect(parseBlocks("3. third\n4) fourth")).toEqual([{ kind: "ordered", start: 3, items: ["third", "fourth"] }]);
+  });
+
   it("treats a block with mixed lines as a paragraph", () => {
     expect(parseBlocks("Intro:\n- not a list")).toEqual([{ kind: "paragraph", text: "Intro: - not a list" }]);
   });
@@ -40,5 +44,23 @@ describe("Prose", () => {
 
     expect(container.querySelector("strong")).toBeNull();
     expect(container.querySelector("code")).toHaveTextContent("<b>**not bold**</b>");
+  });
+
+  it("renders https links that open safely in a new tab", () => {
+    render(<Prose text={"Read [RFC 9293](https://www.rfc-editor.org/rfc/rfc9293) first."} />);
+
+    const link = screen.getByRole("link", { name: "RFC 9293" });
+    expect(link).toHaveAttribute("href", "https://www.rfc-editor.org/rfc/rfc9293");
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link.getAttribute("rel")).toContain("noopener");
+  });
+
+  it("keeps the text of any other link but never makes it clickable", () => {
+    const { container } = render(
+      <Prose text={"[a](javascript:alert(1)) [b](http://example.com) [c](/admin) [d](https://)"} />,
+    );
+
+    expect(container.querySelector("a")).toBeNull();
+    expect(container).toHaveTextContent("a");
   });
 });

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SceneFrame } from "../blocks/scene-frame";
+import { isVisualBlock, VisualBlock } from "../blocks/visual-block";
 import { Diagram } from "../diagrams/registry";
 import type { CalloutTone, LessonSection } from "../types";
 import { Prose, renderInline } from "./prose";
@@ -167,8 +168,10 @@ export function Section({ section }: { section: LessonSection }) {
       );
       break;
     default:
-      // Unknown or future types (e.g. visual_3d before its renderer ships) render nothing rather than break the lesson.
-      return null;
+      // The generic visual blocks validate their own payloads. Unknown or future types render
+      // nothing rather than break the lesson.
+      if (!isVisualBlock(section.type)) return null;
+      body = <VisualBlock type={section.type} payload={section.payload} />;
   }
 
   return (

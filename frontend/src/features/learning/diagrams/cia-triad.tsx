@@ -1,23 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { z } from "zod";
+import type { z } from "zod";
 import { cn } from "@/lib/utils";
+import type { ciaSchema } from "./data";
 import { useTabs } from "./use-tabs";
-
-export const ciaSchema = z.object({
-  properties: z
-    .array(
-      z.object({
-        key: z.string(),
-        name: z.string(),
-        definition: z.string(),
-        example: z.string(),
-        controls: z.array(z.string()),
-      }),
-    )
-    .length(3),
-});
 
 // Triangle vertices: top, bottom right, bottom left.
 const VERTICES = [
@@ -69,7 +56,11 @@ export function CiaTriad({ data }: { data: z.infer<typeof ciaSchema> }) {
       </svg>
 
       <div className="flex flex-col gap-4">
-        <div {...tabs.listProps} aria-label={data.properties.map((p) => p.name).join(", ")} className="flex flex-wrap gap-1">
+        <div
+          {...tabs.listProps}
+          aria-label={data.properties.map((p) => p.name).join(", ")}
+          className="flex flex-wrap gap-1"
+        >
           {data.properties.map((p, i) => (
             <button
               key={p.key}
@@ -77,7 +68,9 @@ export function CiaTriad({ data }: { data: z.infer<typeof ciaSchema> }) {
               {...tabs.tabProps(i)}
               className={cn(
                 "rounded-control border px-3 py-1.5 text-sm font-medium transition-[background-color,border-color,color] duration-[var(--dur-micro)] ease-out",
-                i === tabs.selected ? "border-accent bg-accent-soft text-ink" : "border-rule text-muted hover:border-rule-2 hover:text-ink",
+                i === tabs.selected
+                  ? "border-accent bg-accent-soft text-ink"
+                  : "border-rule text-muted hover:border-rule-2 hover:text-ink",
               )}
             >
               {p.name}

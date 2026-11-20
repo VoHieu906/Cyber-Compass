@@ -681,28 +681,65 @@ function Labelled({
   );
 }
 
+const BLOCK_GROUPS = [
+  { key: "text", types: ["prose", "callout", "steps", "code", "media"] },
+  {
+    key: "diagrams",
+    types: [
+      "layer-stack",
+      "sequence",
+      "flow",
+      "tree",
+      "topology",
+      "comparison",
+      "timeline",
+      "bitfield",
+      "step-through",
+      "diagram",
+    ],
+  },
+  { key: "practice", types: ["knowledge-check", "calculator"] },
+  { key: "threeD", types: ["scene-3d", "script-3d"] },
+] as const;
+
 function AddBlock({ blockTypes, onAdd }: { blockTypes: BlockTypeInfo[]; onAdd: (type: BlockTypeInfo) => void }) {
   const t = useTranslations("content.editor");
+  const grouped = new Set<string>(BLOCK_GROUPS.flatMap((g) => g.types));
+  const groups = [
+    ...BLOCK_GROUPS.map((g) => ({
+      key: g.key,
+      types: g.types.map((k) => blockTypes.find((b) => b.key === k)).filter((b): b is BlockTypeInfo => Boolean(b)),
+    })),
+    { key: "other" as const, types: blockTypes.filter((b) => !grouped.has(b.key)) },
+  ].filter((g) => g.types.length > 0);
+
   return (
-    <div className="flex flex-col gap-3 rounded-card border border-dashed border-rule-2 p-4">
+    <div className="flex flex-col gap-4 rounded-card border border-dashed border-rule-2 p-4">
       <p className="flex items-center gap-2 text-sm font-medium text-ink">
         <Plus aria-hidden className="size-4" />
         {t("addBlock")}
       </p>
-      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {blockTypes.map((type) => (
-          <li key={type.key}>
-            <button
-              type="button"
-              onClick={() => onAdd(type)}
-              className="flex h-full w-full flex-col gap-0.5 rounded-control border border-rule bg-paper-2 px-3 py-2.5 text-left transition-[border-color,background-color] duration-[var(--dur-micro)] hover:border-muted hover:bg-paper-3"
-            >
-              <span className="text-sm font-medium text-ink">{type.label}</span>
-              <span className="text-xs">{type.description}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {groups.map((group) => (
+        <section key={group.key} className="flex flex-col gap-2" aria-labelledby={`add-${group.key}`}>
+          <h3 id={`add-${group.key}`} className="text-xs font-medium text-muted">
+            {t(`blockGroups.${group.key}`)}
+          </h3>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {group.types.map((type) => (
+              <li key={type.key}>
+                <button
+                  type="button"
+                  onClick={() => onAdd(type)}
+                  className="flex h-full w-full flex-col gap-0.5 rounded-control border border-rule bg-paper-2 px-3 py-2.5 text-left transition-[border-color,background-color] duration-[var(--dur-micro)] hover:border-muted hover:bg-paper-3"
+                >
+                  <span className="text-sm font-medium text-ink">{type.label}</span>
+                  <span className="text-xs">{type.description}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }

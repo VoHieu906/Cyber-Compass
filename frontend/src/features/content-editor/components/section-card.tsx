@@ -9,7 +9,9 @@ import type { BlockTypeInfo, EditorSection } from "../types";
 import { RowControls, StringListEditor } from "./list-editors";
 import { InputRow, JsonField, SelectRow, TextArea } from "./fields";
 import { MediaPicker } from "./media-picker";
+import { isVisualBlock } from "@/features/learning/blocks/visual-block";
 import { SceneEditor, ScriptEditor } from "./scene-editors";
+import { FORM_VISUAL_EDITORS, JsonVisualEditor } from "./visual-editors";
 
 type Props = {
   section: EditorSection;
@@ -26,8 +28,9 @@ type Props = {
 
 /**
  * One lesson block in the editor. Flat block types get a form; graph-shaped ones (bespoke
- * diagrams, and the Part C visual blocks) get a JSON editor checked against the server's
- * JSON Schema on save. Server messages appear next to the field they name.
+ * diagrams, layer stacks, sequences, flows, trees, topologies, bit fields, step-throughs) get a
+ * JSON editor checked against the shared contract as you type. Visual blocks show the learner
+ * renderer as a live preview. Server messages appear next to the field they name.
  */
 export function SectionCard({
   section,
@@ -243,8 +246,28 @@ function Body({
           />
         </>
       );
+    case "comparison":
+    case "timeline":
+    case "calculator":
+    case "knowledge-check": {
+      const Editor = FORM_VISUAL_EDITORS[section.type];
+      return <Editor type={section.type} at={at} payload={p} errors={errors} replacePayload={replacePayload} />;
+    }
     default:
-      // Graph-shaped and future types: the whole payload as JSON, validated by the server's schema.
+      if (isVisualBlock(section.type)) {
+        return (
+          <JsonVisualEditor
+            type={section.type}
+            at={at}
+            payload={p}
+            errors={errors}
+            replacePayload={replacePayload}
+            blockType={blockType}
+            onJsonValidity={onJsonValidity}
+          />
+        );
+      }
+      // Future types: the whole payload as JSON, validated by the server's schema.
       return (
         <>
           <JsonField

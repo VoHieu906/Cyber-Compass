@@ -285,18 +285,12 @@
     },
     "diagramUnavailable": "Sơ đồ này không khả dụng.",
     "diagrams": {
-      "layer": "Tầng {number}",
-      "unit": "Đơn vị dữ liệu",
-      "protocols": "Ví dụ",
-      "attack": "Tấn công ở tầng này",
       "step": "Bước {current} / {total}",
       "previousStep": "Bước trước",
       "nextStep": "Bước tiếp",
       "restart": "Bắt đầu lại",
-      "state": "Trạng thái",
       "example": "Khi bị phá vỡ",
-      "controls": "Biện pháp bảo vệ",
-      "layers": "Các tầng OSI"
+      "controls": "Biện pháp bảo vệ"
     },
     "lessonNav": "Điều hướng bài học",
     "scene": {
@@ -314,6 +308,92 @@
       "unsupported": "Trình duyệt của bạn không hiển thị được mô hình 3D này.",
       "description": "Mô tả bằng văn bản",
       "descriptionInstead": "Mô tả bằng văn bản (thay cho mô hình 3D)"
+    },
+    "blocks": {
+      "layers": "Các tầng",
+      "examples": "Ví dụ",
+      "messageAlt": "{from} gửi {to}: {label}",
+      "stateOf": "Trạng thái {actor}",
+      "selectNode": "Chọn một bước có dấu chấm để đọc thêm.",
+      "selectDevice": "Chọn một thiết bị có dấu chấm để đọc thêm.",
+      "textVersion": "Bản dạng chữ",
+      "flowLabel": "Sơ đồ luồng gồm {count} bước",
+      "treeLabel": "Cây phân cấp dưới {root}",
+      "decision": "điểm quyết định",
+      "goesTo": "dẫn tới {target}",
+      "topologyLabel": "Sơ đồ mạng gồm {count} thiết bị",
+      "zoneOutline": "{zone}: {devices}",
+      "connectsTo": "Kết nối với {peers}",
+      "bitsAlt": "{label}: {bits}, bằng {value} ở hệ thập phân",
+      "parts": "Các phần",
+      "changed": "đã thay đổi",
+      "checkIntro": "Kiểm tra mức hiểu bài. Phần này không tính điểm.",
+      "chooseAll": "Chọn tất cả đáp án đúng.",
+      "correctOption": "Đáp án đúng",
+      "wrongOption": "Chưa đúng",
+      "checkAnswer": "Kiểm tra",
+      "tryAgain": "Thử lại",
+      "rightAnswer": "Chính xác.",
+      "notQuite": "Chưa đúng lắm."
+    },
+    "calculator": {
+      "cidrInput": "Địa chỉ kèm tiền tố",
+      "cidrHint": "Ví dụ 10.0.5.20/22.",
+      "cidrInvalid": "Hãy nhập địa chỉ IPv4 kèm tiền tố, ví dụ 192.168.1.10/24.",
+      "mask": "Mặt nạ mạng con",
+      "network": "Địa chỉ mạng",
+      "broadcast": "Địa chỉ quảng bá",
+      "hostRange": "Dải địa chỉ máy dùng được",
+      "usableHosts": "Số máy dùng được",
+      "wildcard": "Mặt nạ wildcard",
+      "inBinary": "Địa chỉ và mặt nạ ở dạng nhị phân",
+      "binaryKey": "{prefix} bit đầu (được tô màu) là phần mạng; phần còn lại xác định máy.",
+      "chmodInput": "Quyền",
+      "chmodHint": "Dạng bát phân như 754 hoặc ký hiệu như rwxr-xr--, hoặc đánh dấu các ô.",
+      "chmodInvalid": "Hãy dùng ba hoặc bốn chữ số bát phân (0 đến 7), hoặc chín ký hiệu như rwxr-xr--.",
+      "permissions": "Quyền truy cập",
+      "read": "Đọc",
+      "write": "Ghi",
+      "execute": "Thực thi",
+      "owner": "Chủ sở hữu",
+      "group": "Nhóm",
+      "others": "Người khác",
+      "octal": "Bát phân",
+      "symbolic": "Ký hiệu",
+      "command": "Lệnh",
+      "special": "Bit đặc biệt",
+      "none": "không có",
+      "worldWritable": "Bất kỳ ai trên hệ thống cũng có thể sửa tệp này. Hiếm khi bạn muốn điều đó.",
+      "entropyWarning": "Đừng nhập mật khẩu thật. Không có gì ở đây được gửi đi hay lưu lại, nhưng hãy luyện tập bằng ví dụ tự đặt.",
+      "entropyInput": "Mật khẩu ví dụ",
+      "entropyHint": "Hãy làm nó dài hơn, rồi thêm các loại ký tự khác, và so sánh.",
+      "showPassword": "Hiện ký tự",
+      "rating": {
+        "very-weak": "Rất yếu",
+        "weak": "Yếu",
+        "fair": "Trung bình",
+        "strong": "Mạnh",
+        "very-strong": "Rất mạnh"
+      },
+      "length": "Độ dài",
+      "pool": "Số ký tự có thể ở mỗi vị trí",
+      "bits": "Entropy (bit)",
+      "crackTime": "Thời gian đoán với 10 tỷ lần thử mỗi giây",
+      "time": {
+        "instant": "Ngay lập tức",
+        "seconds": "{count} giây",
+        "minutes": "{count} phút",
+        "hours": "{count} giờ",
+        "days": "{count} ngày",
+        "years": "{count} năm",
+        "eons": "Lâu hơn tuổi của vũ trụ"
+      },
+      "warnings": {
+        "common": "Đây là một trong những mật khẩu phổ biến nhất, nên kẻ tấn công thử nó đầu tiên.",
+        "repeated": "Ký tự lặp lại rất dễ đoán.",
+        "sequence": "Chuỗi liên tiếp như 1234 hoặc abcd rất dễ đoán."
+      },
+      "entropyCaveat": "Ước tính này giả định mọi ký tự được chọn ngẫu nhiên. Từ ngữ, tên riêng và các mẫu quen thuộc khiến mật khẩu thật yếu hơn nhiều so với con số này."
     }
   },
   "careers": {
@@ -684,7 +764,7 @@
       "calloutTitle": "Tiêu đề hộp ghi chú",
       "optional": "không bắt buộc",
       "text": "Nội dung",
-      "proseHint": "Cách các đoạn bằng một dòng trống. Bắt đầu dòng bằng \"- \" để tạo danh sách. Dùng **in đậm** và `mã`.",
+      "proseHint": "Cách các đoạn bằng một dòng trống. Bắt đầu dòng bằng \"- \" để tạo danh sách gạch đầu dòng hoặc \"1. \" để đánh số. Dùng **in đậm**, `mã` và [chữ liên kết](https://...).",
       "inlineHint": "Dùng **in đậm** và `mã`.",
       "tone": "Loại",
       "tones": {
@@ -727,7 +807,14 @@
       "note": "Ghi chú cho lịch sử",
       "notePlaceholder": "Điều gì đã thay đổi, ví dụ Làm rõ ví dụ về salt",
       "previewStale": "Bản xem trước là bản nháp đã lưu gần nhất. Hãy lưu để thấy các thay đổi mới nhất ở đây.",
-      "previewFrame": "Xem trước: những gì học viên sẽ thấy sau khi bạn xuất bản"
+      "previewFrame": "Xem trước: những gì học viên sẽ thấy sau khi bạn xuất bản",
+      "blockGroups": {
+        "text": "Văn bản và hình ảnh",
+        "diagrams": "Sơ đồ",
+        "practice": "Luyện tập",
+        "threeD": "3D",
+        "other": "Khác"
+      }
     },
     "media": {
       "image": "Hình ảnh",
@@ -812,6 +899,50 @@
         "flags": "giao diện sáng/tối của người đọc, và việc họ có yêu cầu giảm chuyển động hay không",
         "limits": "Tối đa 20.000 ký tự. Phần dựng cảnh phải xong trong 3 giây và khung hình phải liên tục, nếu không mô hình sẽ bị tắt. Không có mạng, DOM hay bộ hẹn giờ ngoài onFrame."
       }
+    },
+    "visual": {
+      "livePreview": "Xem trước trực tiếp",
+      "previewWaiting": "Bản xem trước sẽ hiện khi khối đã đầy đủ.",
+      "fieldReference": "Tra cứu trường",
+      "fieldReferenceHint": "Trường có dấu * là bắt buộc. id là tên ngắn viết thường do bạn đặt và dùng để tham chiếu trong khối.",
+      "columns": "Các đối tượng so sánh",
+      "columnN": "Cột {n}",
+      "addColumn": "Thêm cột",
+      "rows": "Thuộc tính",
+      "rowN": "Hàng {n}",
+      "rowLabel": "Thuộc tính",
+      "addRow": "Thêm thuộc tính",
+      "events": "Sự kiện",
+      "eventN": "Sự kiện {n}",
+      "when": "Thời điểm",
+      "eventTitle": "Điều gì xảy ra",
+      "detail": "Chi tiết",
+      "detailOptional": "Chi tiết (không bắt buộc)",
+      "addEvent": "Thêm sự kiện",
+      "tool": "Công cụ",
+      "tools": {
+        "cidr": "Tính mạng con (CIDR)",
+        "chmod": "Quyền Linux (chmod)",
+        "password-entropy": "Độ mạnh mật khẩu (entropy)"
+      },
+      "initial": "Giá trị ban đầu",
+      "initialInvalid": "Giá trị ban đầu không phù hợp với công cụ.",
+      "initialHint": {
+        "cidr": "Địa chỉ kèm tiền tố, ví dụ 192.168.1.130/26.",
+        "chmod": "Bát phân như 754 hoặc ký hiệu như rwxr-xr--.",
+        "password-entropy": "Một ví dụ rõ ràng là giả, hoặc để trống."
+      },
+      "ungradedNote": "Câu hỏi luyện tập không tính điểm: không ảnh hưởng tiến độ, và đáp án được gửi kèm bài học.",
+      "questionN": "Câu hỏi {n}",
+      "prompt": "Câu hỏi",
+      "options": "Các lựa chọn",
+      "optionsHint": "Đánh dấu mọi lựa chọn đúng. Có nhiều lựa chọn đúng thì câu hỏi trở thành dạng chọn tất cả.",
+      "optionN": "Lựa chọn {n}",
+      "correct": "Đúng",
+      "addOption": "Thêm lựa chọn",
+      "explanation": "Giải thích",
+      "explanationHint": "Hiện sau khi người học kiểm tra đáp án, dù đúng hay sai.",
+      "addQuestion": "Thêm câu hỏi"
     }
   }
 }
