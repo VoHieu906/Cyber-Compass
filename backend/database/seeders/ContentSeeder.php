@@ -56,6 +56,8 @@ class ContentSeeder extends Seeder
         if ($report['archived']) {
             $this->command?->warn('Archived (no longer in the content files): '.implode(', ', $report['archived']));
         }
+        // The question bank is content too; its domains must exist first.
+        $this->call(AssessmentSeeder::class);
     }
 
     /** @param  array<string, array<string, mixed>>  $domains */

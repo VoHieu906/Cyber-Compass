@@ -64,6 +64,12 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(LessonProgress::class);
     }
 
+    /** @return HasMany<AssessmentAttempt, $this> */
+    public function assessmentAttempts(): HasMany
+    {
+        return $this->hasMany(AssessmentAttempt::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === UserRole::Admin;

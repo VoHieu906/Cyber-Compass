@@ -73,7 +73,7 @@ erDiagram
 
 ## Tables
 
-Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3), plus the lesson lifecycle, section UUIDs, lesson drafts and revisions, account suspension and the admin audit log (Phase 3.5 Part A), and `lesson_media` (Part B). The rest is designed and arrives with its phase. Every Phase 3.5 migration is additive (expand only) and safe to run while the previous release is still serving.
+Built so far: identity tables (Phase 2), plus taxonomy, careers, roadmap content, courses and lessons, enrollments, favorites and lesson progress (Phase 3), plus the lesson lifecycle, section UUIDs, lesson drafts and revisions, account suspension and the admin audit log (Phase 3.5 Part A), and `lesson_media` (Part B), plus the assessment tables (Phase 4 Part A). The rest is designed and arrives with its phase. Every Phase 3.5 migration is additive (expand only) and safe to run while the previous release is still serving.
 
 ### Identity
 
@@ -125,13 +125,13 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 **exercise_attempts**: `user_id`, `exercise_id`, `score_percent`, `passed` bool, `submitted_at`. Index (`user_id`,`exercise_id`,`passed`).
 **exercise_attempt_answers**: `exercise_attempt_id` FK cascade, `exercise_question_id`, `response` JSON, `is_correct` bool.
 
-### Assessment
+### Assessment (✅ Phase 4 Part A, D24)
 
-**assessments**: `slug` (unique), `title`, `description`, `is_active`, `time_limit_minutes` null.
-**assessment_questions**: `assessment_id` FK, `domain_id` FK, `difficulty` tinyint (1 to 3), `prompt`, `explanation`, `position`. Index (`assessment_id`,`domain_id`).
-**assessment_options**: `assessment_question_id` FK cascade, `label`, `is_correct` bool, `position`.
-**assessment_attempts**: `user_id`, `assessment_id`, `started_at`, `submitted_at` null, `score_percent` null. Index (`user_id`,`submitted_at`). Multiple attempts are allowed.
-**assessment_answers**: `assessment_attempt_id` FK cascade, `assessment_question_id`, `assessment_option_id` null, `is_correct` bool null (set on submit). Unique (`attempt_id`,`question_id`), so saving an answer is an upsert.
+**assessments**: `slug` (unique), `title`, `description`, `is_active` (one active at a time), `time_limit_minutes` null.
+**assessment_questions**: `assessment_id` FK, `domain_id` FK, `key` (stable identity in the content file; unique with `assessment_id`), `difficulty` tinyint (1 to 3, also the weight), `prompt`, `code` text null (snippet), `explanation`, `position`, `is_archived` bool (removed from the file; never deleted). Index (`assessment_id`,`is_archived`,`position`).
+**assessment_options**: `assessment_question_id` FK cascade, `label`, `is_correct` bool (hidden on the model, never serialized before submission), `position`. Unique (`question_id`,`position`).
+**assessment_attempts**: `user_id`, `assessment_id`, `started_at`, `submitted_at` null, `score_percent` null (snapshot set on submit), `open_marker` (generated: 1 while open, null once submitted). Unique (`user_id`,`assessment_id`,`open_marker`): one open attempt per learner, any number of submitted ones. Index (`user_id`,`submitted_at`).
+**assessment_answers**: `assessment_attempt_id` FK cascade, `assessment_question_id` FK, `assessment_option_id` FK null, `position`, `is_correct` bool null (set on submit). Unique (`attempt_id`,`question_id`). One row per question the attempt drew, created when it starts, so an attempt keeps its own question set (a larger random pool needs no schema change). An unanswered question has no option and counts as incorrect.
 
 ### Personalized paths
 
@@ -160,7 +160,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 | Operation | Rows written atomically |
 |---|---|
 | Register | users, user_profiles, notification_preferences defaults |
-| Submit assessment | answers scored, attempt score + submitted_at, activity |
+| Submit assessment | answers scored, attempt score + submitted_at (the activity row is added by a Phase 6 listener on `AssessmentSubmitted`) |
 | Generate roadmap | archive old path, insert path + nodes |
 | Submit exercise | attempt, attempt answers, lesson_progress completion when passed, activity |
 | Complete lesson | lesson_progress, enrollment.completed_at when the course is done, activity |

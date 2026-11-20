@@ -114,17 +114,34 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | POST | `/lessons/{slug}/exercise/attempts` (answers[]), which returns per-question correctness, the correct answer, the explanation and the section reference |
 | 🔒 | GET | `/exercise-attempts/{id}` |
 
-### Assessment
+### Assessment (✅ Phase 4 Part A)
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/assessments/active` |
-| 🔒 | POST | `/assessments/{slug}/attempts` (start; resumes an unsubmitted attempt if one exists) |
-| 🔒 | GET | `/assessment-attempts/{id}` (questions + the learner's saved answers) |
-| 🔒 | PUT | `/assessment-attempts/{id}/answers/{questionId}` (option_id), which autosaves |
-| 🔒 | POST | `/assessment-attempts/{id}/submit` (409 if already submitted) |
-| 🔒 | GET | `/assessment-attempts/{id}/result` (overall, per-domain score + band, strengths, gaps, next steps, formula; per question: correct or not, and for wrong or unanswered ones only, the correct option and the explanation, D26) |
-| 🔒 | GET | `/assessment-attempts` (history) |
+| 🔒 | GET | `/assessments/active`: slug, title, description, `question_count`, `domains[]` (slug, name, question_count), `open_attempt` {id, answered, total} or null, `latest_result` {id, score, band, submitted_at} or null. 404 if none is active. |
+| 🔒 | POST | `/assessments/{slug}/attempts`: 201 with a new attempt, or 200 with the open one (one open attempt per learner, enforced by a unique index). |
+| 🔒 | GET | `/assessment-attempts/{id}`: status (`in_progress`, `submitted`), total, answered, `questions[]` (id, position, domain, difficulty, prompt, code, `options[]` {id, label}, `selected_option_id`). No answer key. |
+| 🔒 | PUT | `/assessment-attempts/{id}/answers/{questionId}` (`option_id`, required key, null clears): autosave, returns `answered`. 409 once submitted; 404 for a question the attempt did not draw; 422 for an option of another question. |
+| 🔒 | POST | `/assessment-attempts/{id}/submit`: scores the attempt and returns the result. 409 if already submitted. Fires `AssessmentSubmitted` after commit. |
+| 🔒 | GET | `/assessment-attempts/{id}/result`: 409 while open. See the shape below. |
+| 🔒 | GET | `/assessment-attempts` (`per_page` ≤ 50): submitted attempts, newest first: id, submitted_at, score, band, `domains[]` {slug, score, band}. |
+
+Another learner's attempt answers 404 on every route (`AssessmentAttemptPolicy`).
+
+Result shape (D26: `correct_option` and `explanation` are null when the answer was correct):
+
+```json
+{ "data": {
+  "id": 12, "assessment": { "slug": "initial-knowledge", "title": "..." }, "started_at": "...", "submitted_at": "...",
+  "overall": { "score": 61, "band": "developing", "earned": 44, "possible": 72, "correct": 25, "answered": 38, "total": 40 },
+  "domains": [{ "domain": { "slug": "networking", "name": "Networking" }, "score": 56, "band": "developing", "earned": 5, "possible": 9, "correct": 3, "answered": 4, "total": 5 }],
+  "strengths": ["linux"], "gaps": ["cryptography"],
+  "next_steps": [{ "kind": "course", "reason": "gap", "domain": { "slug": "cryptography", "name": "Cryptography" }, "score": 22, "course": { "slug": "applied-cryptography", "title": "..." } }],
+  "formula": { "weights": { "1": 1, "2": 2, "3": 3 }, "unanswered": "incorrect", "developing_from": 40, "strength_from": 75 },
+  "review": [{ "question_id": 3, "position": 3, "domain": "networking", "difficulty": 2, "prompt": "...", "code": null, "is_correct": false,
+               "your_option": { "id": 9, "label": "..." }, "correct_option": { "id": 8, "label": "..." }, "explanation": "..." }]
+} }
+```
 
 ### Roadmap
 

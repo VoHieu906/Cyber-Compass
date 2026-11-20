@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\AssessmentAttempt;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Modules\Admin\Policies\UserAdminPolicy;
+use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
 use App\Modules\Content\Policies\LessonPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -38,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
         // Admin console: account management and content authoring (one admin role today, assumption A1).
         Gate::policy(User::class, UserAdminPolicy::class);
         Gate::policy(Lesson::class, LessonPolicy::class);
+
+        // Learners' own records: another learner's attempt answers 404.
+        Gate::policy(AssessmentAttempt::class, AssessmentAttemptPolicy::class);
 
         $this->configureRateLimits();
     }

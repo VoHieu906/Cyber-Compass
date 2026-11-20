@@ -73,5 +73,8 @@
     "Use an address with a prefix, like 192.168.1.10/24.": "Hãy dùng địa chỉ kèm tiền tố, ví dụ 192.168.1.10/24.",
     "Use octal digits like 754, or letters like rwxr-xr--.": "Hãy dùng chữ số bát phân như 754, hoặc ký hiệu như rwxr-xr--.",
     "Mark at least one option as correct.": "Hãy đánh dấu ít nhất một đáp án đúng.",
-    "Links must start with https:// (found \":url\").": "Liên kết phải bắt đầu bằng https:// (tìm thấy \":url\")."
+    "Links must start with https:// (found \":url\").": "Liên kết phải bắt đầu bằng https:// (tìm thấy \":url\").",
+    "This attempt has already been submitted.": "Lượt làm bài này đã được nộp.",
+    "Choose one of the options for this question.": "Hãy chọn một trong các đáp án của câu hỏi này.",
+    "Submit this attempt to see its result.": "Hãy nộp bài để xem kết quả."
 }
