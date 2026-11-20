@@ -8,7 +8,7 @@ import { controlClasses } from "@/components/ui/input";
 import { Pagination } from "@/components/ui/pagination";
 import { useAuditLog } from "../hooks";
 import { auditQueryToSearch, parseAuditQuery } from "../query-state";
-import type { AuditQuery } from "../types";
+import { SUBJECT_TYPES, type AuditQuery } from "../types";
 import { AuditList } from "./audit-list";
 
 export function AuditView() {
@@ -38,9 +38,11 @@ export function AuditView() {
             onChange={(e) => update({ subjectType: e.target.value as AuditQuery["subjectType"], subjectId: null })}
           >
             <option value="">{t("anySubject")}</option>
-            <option value="user">{t("subjects.user")}</option>
-            <option value="lesson">{t("subjects.lesson")}</option>
-            <option value="chapter">{t("subjects.chapter")}</option>
+            {SUBJECT_TYPES.map((s) => (
+              <option key={s} value={s}>
+                {t(`subjects.${s}`)}
+              </option>
+            ))}
           </select>
         </label>
         {filtered ? (

@@ -34,6 +34,14 @@ export function AuditList({
   );
 }
 
+/** Where an audit subject can be opened; deleted lessons and media have no page. */
+function subjectLink(type: string, id: number): string | null {
+  if (type === "user") return `/admin/users/${id}`;
+  if (type === "lesson") return `/admin/lessons/${id}`;
+  if (type === "course") return `/admin/courses?course=${id}`;
+  return null;
+}
+
 function AuditLine({ entry, linkSubjects }: { entry: AuditEntry; linkSubjects: boolean }) {
   const t = useTranslations("admin.audit");
   const tRoles = useTranslations("admin.roles");
@@ -41,8 +49,7 @@ function AuditLine({ entry, linkSubjects }: { entry: AuditEntry; linkSubjects: b
 
   const actor = entry.actor?.name ?? t("system");
   const subjectName = entry.subject.label ?? `#${entry.subject.id ?? "?"}`;
-  const subjectHref =
-    linkSubjects && entry.subject.type === "user" && entry.subject.id ? `/admin/users/${entry.subject.id}` : null;
+  const subjectHref = linkSubjects && entry.subject.id ? subjectLink(entry.subject.type, entry.subject.id) : null;
   const subjectTag = (chunks: ReactNode) =>
     subjectHref ? (
       <Link href={subjectHref} className="font-medium text-ink underline-offset-4 hover:underline">
@@ -67,6 +74,7 @@ function AuditLine({ entry, linkSubjects }: { entry: AuditEntry; linkSubjects: b
                 subject: subjectName,
                 from: roleName(role?.[0]),
                 to: roleName(role?.[1]),
+                version: Number(entry.changes.version ?? 0),
                 b: (chunks) => <span className="font-medium text-ink">{chunks}</span>,
                 link: subjectTag,
               })
@@ -74,6 +82,9 @@ function AuditLine({ entry, linkSubjects }: { entry: AuditEntry; linkSubjects: b
         </p>
         {reason ? (
           <p className="text-muted">{t(entry.changes.reason ? "reason" : "previousReason", { reason })}</p>
+        ) : null}
+        {typeof entry.changes.note === "string" ? (
+          <p className="text-muted">{t("note", { note: entry.changes.note })}</p>
         ) : null}
       </div>
       {entry.created_at ? (

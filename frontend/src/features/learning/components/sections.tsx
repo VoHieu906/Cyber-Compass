@@ -10,8 +10,16 @@ import { Prose, renderInline } from "./prose";
 
 const calloutStyle: Record<CalloutTone, { box: string; icon: typeof Info; iconClass: string }> = {
   info: { box: "border-rule bg-paper-3", icon: Info, iconClass: "text-muted" },
-  tip: { box: "border-[color-mix(in_oklab,var(--color-accent)_45%,var(--color-rule))] bg-accent-soft", icon: Lightbulb, iconClass: "text-accent" },
-  warning: { box: "border-[color-mix(in_oklab,var(--color-attn)_55%,var(--color-rule))] bg-attn-soft", icon: AlertTriangle, iconClass: "text-attn" },
+  tip: {
+    box: "border-[color-mix(in_oklab,var(--color-accent)_45%,var(--color-rule))] bg-accent-soft",
+    icon: Lightbulb,
+    iconClass: "text-accent",
+  },
+  warning: {
+    box: "border-[color-mix(in_oklab,var(--color-attn)_55%,var(--color-rule))] bg-attn-soft",
+    icon: AlertTriangle,
+    iconClass: "text-attn",
+  },
 };
 
 function Callout({ heading, text, tone }: { heading: string | null; text: string; tone: CalloutTone }) {
@@ -44,6 +52,36 @@ function Steps({ items }: { items: string[] }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+/** An uploaded lesson image (always WebP, re-encoded by the API). Alt text is required at upload. */
+function MediaFigure({
+  url,
+  alt,
+  width,
+  height,
+  caption,
+}: {
+  url: string;
+  alt: string;
+  width: number | null;
+  height: number | null;
+  caption?: string | null;
+}) {
+  return (
+    <figure className="flex flex-col gap-2">
+      {/* eslint-disable-next-line @next/next/no-img-element -- served from the API storage, already sized and re-encoded */}
+      <img
+        src={url}
+        alt={alt}
+        width={width ?? undefined}
+        height={height ?? undefined}
+        loading="lazy"
+        className="h-auto w-full rounded-control border border-rule bg-paper-3"
+      />
+      {caption ? <figcaption className="text-sm">{caption}</figcaption> : null}
+    </figure>
   );
 }
 
@@ -84,7 +122,9 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
 export function Section({ section }: { section: LessonSection }) {
   const heading =
     section.heading && section.type !== "callout" ? (
-      <h2 className="scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]">{section.heading}</h2>
+      <h2 className="scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]">
+        {section.heading}
+      </h2>
     ) : null;
 
   let body: React.ReactNode = null;
@@ -107,6 +147,18 @@ export function Section({ section }: { section: LessonSection }) {
           {section.payload.caption ? <figcaption className="text-sm">{section.payload.caption}</figcaption> : null}
           <Diagram diagramKey={section.payload.key} data={section.payload.data} />
         </figure>
+      );
+      break;
+    case "media":
+      if (!section.payload.url) return null;
+      body = (
+        <MediaFigure
+          url={section.payload.url}
+          alt={section.payload.alt}
+          width={section.payload.width}
+          height={section.payload.height}
+          caption={section.payload.caption}
+        />
       );
       break;
     default:

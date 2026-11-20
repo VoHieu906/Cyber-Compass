@@ -51,9 +51,12 @@ export type UserQuery = {
   page: number;
 };
 
+export const SUBJECT_TYPES = ["user", "lesson", "chapter", "course", "media"] as const;
+export type SubjectType = (typeof SUBJECT_TYPES)[number];
+
 export type AuditQuery = {
   actor: number | null;
-  subjectType: "user" | "lesson" | "chapter" | "";
+  subjectType: SubjectType | "";
   subjectId: number | null;
   page: number;
 };

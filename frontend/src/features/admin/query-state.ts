@@ -1,4 +1,4 @@
-import { USER_SORTS, type AuditQuery, type UserQuery } from "./types";
+import { SUBJECT_TYPES, USER_SORTS, type AuditQuery, type SubjectType, type UserQuery } from "./types";
 
 type Params = { get(name: string): string | null };
 
@@ -50,7 +50,7 @@ export function parseAuditQuery(params: Params): AuditQuery {
   const type = params.get("subject_type");
   return {
     actor: positiveInt(params.get("actor")),
-    subjectType: type === "user" || type === "lesson" || type === "chapter" ? type : "",
+    subjectType: (SUBJECT_TYPES as readonly string[]).includes(type ?? "") ? (type as SubjectType) : "",
     subjectId: positiveInt(params.get("subject_id")),
     page: positiveInt(params.get("page")) ?? 1,
   };
