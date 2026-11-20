@@ -130,4 +130,4 @@ Verified in a real browser (headless Edge) before building: from inside the sand
 Part C becomes three gated steps:
 - **C1:** this document, the sandbox runtime, `scene-3d` and `script-3d`, editor support and tests.
 - **C2 ✅:** the 2D generic blocks (`layer-stack`, `sequence`, `flow`, `tree`, `topology`, `comparison`, `timeline`, `bitfield`, `calculator`, `step-through`, `knowledge-check`, extended prose), zod contract tests for every block, and OSI and TCP moved to generic blocks.
-- **C3:** the pilot courses rewritten (using 3D where it earns its place), `content:export`, and the content authoring guide.
+- **C3 ✅:** the pilot courses rewritten (using 3D where it earns its place), `content:export`, and the content authoring guide.
