@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\CourseChapter;
 use App\Models\Domain;
 use App\Models\Lesson;
+use App\Models\LessonSection;
 use App\Models\Skill;
 use App\Modules\Content\Blocks\BlockRegistry;
 use Illuminate\Support\Facades\DB;
@@ -79,11 +80,13 @@ final class ContentImporter
     }
 
     /**
-     * Converts the compact section format to {key, type, heading, payload}:
-     * [type, heading, body, extra, data] plus an optional named 'key' element.
+     * Converts the compact section format to {key, uuid, type, heading, payload}:
+     * [type, heading, body, extra, data] plus optional named 'key' and 'uuid' elements.
+     * 'uuid' pins a section created in the admin console (random UUID) when it is exported
+     * back to a file; otherwise the UUID is derived from the lesson slug and section key.
      *
      * @param  array<int|string, mixed>  $s
-     * @return array{key: ?string, type: string, heading: ?string, payload: array<string, mixed>}
+     * @return array{key: ?string, uuid: mixed, type: string, heading: ?string, payload: array<string, mixed>}
      */
     public static function fromCompact(array $s): array
     {
@@ -100,7 +103,36 @@ final class ContentImporter
             default => is_array($body) ? $body : [],
         };
 
-        return ['key' => $s['key'] ?? null, 'type' => (string) $type, 'heading' => $heading, 'payload' => $payload];
+        return ['key' => $s['key'] ?? null, 'uuid' => $s['uuid'] ?? null, 'type' => (string) $type, 'heading' => $heading, 'payload' => $payload];
+    }
+
+    /**
+     * The key of each section: its explicit key, else its heading as a slug, else "type-n",
+     * with "-2", "-3" appended to repeats. Section UUIDs derive from these.
+     *
+     * @param  list<array{key?: ?string, type: string, heading: ?string}>  $sections
+     * @return list<string>
+     */
+    public static function sectionKeys(array $sections): array
+    {
+        $keys = [];
+        $seen = [];
+        foreach (array_values($sections) as $i => $section) {
+            $key = ($section['key'] ?? null) ?: (($section['heading'] ?? null) ? Str::slug($section['heading']) : "{$section['type']}-".($i + 1));
+            $base = $key;
+            for ($n = 2; isset($seen[$key]); $n++) {
+                $key = "{$base}-{$n}";
+            }
+            $seen[$key] = true;
+            $keys[] = $key;
+        }
+
+        return $keys;
+    }
+
+    public static function sectionUuid(string $lessonSlug, string $key): string
+    {
+        return Uuid::uuid5(self::SECTION_NAMESPACE, "{$lessonSlug}/{$key}")->toString();
     }
 
     /**
@@ -116,6 +148,7 @@ final class ContentImporter
         // A prerequisite may be another course in this import or one already in the database.
         $courseSlugs = array_merge(array_column($courses, 'slug'), Course::query()->pluck('slug')->all());
         $seen = [];
+        $uuids = [];
 
         foreach ($courses as $ci => $course) {
             $at = "courses.{$course['slug']}";
@@ -145,20 +178,37 @@ final class ContentImporter
                         continue;
                     }
 
-                    $keys = [];
+                    $keys = self::sectionKeys(array_map(
+                        fn ($s, $c) => ['key' => $c['key'], 'type' => $s['type'], 'heading' => $s['heading']],
+                        $clean,
+                        $compact,
+                    ));
                     foreach ($clean as $i => &$section) {
-                        $key = $compact[$i]['key'] ?? ($section['heading'] ? Str::slug($section['heading']) : "{$section['type']}-".($i + 1));
-                        $base = $key;
-                        for ($n = 2; isset($keys[$key]); $n++) {
-                            $key = "{$base}-{$n}";
+                        $pinned = $compact[$i]['uuid'];
+                        if ($pinned !== null && (! is_string($pinned) || ! Uuid::isValid($pinned))) {
+                            $errors["lessons.{$slug}.sections.{$i}.uuid"] = ['Must be a UUID.'];
                         }
-                        $keys[$key] = true;
-                        $section['uuid'] = Uuid::uuid5(self::SECTION_NAMESPACE, "{$slug}/{$key}")->toString();
+                        $section['uuid'] = is_string($pinned) ? strtolower($pinned) : self::sectionUuid($slug, $keys[$i]);
+                        // A UUID names one section everywhere: upserting by it must never move another lesson's section.
+                        if (isset($uuids[$section['uuid']])) {
+                            $errors["lessons.{$slug}.sections.{$i}.uuid"] = ["Duplicate section UUID (also in {$uuids[$section['uuid']]})."];
+                        }
+                        $uuids[$section['uuid']] = $slug;
                     }
                     unset($section);
 
                     $courses[$ci]['chapters'][$chi]['lessons'][$li]['sections'] = $clean;
                 }
+            }
+        }
+
+        // Pinned UUIDs that already belong to a section of a different lesson.
+        $owners = LessonSection::query()->join('lessons', 'lessons.id', '=', 'lesson_sections.lesson_id')
+            ->whereIn('lesson_sections.uuid', array_keys($uuids))
+            ->pluck('lessons.slug', 'lesson_sections.uuid');
+        foreach ($owners as $uuid => $owner) {
+            if ($owner !== $uuids[$uuid]) {
+                $errors["lessons.{$uuids[$uuid]}.sections"][] = "Section UUID {$uuid} belongs to lesson {$owner}.";
             }
         }
 

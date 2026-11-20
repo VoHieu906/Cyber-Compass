@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Course;
+use App\Models\Lesson;
 use App\Models\User;
 
 it('lists published courses with card data, newest first, 6 per page', function () {
@@ -46,7 +47,11 @@ it('filters by domain and difficulty', function () {
 it('sorts by duration and by title', function () {
     $durations = collect($this->getJson('/api/v1/courses?sort=-duration&per_page=50')->json('data'))->pluck('estimated_minutes');
     expect($durations->all())->toBe($durations->sortDesc()->values()->all())
-        ->and($durations->first())->toBe(90);
+        // The longest course, from the seeded content rather than a number that changes with it.
+        ->and($durations->first())->toBe((int) Lesson::query()->published()
+        ->join('course_chapters', 'course_chapters.id', '=', 'lessons.course_chapter_id')
+        ->groupBy('course_chapters.course_id')->selectRaw('SUM(estimated_minutes) AS total')
+        ->get()->max('total'));
 
     $titles = collect($this->getJson('/api/v1/courses?sort=title&per_page=50')->json('data'))->pluck('title');
     expect($titles->all())->toBe($titles->sort()->values()->all());
