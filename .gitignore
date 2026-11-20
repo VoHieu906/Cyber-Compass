@@ -5,6 +5,9 @@
 *.pem
 *.key
 
+# Local-only project context (master prompt): never commit
+docs/private/
+
 # OS / editor
 .DS_Store
 Thumbs.db
