@@ -190,7 +190,7 @@ The response shape is graph-ready but layout-free. The client computes positions
 | 🛡 | POST | `/admin/users/{id}/reactivate`. 422 `user` if not suspended. | ✅ |
 | 🛡 | POST | `/admin/users/{id}/password-reset`. 202; sends the standard reset email to the account's own address. 429 if one was sent in the last minute, 422 for a suspended account. | ✅ |
 | 🛡 | GET | `/admin/audit-logs` (filter[actor], filter[subject_type] = user, lesson, chapter; filter[subject_id], filter[action]; newest first; per_page default 25) | ✅ |
-| 🛡 | GET | `/admin/content/block-types` (key, label, description, editor `form`/`json`, JSON Schema, example; `diagram_keys` for bespoke diagrams) | ✅ B |
+| 🛡 | GET | `/admin/content/block-types` (key, label, description, editor `form`/`json`/`scene`/`script`, JSON Schema, example; `diagram_keys` lists the bespoke diagrams offered for new blocks; the legacy `osi-model` and `tcp-handshake` still validate but are not listed) | ✅ B |
 | 🛡 | GET | `/admin/content/courses` (every course, chapter and lesson in order, any status, with `has_unpublished_changes`) | ✅ B |
 | 🛡 | POST | `/admin/content/courses/{id}/chapters` (title; added at the end) | ✅ B |
 | 🛡 | PATCH | `/admin/content/chapters/{id}` (title) | ✅ B |

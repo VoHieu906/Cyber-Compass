@@ -35,6 +35,9 @@ All six follow the prompt's recommended option. None blocks Phase 4.
 | C14 | (Part B design, §5.1) `PATCH /lessons/{id}` for metadata and `PUT /lessons/{id}/sections` for blocks | **One `PUT /lessons/{id}/draft`** carrying the whole working copy (metadata plus ordered sections) and `lock_version` | Found while building the editor: two endpoints meant two lock versions per save and a window where metadata was saved but blocks were not. One request is atomic and simpler for the client. |
 | C15 | (Part C) `media` block | **Built in Part B** with the upload endpoint | An upload endpoint with no block to use it would not be demoable. The block stores only the image uuid; the URL, alt text and size are resolved on read. |
 | C16 | (Part B design, §3.1) one action class per lesson operation | **`SaveDraft`, `PublishLesson`, and `LessonLifecycle`** (create, discard, archive, delete, restore), plus `CourseStructure` (chapters, lesson order) | The small operations share the same transaction-plus-audit shape; one class each would have been five near-identical files. |
+| C17 | (§6) `flow`, `tree` and `topology` on React Flow + dagre | **Static SVG from a pure dagre layout** (`lib/graph`), D23 | Found while building: lesson diagrams are read-only, and a pan/zoom canvas traps scrolling and touch on lesson pages. React Flow stays planned for the Phase 5 roadmap, on the same layout function. |
+| C18 | (C9) `bitfield` edited with a generated form | **Validated JSON editor with live preview** (as are `step-through` and the graph types). Forms: `comparison`, `timeline`, `calculator`, `knowledge-check` | Bit field rows nest fields inside rows, so a form for them is as hard as for the graph types. Every visual block now shows the learner renderer as a live preview, plus a field reference generated from the JSON Schema. |
+| C19 | (C8) OSI and TCP move to generic blocks | Done, and **the `osi-model` and `tcp-handshake` diagram keys stay valid** but are no longer offered to authors | Older drafts and revisions may hold them. They render through the generic components via small adapters, so restoring an old revision never fails. The bespoke components are deleted. |
 | C11 | Seeder upserts sections by UUID | Also **fixes the two seeder bugs found in the Phase 3 review**: reordering lessons trips the unique (`course_chapter_id`, `position`) index mid-seed, and lessons removed from a content file stay published. The fix is two-pass renumbering, and lessons dropped from a file are **archived**, not left live. | Same root cause as the prompt's ordering concern. |
 
 ## 2. Audit
@@ -219,26 +222,26 @@ Run order on AWS: migrations run as a one-off ECS task *before* the new service 
 | Type | Knowledge shape | Pilot lessons | Renderer | Editor | This phase |
 |---|---|---|---|---|---|
 | `prose`, `callout`, `steps`, `code` | Text, notes, procedures, commands | All | existing | form | Schema-backed |
-| `prose` (extended) | Adds inline links (`[text](https://…)`, https only) and numbered lists | All | existing, extended | form | Yes |
-| `layer-stack` | Ordered layers, encapsulation | OSI model (replaces bespoke), TCP/IP model, defense in depth | HTML + Motion | json | Yes |
-| `sequence` | Messages between actors over time | TCP handshake (replaces bespoke), DNS resolution, DHCP DORA | SVG step-through | json | Yes |
-| `flow` | Process or decision flow | Risk response decision | React Flow + dagre | json | Yes |
-| `tree` | Hierarchy | DNS hierarchy | React Flow + dagre (TB) | json | Yes |
-| `topology` | Devices and links in space | LAN, router and firewall layout | React Flow, fixed positions | json | Yes |
-| `comparison` | Side-by-side attributes | TCP vs UDP; threat vs vulnerability vs risk | Semantic table | form | Yes |
-| `timeline` | Ordered events | Not needed in the pilot | HTML | form | Yes (generic) |
-| `bitfield` | Bits and fields | IPv4 address in binary, subnet mask | HTML grid | form | Yes |
-| `calculator` | Learner manipulates input | `cidr` (subnetting), `chmod` (Linux), `password-entropy` | Pure client logic | form | Yes, 3 tools |
-| `step-through` | Annotated walkthrough with state | Encapsulation, risk score worked example | Motion | json | Yes |
+| `prose` (extended) | Adds inline links (`[text](https://…)`, https only, refused otherwise) and numbered lists | All | existing, extended | form | **Yes (C2)** |
+| `layer-stack` | Ordered layers, encapsulation | OSI model (replaces bespoke), TCP/IP model, defense in depth | HTML tabs | json + preview | **Yes (C2)** |
+| `sequence` | Messages between actors over time | TCP handshake (replaces bespoke), DNS resolution, DHCP DORA | SVG step-through | json + preview | **Yes (C2)** |
+| `flow` | Process or decision flow | Risk response decision | SVG, dagre layout | json + preview | **Yes (C2)** |
+| `tree` | Hierarchy | DNS hierarchy | SVG, dagre layout | json + preview | **Yes (C2)** |
+| `topology` | Devices and links in space | LAN, router and firewall layout | SVG, author positions, zones | json + preview | **Yes (C2)** |
+| `comparison` | Side-by-side attributes | TCP vs UDP; threat vs vulnerability vs risk | Semantic table, cards on phones | form + preview | **Yes (C2)** |
+| `timeline` | Ordered events | Not needed in the pilot | HTML | form + preview | **Yes (C2)** |
+| `bitfield` | Bits and fields | IPv4 address in binary, subnet mask | HTML grid | json + preview (C18) | **Yes (C2)** |
+| `calculator` | Learner manipulates input | `cidr` (subnetting), `chmod` (Linux), `password-entropy` | Pure client logic, never sent | form + preview | **Yes (C2)**, 3 tools |
+| `step-through` | Annotated walkthrough with state | Encapsulation, risk score worked example | HTML, changed values marked | json + preview | **Yes (C2)** |
 | `media` | Screenshot with caption and alt text | Optional | `lesson_media` | form + media picker | Yes |
-| `knowledge-check` | 1 to 3 ungraded questions | Every pilot lesson | Answer shown after answering | form | Yes, never affects progress |
+| `knowledge-check` | 1 to 3 ungraded questions | Every pilot lesson | Feedback after answering | form + preview | **Yes (C2)**, never affects progress |
 | `diagram` (bespoke) | Concepts with no generic shape | CIA triad | existing | json | Kept |
 | `scene-3d` | Spatial models, networks in 3D, guided tours | Optional | Sandboxed worker, Three.js | scene JSON + live preview | **Yes (C1)** |
 | `script-3d` | Anything a scene can't express | Optional | Sandboxed worker, author Three.js | code + live preview | **Yes (C1)**, kill switch |
 
-**Shared graph setup:** one `lib/graph` module (React Flow + dagre layout, theme-token styles, mobile outline fallback) serves `flow`, `tree` and `topology`. The Phase 5 roadmap graph reuses it.
+**Shared graph setup:** one `lib/graph` module (pure dagre layout plus a themed SVG view, D23) serves `flow` and `tree`; `topology` draws at author positions. Every graph block has a text version. The Phase 5 roadmap graph reuses the layout.
 
-**Contract fixtures:** `docs/content-blocks/fixtures/<type>.valid.json` and `.invalid.json`, checked by Pest (JSON Schema via the registry) and by Vitest (zod plus render). A type counts as done only when both suites pass the same fixtures.
+**Contract fixtures:** `docs/content-blocks/fixtures/<type>.valid.json` and `.invalid.json`, checked by Pest (JSON Schema via the registry) and by Vitest (zod plus render). A type counts as done only when both suites pass the same fixtures. Since C2, Vitest also fails if a fixture set has no zod schema or the reverse, and renders every valid fixture through the learner component.
 
 ## 7. Impact on later phases
 
