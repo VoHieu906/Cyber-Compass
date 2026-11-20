@@ -60,5 +60,18 @@
     "Duplicate id \":id\".": "Mã \":id\" bị trùng.",
     "Unknown object \":id\".": "Không có đối tượng \":id\".",
     "Parents form a loop.": "Quan hệ cha con tạo thành vòng lặp.",
-    "3D scripts are turned off on this server. Use a 3D scene instead.": "Mã 3D đang bị tắt trên máy chủ này. Hãy dùng cảnh 3D thay thế."
+    "3D scripts are turned off on this server. Use a 3D scene instead.": "Mã 3D đang bị tắt trên máy chủ này. Hãy dùng cảnh 3D thay thế.",
+    "Unknown id \":id\".": "Không có mã \":id\".",
+    "A message needs two different actors.": "Một thông điệp cần hai bên khác nhau.",
+    "An edge needs two different nodes.": "Một cạnh cần hai nút khác nhau.",
+    "This edge is listed twice.": "Cạnh này bị lặp lại.",
+    "A tree needs exactly one node without a parent (it has :count).": "Cây cần đúng một nút không có nút cha (hiện có :count).",
+    "The zone goes past the edge of the canvas.": "Vùng vượt ra ngoài khung vẽ.",
+    "A link needs two different devices.": "Một liên kết cần hai thiết bị khác nhau.",
+    "Give one value per column (:count).": "Mỗi cột cần một giá trị (:count).",
+    "A row holds at most :max bits (this one has :count).": "Mỗi hàng tối đa :max bit (hàng này có :count).",
+    "Use an address with a prefix, like 192.168.1.10/24.": "Hãy dùng địa chỉ kèm tiền tố, ví dụ 192.168.1.10/24.",
+    "Use octal digits like 754, or letters like rwxr-xr--.": "Hãy dùng chữ số bát phân như 754, hoặc ký hiệu như rwxr-xr--.",
+    "Mark at least one option as correct.": "Hãy đánh dấu ít nhất một đáp án đúng.",
+    "Links must start with https:// (found \":url\").": "Liên kết phải bắt đầu bằng https:// (tìm thấy \":url\")."
 }

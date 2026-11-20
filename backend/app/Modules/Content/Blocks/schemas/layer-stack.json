@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "layer-stack",
+  "description": "Ordered layers, top of the stack first (OSI, TCP/IP, defence in depth). Learners select a layer to read its details. Mirrors frontend/src/features/learning/blocks/schemas.ts.",
+  "type": "object",
+  "required": ["layers"],
+  "additionalProperties": false,
+  "properties": {
+    "tags_label": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "layers": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "tag": { "type": "string", "minLength": 1, "maxLength": 8 },
+          "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "meta": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "description": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "facts": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "required": ["label", "value"],
+              "additionalProperties": false,
+              "properties": {
+                "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+                "value": { "type": "string", "minLength": 1, "maxLength": 160 }
+              }
+            }
+          },
+          "tags": { "type": "array", "maxItems": 12, "items": { "type": "string", "minLength": 1, "maxLength": 40 } },
+          "note": {
+            "type": "object",
+            "required": ["tone", "text"],
+            "additionalProperties": false,
+            "properties": {
+              "tone": { "enum": ["info", "tip", "warning"] },
+              "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+              "text": { "type": "string", "minLength": 1, "maxLength": 400 }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "tags_label": "Controls",
+      "layers": [
+        { "tag": "1", "name": "Policies", "description": "Rules and training that set expectations for everyone.", "tags": ["Acceptable use", "Awareness training"] },
+        { "tag": "2", "name": "Perimeter", "description": "Filters traffic between your network and the internet.", "tags": ["Firewall", "Email filtering"] },
+        { "tag": "3", "name": "Endpoint", "description": "Protects each device even when the perimeter is bypassed.", "tags": ["EDR", "Patching"], "note": { "tone": "tip", "text": "Each layer assumes the one before it can fail." } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "timeline",
+  "description": "Ordered events, in the order given.",
+  "type": "object",
+  "required": ["events"],
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["when", "title"],
+        "additionalProperties": false,
+        "properties": {
+          "when": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "detail": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "events": [
+        { "when": "09:02", "title": "Phishing email delivered", "detail": "It passes the filter because the sending domain is new." },
+        { "when": "09:15", "title": "User enters their password" },
+        { "when": "09:40", "title": "Login from an unusual country", "detail": "The alert that starts the investigation." }
+      ]
+    }
+  ]
+}

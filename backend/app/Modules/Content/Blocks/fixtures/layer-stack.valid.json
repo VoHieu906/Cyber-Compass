@@ -1,0 +1,46 @@
+[
+  {
+    "layers": [
+      {
+        "name": "Top",
+        "description": "First."
+      },
+      {
+        "name": "Bottom",
+        "description": "Second."
+      }
+    ]
+  },
+  {
+    "tags_label": "Protocols",
+    "layers": [
+      {
+        "tag": "7",
+        "name": "Application",
+        "meta": "Data",
+        "description": "Services used by apps.",
+        "facts": [
+          {
+            "label": "Data unit",
+            "value": "Data"
+          }
+        ],
+        "tags": [
+          "HTTP",
+          "DNS"
+        ],
+        "note": {
+          "tone": "warning",
+          "label": "Common attack",
+          "text": "SQL injection."
+        }
+      },
+      {
+        "tag": "1",
+        "name": "Physical",
+        "meta": "Bit",
+        "description": "Signals on the wire."
+      }
+    ]
+  }
+]

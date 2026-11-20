@@ -1,0 +1,25 @@
+[
+  {
+    "tool": "cidr"
+  },
+  {
+    "tool": "cidr",
+    "initial": "10.0.0.1/8"
+  },
+  {
+    "tool": "chmod",
+    "initial": "754"
+  },
+  {
+    "tool": "chmod",
+    "initial": "rwsr-xr-T"
+  },
+  {
+    "tool": "chmod",
+    "initial": "1777"
+  },
+  {
+    "tool": "password-entropy",
+    "initial": "correct horse"
+  }
+]

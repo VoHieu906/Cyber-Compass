@@ -1,0 +1,116 @@
+[
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "c"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "a"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "a",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "b"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "b"
+      },
+      {
+        "from": "a",
+        "to": "b"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "loop"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "b"
+      }
+    ]
+  },
+  {
+    "direction": "up",
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "b"
+      }
+    ]
+  }
+]

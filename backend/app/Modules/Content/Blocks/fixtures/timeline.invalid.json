@@ -1,0 +1,33 @@
+[
+  {
+    "events": [
+      {
+        "when": "1969",
+        "title": "ARPANET"
+      }
+    ]
+  },
+  {
+    "events": [
+      {
+        "when": "1969"
+      },
+      {
+        "when": "1983",
+        "title": "TCP/IP"
+      }
+    ]
+  },
+  {
+    "events": [
+      {
+        "when": "",
+        "title": "A"
+      },
+      {
+        "when": "1983",
+        "title": "TCP/IP"
+      }
+    ]
+  }
+]

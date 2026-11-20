@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "calculator",
+  "description": "A small tool the learner can try: cidr (subnetting), chmod (Linux permissions) or password-entropy. Runs entirely in the browser. The starting value is checked per tool in CalculatorBlock.",
+  "type": "object",
+  "required": ["tool"],
+  "additionalProperties": false,
+  "properties": {
+    "tool": { "enum": ["cidr", "chmod", "password-entropy"] },
+    "initial": { "type": "string", "minLength": 1, "maxLength": 64 }
+  },
+  "examples": [{ "tool": "cidr", "initial": "192.168.1.130/26" }]
+}

@@ -1,0 +1,40 @@
+[
+  {
+    "nodes": [
+      {
+        "id": "root",
+        "label": "Root"
+      },
+      {
+        "id": "a",
+        "label": "A",
+        "parent": "root"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "r",
+        "label": ".",
+        "note": "root"
+      },
+      {
+        "id": "com",
+        "label": "com",
+        "parent": "r"
+      },
+      {
+        "id": "ex",
+        "label": "example.com",
+        "parent": "com",
+        "detail": "Zone."
+      },
+      {
+        "id": "org",
+        "label": "org",
+        "parent": "r"
+      }
+    ]
+  }
+]

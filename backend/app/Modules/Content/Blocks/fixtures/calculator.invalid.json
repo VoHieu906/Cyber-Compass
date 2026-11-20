@@ -1,0 +1,26 @@
+[
+  {
+    "tool": "dns"
+  },
+  {
+    "tool": "cidr",
+    "initial": "10.0.0.256/8"
+  },
+  {
+    "tool": "cidr",
+    "initial": "10.0.0.1/33"
+  },
+  {
+    "tool": "cidr",
+    "initial": "10.0.0.1"
+  },
+  {
+    "tool": "chmod",
+    "initial": "778"
+  },
+  {
+    "tool": "chmod",
+    "initial": "rwxrwx"
+  },
+  {}
+]

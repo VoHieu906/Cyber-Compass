@@ -1,0 +1,66 @@
+[
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "Start",
+        "kind": "start"
+      },
+      {
+        "id": "b",
+        "label": "End",
+        "kind": "end"
+      }
+    ],
+    "edges": [
+      {
+        "from": "a",
+        "to": "b"
+      }
+    ]
+  },
+  {
+    "direction": "right",
+    "nodes": [
+      {
+        "id": "s",
+        "label": "Alert"
+      },
+      {
+        "id": "d",
+        "label": "Real?",
+        "kind": "decision",
+        "detail": "Check the logs."
+      },
+      {
+        "id": "x",
+        "label": "Close"
+      },
+      {
+        "id": "y",
+        "label": "Escalate"
+      }
+    ],
+    "edges": [
+      {
+        "from": "s",
+        "to": "d"
+      },
+      {
+        "from": "d",
+        "to": "x",
+        "label": "No"
+      },
+      {
+        "from": "d",
+        "to": "y",
+        "label": "Yes"
+      },
+      {
+        "from": "y",
+        "to": "s",
+        "label": "Loop back"
+      }
+    ]
+  }
+]

@@ -1,0 +1,53 @@
+[
+  {
+    "steps": [
+      {
+        "title": "One",
+        "text": "First."
+      },
+      {
+        "title": "Two",
+        "text": "Second."
+      }
+    ]
+  },
+  {
+    "steps": [
+      {
+        "title": "Data",
+        "text": "x",
+        "parts": [
+          {
+            "label": "HTTP",
+            "tone": "accent"
+          }
+        ],
+        "state": [
+          {
+            "label": "Unit",
+            "value": "Data"
+          }
+        ]
+      },
+      {
+        "title": "Segment",
+        "text": "y",
+        "parts": [
+          {
+            "label": "TCP"
+          },
+          {
+            "label": "HTTP",
+            "tone": "accent"
+          }
+        ],
+        "state": [
+          {
+            "label": "Unit",
+            "value": "Segment"
+          }
+        ]
+      }
+    ]
+  }
+]

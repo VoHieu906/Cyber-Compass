@@ -1,0 +1,134 @@
+[
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "a",
+        "label": "x",
+        "explanation": "y"
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "b",
+        "name": "B"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "zzz",
+        "label": "x",
+        "explanation": "y"
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "b",
+        "name": "B"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "a",
+        "label": "x",
+        "explanation": "y"
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "a",
+        "name": "B"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "a",
+        "label": "x",
+        "explanation": "y"
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "b",
+        "name": "B"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "b",
+        "label": "x",
+        "explanation": "y",
+        "states": {
+          "ghost": "ON"
+        }
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "B",
+        "name": "B"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "B",
+        "label": "x",
+        "explanation": "y"
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "b",
+        "name": "B"
+      }
+    ],
+    "messages": []
+  }
+]

@@ -1,0 +1,80 @@
+[
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A"
+      },
+      {
+        "id": "b",
+        "label": "B"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "a",
+        "label": "A",
+        "parent": "b"
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "parent": "a"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "r",
+        "label": "R"
+      },
+      {
+        "id": "a",
+        "label": "A",
+        "parent": "b"
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "parent": "a"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "r",
+        "label": "R"
+      },
+      {
+        "id": "a",
+        "label": "A",
+        "parent": "nope"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "r",
+        "label": "R"
+      },
+      {
+        "id": "r",
+        "label": "A",
+        "parent": "r"
+      }
+    ]
+  },
+  {
+    "nodes": [
+      {
+        "id": "r",
+        "label": "R"
+      }
+    ]
+  }
+]

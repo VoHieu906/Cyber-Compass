@@ -1,0 +1,70 @@
+[
+  {
+    "columns": [
+      "Only"
+    ],
+    "rows": [
+      {
+        "label": "x",
+        "values": [
+          "a",
+          "b"
+        ]
+      }
+    ]
+  },
+  {
+    "columns": [
+      "A",
+      "B"
+    ],
+    "rows": [
+      {
+        "label": "x",
+        "values": [
+          "a",
+          "b",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "columns": [
+      "A",
+      "B",
+      "C"
+    ],
+    "rows": [
+      {
+        "label": "x",
+        "values": [
+          "a",
+          "b"
+        ]
+      }
+    ]
+  },
+  {
+    "columns": [
+      "A",
+      "B"
+    ],
+    "rows": []
+  },
+  {
+    "columns": [
+      "A",
+      "B"
+    ],
+    "rows": [
+      {
+        "label": "x",
+        "values": [
+          "a",
+          ""
+        ]
+      }
+    ]
+  }
+]

@@ -70,15 +70,16 @@ MD],
                         ['prose', 'Why a layered model', <<<'MD'
 Networking is complex, so engineers split it into layers. Each layer does one job and relies on the layer below it. The **OSI model** (Open Systems Interconnection) has seven layers. Real networks mostly run the simpler TCP/IP model, but OSI layer numbers are still how people talk: "a layer 2 attack", "a layer 7 load balancer".
 MD],
-                        ['diagram', 'The seven layers', 'osi-model', 'Select a layer to see what it does, example protocols, and an attack that targets it.', [
+                        ['layer-stack', 'The seven layers', [
+                            'tags_label' => 'Example protocols',
                             'layers' => [
-                                ['number' => 7, 'name' => 'Application', 'unit' => 'Data', 'role' => 'Network services used directly by applications.', 'protocols' => ['HTTP', 'DNS', 'SMTP', 'SSH'], 'attack' => 'SQL injection and cross-site scripting abuse the application itself.'],
-                                ['number' => 6, 'name' => 'Presentation', 'unit' => 'Data', 'role' => 'Formats, encodes and encrypts data so both sides can read it.', 'protocols' => ['TLS', 'JPEG', 'UTF-8'], 'attack' => 'Downgrade attacks try to force weaker encryption.'],
-                                ['number' => 5, 'name' => 'Session', 'unit' => 'Data', 'role' => 'Opens, maintains and closes conversations between applications.', 'protocols' => ['RPC', 'NetBIOS'], 'attack' => 'Session hijacking takes over an established conversation.'],
-                                ['number' => 4, 'name' => 'Transport', 'unit' => 'Segment', 'role' => 'Delivers data between processes using ports, reliably (TCP) or not (UDP).', 'protocols' => ['TCP', 'UDP'], 'attack' => 'SYN floods exhaust a server\'s half-open connections; port scans map services.'],
-                                ['number' => 3, 'name' => 'Network', 'unit' => 'Packet', 'role' => 'Addresses and routes packets between networks.', 'protocols' => ['IP', 'ICMP'], 'attack' => 'IP spoofing forges the source address of packets.'],
-                                ['number' => 2, 'name' => 'Data link', 'unit' => 'Frame', 'role' => 'Moves frames between devices on the same local network using MAC addresses.', 'protocols' => ['Ethernet', 'Wi-Fi (802.11)', 'ARP'], 'attack' => 'ARP spoofing redirects local traffic through an attacker\'s machine.'],
-                                ['number' => 1, 'name' => 'Physical', 'unit' => 'Bit', 'role' => 'Turns bits into signals on a cable, fibre or radio.', 'protocols' => ['Copper', 'Fibre', 'Radio'], 'attack' => 'Wiretapping and jamming work on the signal itself.'],
+                                ['tag' => '7', 'name' => 'Application', 'meta' => 'Data', 'description' => 'Network services used directly by applications.', 'tags' => ['HTTP', 'DNS', 'SMTP', 'SSH'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'SQL injection and cross-site scripting abuse the application itself.']],
+                                ['tag' => '6', 'name' => 'Presentation', 'meta' => 'Data', 'description' => 'Formats, encodes and encrypts data so both sides can read it.', 'tags' => ['TLS', 'JPEG', 'UTF-8'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'Downgrade attacks try to force weaker encryption.']],
+                                ['tag' => '5', 'name' => 'Session', 'meta' => 'Data', 'description' => 'Opens, maintains and closes conversations between applications.', 'tags' => ['RPC', 'NetBIOS'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'Session hijacking takes over an established conversation.']],
+                                ['tag' => '4', 'name' => 'Transport', 'meta' => 'Segment', 'description' => 'Delivers data between processes using ports, reliably (TCP) or not (UDP).', 'tags' => ['TCP', 'UDP'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'SYN floods exhaust a server\'s half-open connections; port scans map services.']],
+                                ['tag' => '3', 'name' => 'Network', 'meta' => 'Packet', 'description' => 'Addresses and routes packets between networks.', 'tags' => ['IP', 'ICMP'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'IP spoofing forges the source address of packets.']],
+                                ['tag' => '2', 'name' => 'Data link', 'meta' => 'Frame', 'description' => 'Moves frames between devices on the same local network using MAC addresses.', 'tags' => ['Ethernet', 'Wi-Fi (802.11)', 'ARP'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'ARP spoofing redirects local traffic through an attacker\'s machine.']],
+                                ['tag' => '1', 'name' => 'Physical', 'meta' => 'Bit', 'description' => 'Turns bits into signals on a cable, fibre or radio.', 'tags' => ['Copper', 'Fibre', 'Radio'], 'note' => ['tone' => 'warning', 'label' => 'Attack at this layer', 'text' => 'Wiretapping and jamming work on the signal itself.']],
                             ],
                         ]],
                         ['prose', 'Encapsulation', <<<'MD'
@@ -115,12 +116,12 @@ MD],
 
 **UDP** just sends datagrams with no connection and no delivery guarantee. It is faster and simpler, so DNS lookups, video calls and games often use it.
 MD],
-                        ['diagram', 'The three-way handshake', 'tcp-handshake', 'Step through how a client and server agree to open a TCP connection.', [
-                            'participants' => ['client' => 'Client', 'server' => 'Server'],
-                            'steps' => [
-                                ['from' => 'client', 'label' => 'SYN', 'fields' => 'seq=100', 'explanation' => 'The client asks to open a connection and picks a random initial sequence number, here 100.', 'states' => ['client' => 'SYN-SENT', 'server' => 'LISTEN']],
-                                ['from' => 'server', 'label' => 'SYN-ACK', 'fields' => 'seq=300 ack=101', 'explanation' => 'The server agrees, picks its own sequence number (300) and acknowledges the client\'s by expecting 101 next.', 'states' => ['client' => 'SYN-SENT', 'server' => 'SYN-RECEIVED']],
-                                ['from' => 'client', 'label' => 'ACK', 'fields' => 'seq=101 ack=301', 'explanation' => 'The client acknowledges the server\'s sequence number. Both sides now agree on the starting numbers.', 'states' => ['client' => 'ESTABLISHED', 'server' => 'ESTABLISHED']],
+                        ['sequence', 'The three-way handshake', [
+                            'actors' => [['id' => 'client', 'name' => 'Client'], ['id' => 'server', 'name' => 'Server']],
+                            'messages' => [
+                                ['from' => 'client', 'to' => 'server', 'label' => 'SYN', 'detail' => 'seq=100', 'explanation' => 'The client asks to open a connection and picks a random initial sequence number, here 100.', 'states' => ['client' => 'SYN-SENT', 'server' => 'LISTEN']],
+                                ['from' => 'server', 'to' => 'client', 'label' => 'SYN-ACK', 'detail' => 'seq=300 ack=101', 'explanation' => 'The server agrees, picks its own sequence number (300) and acknowledges the client\'s by expecting 101 next.', 'states' => ['client' => 'SYN-SENT', 'server' => 'SYN-RECEIVED']],
+                                ['from' => 'client', 'to' => 'server', 'label' => 'ACK', 'detail' => 'seq=101 ack=301', 'explanation' => 'The client acknowledges the server\'s sequence number. Both sides now agree on the starting numbers.', 'states' => ['client' => 'ESTABLISHED', 'server' => 'ESTABLISHED']],
                             ],
                         ]],
                         ['callout', 'Attackers use the handshake too', 'A SYN flood sends many SYN packets and never completes the handshake, filling the server\'s table of half-open connections. Port scanners send SYNs to see which ports answer with SYN-ACK.', 'warning'],

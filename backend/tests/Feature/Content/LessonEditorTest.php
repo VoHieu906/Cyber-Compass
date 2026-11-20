@@ -87,10 +87,12 @@ describe('reading', function () {
     it('describes every block type with its schema and example', function () {
         $types = collect($this->actingAs($this->admin, 'web')->getJson('/api/v1/admin/content/block-types')->assertOk()->json('data'))->keyBy('key');
 
-        expect($types->keys()->all())->toContain('prose', 'callout', 'steps', 'code', 'diagram', 'media')
+        expect($types->keys()->all())->toContain('prose', 'callout', 'steps', 'code', 'diagram', 'media', 'layer-stack', 'sequence', 'flow', 'tree', 'topology', 'comparison', 'timeline', 'bitfield', 'calculator', 'step-through', 'knowledge-check')
             ->and($types['prose']['editor'])->toBe('form')
             ->and($types['diagram']['editor'])->toBe('json')
-            ->and($types['diagram']['diagram_keys'])->toContain('osi-model', 'tcp-handshake', 'cia-triad')
+            // OSI and TCP moved to layer-stack and sequence: still valid for old revisions, no longer offered.
+            ->and($types['diagram']['diagram_keys'])->toBe(['cia-triad'])
+            ->and($types['knowledge-check']['example']['questions'][0]['options'])->toHaveCount(3)
             ->and($types['callout']['schema']['properties']['tone']['enum'])->toBe(['info', 'tip', 'warning']);
     });
 });

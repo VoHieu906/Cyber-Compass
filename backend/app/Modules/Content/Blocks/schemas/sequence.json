@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sequence",
+  "description": "Messages between actors over time, shown one step at a time (TCP handshake, DNS lookup, DHCP). Actor references are checked in SequenceBlock.",
+  "type": "object",
+  "required": ["actors", "messages"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" }
+  },
+  "properties": {
+    "actors": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 40 }
+        }
+      }
+    },
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "label", "explanation"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "detail": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "explanation": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "states": {
+            "type": "object",
+            "maxProperties": 5,
+            "propertyNames": { "$ref": "#/$defs/id" },
+            "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 40 }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "actors": [
+        { "id": "client", "name": "Laptop" },
+        { "id": "resolver", "name": "DNS resolver" }
+      ],
+      "messages": [
+        { "from": "client", "to": "resolver", "label": "Query", "detail": "A example.com", "explanation": "The laptop asks its resolver for the address of example.com." },
+        { "from": "resolver", "to": "client", "label": "Answer", "detail": "93.184.215.14", "explanation": "The resolver answers, and the laptop can now connect." }
+      ]
+    }
+  ]
+}

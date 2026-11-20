@@ -23,8 +23,8 @@ it('returns a lesson with typed sections, context and navigation', function () {
         ->assertJsonPath('data.navigation.total', 6)
         ->assertJsonPath('data.navigation.previous.slug', 'intro-to-computer-networks')
         ->assertJsonPath('data.navigation.next.slug', 'tcp-ip-model')
-        ->assertJsonPath('data.sections.1.type', 'diagram')
-        ->assertJsonPath('data.sections.1.payload.key', 'osi-model')
+        ->assertJsonPath('data.sections.1.type', 'layer-stack')
+        ->assertJsonPath('data.sections.1.payload.layers.0.name', 'Application')
         ->assertJsonPath('data.progress.status', 'not_started');
 });
 

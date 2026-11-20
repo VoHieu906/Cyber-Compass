@@ -2,14 +2,25 @@
 
 namespace App\Modules\Content\Blocks;
 
+use App\Modules\Content\Blocks\Types\BitfieldBlock;
+use App\Modules\Content\Blocks\Types\CalculatorBlock;
 use App\Modules\Content\Blocks\Types\CalloutBlock;
 use App\Modules\Content\Blocks\Types\CodeBlock;
+use App\Modules\Content\Blocks\Types\ComparisonBlock;
 use App\Modules\Content\Blocks\Types\DiagramBlock;
+use App\Modules\Content\Blocks\Types\FlowBlock;
+use App\Modules\Content\Blocks\Types\KnowledgeCheckBlock;
+use App\Modules\Content\Blocks\Types\LayerStackBlock;
 use App\Modules\Content\Blocks\Types\MediaBlock;
 use App\Modules\Content\Blocks\Types\ProseBlock;
 use App\Modules\Content\Blocks\Types\Scene3dBlock;
 use App\Modules\Content\Blocks\Types\Script3dBlock;
+use App\Modules\Content\Blocks\Types\SequenceBlock;
 use App\Modules\Content\Blocks\Types\StepsBlock;
+use App\Modules\Content\Blocks\Types\StepThroughBlock;
+use App\Modules\Content\Blocks\Types\TimelineBlock;
+use App\Modules\Content\Blocks\Types\TopologyBlock;
+use App\Modules\Content\Blocks\Types\TreeBlock;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -38,6 +49,17 @@ final class BlockRegistry
             new CodeBlock,
             new DiagramBlock,
             new MediaBlock,
+            new LayerStackBlock,
+            new SequenceBlock,
+            new FlowBlock,
+            new TreeBlock,
+            new TopologyBlock,
+            new ComparisonBlock,
+            new TimelineBlock,
+            new BitfieldBlock,
+            new CalculatorBlock,
+            new StepThroughBlock,
+            new KnowledgeCheckBlock,
             new Scene3dBlock,
             new Script3dBlock,
         ]);

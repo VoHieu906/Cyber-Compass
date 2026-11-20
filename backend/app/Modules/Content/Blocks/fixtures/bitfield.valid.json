@@ -1,0 +1,66 @@
+[
+  {
+    "rows": [
+      {
+        "label": "Flags",
+        "fields": [
+          {
+            "label": "SYN",
+            "bits": "1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "show_decimal": true,
+    "rows": [
+      {
+        "label": "Address",
+        "fields": [
+          {
+            "label": "Network",
+            "bits": "110000001010100000000001",
+            "tone": "accent"
+          },
+          {
+            "label": "Host",
+            "bits": "00010100",
+            "tone": "attn"
+          }
+        ]
+      },
+      {
+        "label": "Mask",
+        "fields": [
+          {
+            "label": "1s",
+            "bits": "111111111111111111111111"
+          },
+          {
+            "label": "0s",
+            "bits": "00000000",
+            "tone": "muted"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "rows": [
+      {
+        "label": "64",
+        "fields": [
+          {
+            "label": "a",
+            "bits": "11111111111111111111111111111111"
+          },
+          {
+            "label": "b",
+            "bits": "00000000000000000000000000000000"
+          }
+        ]
+      }
+    ]
+  }
+]

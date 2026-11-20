@@ -1,0 +1,57 @@
+[
+  {
+    "actors": [
+      {
+        "id": "client",
+        "name": "Client"
+      },
+      {
+        "id": "server",
+        "name": "Server"
+      }
+    ],
+    "messages": [
+      {
+        "from": "client",
+        "to": "server",
+        "label": "SYN",
+        "detail": "seq=100",
+        "explanation": "Asks to connect.",
+        "states": {
+          "client": "SYN-SENT",
+          "server": "LISTEN"
+        }
+      }
+    ]
+  },
+  {
+    "actors": [
+      {
+        "id": "a",
+        "name": "A"
+      },
+      {
+        "id": "b",
+        "name": "B"
+      },
+      {
+        "id": "c",
+        "name": "C"
+      }
+    ],
+    "messages": [
+      {
+        "from": "a",
+        "to": "c",
+        "label": "Hi",
+        "explanation": "Skips b."
+      },
+      {
+        "from": "c",
+        "to": "b",
+        "label": "Yo",
+        "explanation": "Back."
+      }
+    ]
+  }
+]

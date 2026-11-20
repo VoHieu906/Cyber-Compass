@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "tree",
+  "description": "A hierarchy with one root (DNS hierarchy, file system, org chart). Each node names its parent; one root and no loops are checked in TreeBlock.",
+  "type": "object",
+  "required": ["nodes"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" }
+  },
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "parent": { "$ref": "#/$defs/id" },
+          "note": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "detail": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "nodes": [
+        { "id": "root", "label": "Root", "note": "." },
+        { "id": "com", "label": "com", "parent": "root", "detail": "A top-level domain run by a registry." },
+        { "id": "org", "label": "org", "parent": "root" },
+        { "id": "example", "label": "example.com", "parent": "com", "detail": "Its name servers hold the records for www.example.com." }
+      ]
+    }
+  ]
+}

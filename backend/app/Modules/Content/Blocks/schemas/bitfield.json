@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "bitfield",
+  "description": "Rows of bits split into labelled fields (an IPv4 address and its mask, a TCP flags byte). Each field gives its bits as 0s and 1s; a row holds at most 64 bits (checked in BitfieldBlock).",
+  "type": "object",
+  "required": ["rows"],
+  "additionalProperties": false,
+  "properties": {
+    "show_decimal": { "type": "boolean" },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["label", "fields"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "required": ["label", "bits"],
+              "additionalProperties": false,
+              "properties": {
+                "label": { "type": "string", "minLength": 1, "maxLength": 30 },
+                "bits": { "type": "string", "pattern": "^[01]{1,32}$" },
+                "tone": { "enum": ["accent", "attn", "muted", "plain"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "show_decimal": true,
+      "rows": [
+        {
+          "label": "192.168.1.20",
+          "fields": [
+            { "label": "Octet 1", "bits": "11000000", "tone": "accent" },
+            { "label": "Octet 2", "bits": "10101000", "tone": "accent" },
+            { "label": "Octet 3", "bits": "00000001", "tone": "accent" },
+            { "label": "Octet 4", "bits": "00010100", "tone": "attn" }
+          ]
+        }
+      ]
+    }
+  ]
+}

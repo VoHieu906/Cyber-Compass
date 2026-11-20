@@ -1,0 +1,42 @@
+[
+  {
+    "columns": [
+      "TCP",
+      "UDP"
+    ],
+    "rows": [
+      {
+        "label": "Connection",
+        "values": [
+          "Yes",
+          "No"
+        ]
+      }
+    ]
+  },
+  {
+    "columns": [
+      "Threat",
+      "Vulnerability",
+      "Risk"
+    ],
+    "rows": [
+      {
+        "label": "What",
+        "values": [
+          "Who could harm",
+          "A weakness",
+          "Likelihood x impact"
+        ]
+      },
+      {
+        "label": "Example",
+        "values": [
+          "A ransomware gang",
+          "An unpatched VPN",
+          "High"
+        ]
+      }
+    ]
+  }
+]

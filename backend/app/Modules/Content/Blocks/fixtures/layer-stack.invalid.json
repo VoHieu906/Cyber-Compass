@@ -1,0 +1,63 @@
+[
+  {
+    "layers": [
+      {
+        "name": "Only one",
+        "description": "x"
+      }
+    ]
+  },
+  {
+    "layers": [
+      {
+        "name": "A",
+        "description": "x"
+      },
+      {
+        "name": "B"
+      }
+    ]
+  },
+  {
+    "layers": [
+      {
+        "name": "A",
+        "description": "x"
+      },
+      {
+        "name": "B",
+        "description": "y",
+        "note": {
+          "tone": "danger",
+          "text": "z"
+        }
+      }
+    ]
+  },
+  {
+    "layers": [
+      {
+        "name": "A",
+        "description": "x",
+        "tag": "toolongtag"
+      },
+      {
+        "name": "B",
+        "description": "y"
+      }
+    ]
+  },
+  {
+    "layers": [
+      {
+        "name": "A",
+        "description": "x"
+      },
+      {
+        "name": "B",
+        "description": "y"
+      }
+    ],
+    "extra": 1
+  }
+]

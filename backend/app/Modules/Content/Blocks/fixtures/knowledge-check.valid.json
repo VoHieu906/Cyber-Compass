@@ -1,0 +1,42 @@
+[
+  {
+    "questions": [
+      {
+        "prompt": "2+2?",
+        "options": [
+          {
+            "text": "4",
+            "correct": true
+          },
+          {
+            "text": "5",
+            "correct": false
+          }
+        ],
+        "explanation": "Arithmetic."
+      }
+    ]
+  },
+  {
+    "questions": [
+      {
+        "prompt": "Pick all private ranges",
+        "options": [
+          {
+            "text": "10.0.0.0/8",
+            "correct": true
+          },
+          {
+            "text": "192.168.0.0/16",
+            "correct": true
+          },
+          {
+            "text": "8.8.8.0/24",
+            "correct": false
+          }
+        ],
+        "explanation": "RFC 1918."
+      }
+    ]
+  }
+]

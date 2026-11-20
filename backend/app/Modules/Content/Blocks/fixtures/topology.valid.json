@@ -1,0 +1,61 @@
+[
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "aspect": "4:3",
+    "zones": [
+      {
+        "id": "dmz",
+        "label": "DMZ",
+        "tone": "dmz",
+        "x": 50,
+        "y": 0,
+        "w": 50,
+        "h": 100
+      }
+    ],
+    "devices": [
+      {
+        "id": "net",
+        "label": "Internet",
+        "kind": "internet",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "id": "web",
+        "label": "Web",
+        "kind": "server",
+        "x": 100,
+        "y": 100,
+        "address": "203.0.113.5",
+        "detail": "Public site."
+      }
+    ],
+    "links": [
+      {
+        "from": "net",
+        "to": "web",
+        "label": "HTTPS",
+        "style": "vpn"
+      }
+    ]
+  }
+]

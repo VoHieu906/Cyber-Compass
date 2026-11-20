@@ -9,5 +9,14 @@
   },
   {
     "text": 42
+  },
+  {
+    "text": "A [bad link](http://example.com) here."
+  },
+  {
+    "text": "A [script](javascript:alert(1)) here."
+  },
+  {
+    "text": "A [relative](/admin) link."
   }
 ]

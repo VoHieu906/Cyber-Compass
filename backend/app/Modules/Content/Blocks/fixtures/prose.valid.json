@@ -1,5 +1,8 @@
 [
   {
     "text": "One paragraph with **bold** and `code`.\n\n- a bullet"
+  },
+  {
+    "text": "See [RFC 9293](https://www.rfc-editor.org/rfc/rfc9293) for details.\n\n1. First\n2. Second"
   }
 ]

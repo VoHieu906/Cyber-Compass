@@ -31,8 +31,21 @@ final class DiagramBlock extends JsonSchemaBlock
         return 'json';
     }
 
-    /** @return list<string> */
+    /**
+     * Keys whose content moved to generic blocks (osi-model to layer-stack, tcp-handshake to
+     * sequence; Part C2). They stay valid so older drafts and revisions still load and render,
+     * but the editor no longer offers them for new diagrams.
+     */
+    public const LEGACY = ['osi-model', 'tcp-handshake'];
+
+    /** Keys offered for new diagrams. @return list<string> */
     public static function keys(): array
+    {
+        return array_values(array_diff(self::allKeys(), self::LEGACY));
+    }
+
+    /** @return list<string> */
+    public static function allKeys(): array
     {
         return array_map(fn ($f) => basename($f, '.json'), glob(__DIR__.'/../schemas/diagrams/*.json') ?: []);
     }
@@ -42,7 +55,7 @@ final class DiagramBlock extends JsonSchemaBlock
         $errors = parent::validate($payload);
         $key = $payload['key'] ?? null;
 
-        if (! is_string($key) || ! in_array($key, self::keys(), true)) {
+        if (! is_string($key) || ! in_array($key, self::allKeys(), true)) {
             return $errors + ['key' => ['Unknown diagram. Allowed: '.implode(', ', self::keys())]];
         }
 

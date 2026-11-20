@@ -1,0 +1,39 @@
+[
+  {
+    "steps": [
+      {
+        "title": "One",
+        "text": "First."
+      }
+    ]
+  },
+  {
+    "steps": [
+      {
+        "title": "One"
+      },
+      {
+        "title": "Two",
+        "text": "x"
+      }
+    ]
+  },
+  {
+    "steps": [
+      {
+        "title": "One",
+        "text": "x",
+        "parts": [
+          {
+            "label": "A",
+            "tone": "loud"
+          }
+        ]
+      },
+      {
+        "title": "Two",
+        "text": "x"
+      }
+    ]
+  }
+]

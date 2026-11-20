@@ -1,0 +1,177 @@
+[
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": [
+      {
+        "from": "a",
+        "to": "c"
+      }
+    ]
+  },
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": [
+      {
+        "from": "a",
+        "to": "a"
+      }
+    ]
+  },
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "toaster",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 120,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "zones": [
+      {
+        "id": "z",
+        "label": "Z",
+        "x": 60,
+        "y": 0,
+        "w": 50,
+        "h": 50
+      }
+    ],
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "zones": [
+      {
+        "id": "a",
+        "label": "Z",
+        "x": 0,
+        "y": 0,
+        "w": 50,
+        "h": 50
+      }
+    ],
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "b",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      },
+      {
+        "id": "a",
+        "label": "B",
+        "kind": "server",
+        "x": 90,
+        "y": 50
+      }
+    ],
+    "links": []
+  },
+  {
+    "devices": [
+      {
+        "id": "a",
+        "label": "A",
+        "kind": "router",
+        "x": 10,
+        "y": 50
+      }
+    ],
+    "links": []
+  }
+]

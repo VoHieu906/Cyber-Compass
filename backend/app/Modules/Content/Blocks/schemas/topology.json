@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "topology",
+  "description": "Devices and links at fixed positions, with optional zones. Positions are percentages of the canvas (0 to 100). References and zone bounds are checked in TopologyBlock.",
+  "type": "object",
+  "required": ["devices", "links"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" },
+    "pct": { "type": "number", "minimum": 0, "maximum": 100 }
+  },
+  "properties": {
+    "aspect": { "enum": ["16:9", "4:3", "2:1"] },
+    "zones": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "x", "y", "w", "h"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "tone": { "enum": ["trusted", "untrusted", "dmz", "neutral"] },
+          "x": { "$ref": "#/$defs/pct" },
+          "y": { "$ref": "#/$defs/pct" },
+          "w": { "type": "number", "minimum": 5, "maximum": 100 },
+          "h": { "type": "number", "minimum": 5, "maximum": 100 }
+        }
+      }
+    },
+    "devices": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 30,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "kind", "x", "y"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "kind": { "enum": ["router", "switch", "firewall", "server", "database", "workstation", "laptop", "phone", "access-point", "cloud", "internet", "attacker"] },
+          "x": { "$ref": "#/$defs/pct" },
+          "y": { "$ref": "#/$defs/pct" },
+          "address": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "detail": { "type": "string", "minLength": 1, "maxLength": 400 }
+        }
+      }
+    },
+    "links": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 30 },
+          "style": { "enum": ["wired", "wireless", "vpn"] }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "aspect": "16:9",
+      "zones": [
+        { "id": "lan", "label": "Office LAN", "tone": "trusted", "x": 52, "y": 8, "w": 44, "h": 84 }
+      ],
+      "devices": [
+        { "id": "internet", "label": "Internet", "kind": "internet", "x": 10, "y": 50 },
+        { "id": "fw", "label": "Firewall", "kind": "firewall", "x": 36, "y": 50, "detail": "Allows replies to traffic the office started, and nothing else inbound." },
+        { "id": "sw", "label": "Switch", "kind": "switch", "x": 62, "y": 50 },
+        { "id": "pc", "label": "Workstation", "kind": "workstation", "x": 85, "y": 25, "address": "192.168.1.20" },
+        { "id": "srv", "label": "File server", "kind": "server", "x": 85, "y": 75, "address": "192.168.1.5" }
+      ],
+      "links": [
+        { "from": "internet", "to": "fw" },
+        { "from": "fw", "to": "sw" },
+        { "from": "sw", "to": "pc" },
+        { "from": "sw", "to": "srv" }
+      ]
+    }
+  ]
+}
