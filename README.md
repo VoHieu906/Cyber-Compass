@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phase 3 complete; Phase 3.5 Part A complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins can manage accounts in the admin console at `/admin`; the lesson editor is next. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phase 3 complete; Phase 3.5 Parts A and B complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins manage accounts and write, preview and publish lessons in the admin console at `/admin`; new visual block types are next. The knowledge assessment and personalised roadmap arrive in Phase 4. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 

@@ -190,7 +190,24 @@ The response shape is graph-ready but layout-free. The client computes positions
 | 🛡 | POST | `/admin/users/{id}/reactivate`. 422 `user` if not suspended. | ✅ |
 | 🛡 | POST | `/admin/users/{id}/password-reset`. 202; sends the standard reset email to the account's own address. 429 if one was sent in the last minute, 422 for a suspended account. | ✅ |
 | 🛡 | GET | `/admin/audit-logs` (filter[actor], filter[subject_type] = user, lesson, chapter; filter[subject_id], filter[action]; newest first; per_page default 25) | ✅ |
-| 🛡 | … | `/admin/content/*` (lesson editor, block types, chapters, media) | Part B |
+| 🛡 | GET | `/admin/content/block-types` (key, label, description, editor `form`/`json`, JSON Schema, example; `diagram_keys` for bespoke diagrams) | ✅ B |
+| 🛡 | GET | `/admin/content/courses` (every course, chapter and lesson in order, any status, with `has_unpublished_changes`) | ✅ B |
+| 🛡 | POST | `/admin/content/courses/{id}/chapters` (title; added at the end) | ✅ B |
+| 🛡 | PATCH | `/admin/content/chapters/{id}` (title) | ✅ B |
+| 🛡 | PUT | `/admin/content/courses/{id}/chapters/order` (chapter_ids: every chapter once) · `/admin/content/chapters/{id}/lessons/order` (lesson_ids: every lesson once). Applied at once; reordered lessons become admin-owned, so imports keep the order. 422 if the set differs. | ✅ B |
+| 🛡 | GET | `/admin/content/lessons` (q on title/slug, filter[course], filter[chapter], filter[status], filter[has_draft]; sort -updated_at (default), course, title; section_count, visual_count, last edited by/at) | ✅ B |
+| 🛡 | POST | `/admin/content/lessons` (chapter_id, title, slug). 201; a `draft` lesson at the end of the chapter, invisible to learners | ✅ B |
+| 🛡 | GET | `/admin/content/lessons/{id}` (`working_copy` = draft if any else live, `preview_sections` serialized exactly like the learner endpoint, `lock_version` (0 without a draft), `has_unpublished_changes`, `slug_editable`, `can_delete`, topics) | ✅ B |
+| 🛡 | PUT | `/admin/content/lessons/{id}/draft` (whole working copy + lock_version). Sections without `id` get a UUID; ids of other lessons or duplicates → 422; stale lock → 409 `conflict`. Errors keyed like the body: `sections.3.payload.items.0`, in plain words | ✅ B |
+| 🛡 | DELETE | `/admin/content/lessons/{id}/draft`. 422 for a never-published lesson (delete it instead) | ✅ B |
+| 🛡 | POST | `/admin/content/lessons/{id}/publish` (lock_version, note?). Re-validates; needs a summary and ≥1 section; writes revision n+1; a chapter change appends at the end of the new chapter; republishes archived lessons | ✅ B |
+| 🛡 | POST | `/admin/content/lessons/{id}/archive` (published only) | ✅ B |
+| 🛡 | DELETE | `/admin/content/lessons/{id}`. 204 only if never published and no progress or topic links; else 409 | ✅ B |
+| 🛡 | GET | `/admin/content/lessons/{id}/revisions` (version, author, note, section count, `changes` {initial, fields, sections {added, removed, edited, reordered}}) | ✅ B |
+| 🛡 | POST | `/admin/content/lessons/{id}/revisions/{version}/restore` (lock_version). Into the draft only | ✅ B |
+| 🛡 | GET/POST | `/admin/content/media` (list, 24 per page) · upload: multipart `image` jpg/png/webp 64–6000 px ≤ 5 MB + `alt` (3–250, required); re-encoded to WebP ≤ 1600 px wide; SVG rejected; `uploads` rate limit | ✅ B |
+
+Content routes are exempt from the `TrimStrings` and `ConvertEmptyStringsToNull` middleware: content is stored as written (code indentation survives), and each block type's normalizer trims what should be trimmed. Draft saves are not audited one by one; create, publish, discard, archive, delete, restore, chapter and order changes, and uploads are. `EnsureAdmin` runs before route model binding, so learners get 403 whether or not an id exists.
 
 Audit entry shape: `{ id, action, actor: {id, name} | null, subject: {type, id, label}, changes, created_at }`. `actor` is null for the `cybercompass:make-admin` command.
 
