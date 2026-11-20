@@ -52,6 +52,11 @@ class UserFactory extends Factory
         return $this->state(fn () => ['role' => UserRole::Admin]);
     }
 
+    public function suspended(): static
+    {
+        return $this->state(fn () => ['suspended_at' => now(), 'suspension_reason' => 'Test suspension']);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,7 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-// `role` is deliberately not fillable: it is never set from request input.
+// `role`, `suspended_at`, `suspension_reason` and `last_login_at` are deliberately not fillable:
+// they are never set from request input, only by the Admin module's actions and by login (forceFill).
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasLocalePreference
@@ -25,6 +27,9 @@ class User extends Authenticatable implements HasLocalePreference
     /** Mirrors the column default, so a freshly created model knows its role without a reload. */
     protected $attributes = [
         'role' => 'learner',
+        'suspended_at' => null,
+        'suspension_reason' => null,
+        'last_login_at' => null,
     ];
 
     /**
@@ -64,12 +69,29 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->role === UserRole::Admin;
     }
 
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
+    /**
+     * Admins who can still sign in. The last one can't be demoted or suspended.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeActiveAdmins(Builder $query): void
+    {
+        $query->where('role', UserRole::Admin)->whereNull('suspended_at');
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'suspended_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 }

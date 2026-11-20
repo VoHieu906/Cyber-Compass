@@ -18,4 +18,7 @@ return [
     // Demo learner created by DemoUserSeeder (local/demo environments only).
     'demo_user_password' => env('DEMO_USER_PASSWORD'),
 
+    // Demo admin created by DemoUserSeeder (admin@cybercompass.test). Skipped when empty.
+    'demo_admin_password' => env('DEMO_ADMIN_PASSWORD'),
+
 ];

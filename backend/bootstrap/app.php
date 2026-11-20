@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\RejectSuspendedUsers;
 use App\Http\Middleware\SetRequestLocale;
 use App\Support\Http\ApiExceptionRenderer;
 use Illuminate\Foundation\Application;
@@ -18,12 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
     // Module console commands (content:import, cybercompass:make-admin, …).
     ->withCommands([
         __DIR__.'/../app/Modules/Content/Console',
+        __DIR__.'/../app/Modules/Admin/Console',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum SPA authentication: session cookies + CSRF for requests from the frontend origin.
         $middleware->statefulApi();
         $middleware->throttleApi('api');
-        $middleware->appendToGroup('api', SetRequestLocale::class);
+        $middleware->appendToGroup('api', [SetRequestLocale::class, RejectSuspendedUsers::class]);
         // Behind the AWS ALB, trust X-Forwarded-* so URLs and secure cookies are correct.
         $middleware->trustProxies(at: '*');
     })

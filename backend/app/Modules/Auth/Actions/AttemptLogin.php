@@ -2,6 +2,7 @@
 
 namespace App\Modules\Auth\Actions;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,7 +13,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * Session login with per-account brute-force protection: 5 failed attempts per
  * email and IP lock that pair for a minute. Failures never reveal whether the
- * email exists.
+ * email exists. A suspended account is told so only after the correct password,
+ * so the message reveals nothing to someone guessing.
  */
 final class AttemptLogin
 {
@@ -32,14 +34,25 @@ final class AttemptLogin
             ])->status(429);
         }
 
-        if (! Auth::guard('web')->attempt(['email' => mb_strtolower($email), 'password' => $password], $remember)) {
+        $guard = Auth::guard('web');
+
+        if (! $guard->validate(['email' => mb_strtolower($email), 'password' => $password])) {
             RateLimiter::hit($key, self::DECAY_SECONDS);
 
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 
+        /** @var User $user */
+        $user = $guard->getLastAttempted();
         RateLimiter::clear($key);
+
+        if ($user->isSuspended()) {
+            throw ValidationException::withMessages(['email' => __('auth.suspended')]);
+        }
+
+        $guard->login($user, $remember);
         $request->session()->regenerate();
+        $user->forceFill(['last_login_at' => now()])->saveQuietly();
     }
 
     private function throttleKey(string $email, ?string $ip): string

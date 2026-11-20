@@ -17,5 +17,11 @@
     "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Nếu bạn không bấm được nút \":actionText\", hãy sao chép và dán đường dẫn dưới đây\nvào trình duyệt:",
     "Reset your password": "Đặt lại mật khẩu CyberCompass",
     "Whoops!": "Rất tiếc!",
-    "All rights reserved.": "Bảo lưu mọi quyền."
+    "All rights reserved.": "Bảo lưu mọi quyền.",
+    "You cannot remove your own admin access. Ask another admin.": "Bạn không thể tự gỡ quyền quản trị của mình. Hãy nhờ một quản trị viên khác.",
+    "This is the last active admin. Promote another admin first.": "Đây là quản trị viên đang hoạt động cuối cùng. Hãy cấp quyền quản trị cho người khác trước.",
+    "This account is already suspended.": "Tài khoản này đã bị tạm khóa.",
+    "This account is not suspended.": "Tài khoản này không bị tạm khóa.",
+    "Reactivate this account before sending a reset link.": "Hãy mở khóa tài khoản trước khi gửi liên kết đặt lại mật khẩu.",
+    "A password reset link has been sent to this user.": "Đã gửi liên kết đặt lại mật khẩu cho người dùng này."
 }

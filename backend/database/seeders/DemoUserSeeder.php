@@ -4,29 +4,40 @@ namespace Database\Seeders;
 
 use App\Enums\Locale;
 use App\Enums\ThemePreference;
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * A demo learner for local development and demonstrations. The password comes from
- * DEMO_USER_PASSWORD in backend/.env and is never committed. Without it, the seeder skips.
+ * Demo accounts for local development and demonstrations. Passwords come from
+ * backend/.env and are never committed; an account whose variable is empty is skipped.
+ *   demo@cybercompass.test   learner  DEMO_USER_PASSWORD
+ *   admin@cybercompass.test  admin    DEMO_ADMIN_PASSWORD
  */
 class DemoUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $password = config('cybercompass.demo_user_password');
+        $this->account('demo@cybercompass.test', 'Demo Learner', UserRole::Learner, 'demo_user_password', 'DEMO_USER_PASSWORD');
+        $this->account('admin@cybercompass.test', 'Demo Admin', UserRole::Admin, 'demo_admin_password', 'DEMO_ADMIN_PASSWORD');
+    }
+
+    private function account(string $email, string $name, UserRole $role, string $configKey, string $envName): void
+    {
+        $password = config("cybercompass.{$configKey}");
 
         if (blank($password)) {
-            $this->command?->warn('DEMO_USER_PASSWORD is not set; skipping the demo user.');
+            $this->command?->warn("{$envName} is not set; skipping {$email}.");
 
             return;
         }
 
         $user = User::query()->updateOrCreate(
-            ['email' => 'demo@cybercompass.test'],
-            ['name' => 'Demo Learner', 'password' => $password, 'email_verified_at' => now()],
+            ['email' => $email],
+            ['name' => $name, 'password' => $password],
         );
+        // Not fillable on purpose; seeders set them directly.
+        $user->forceFill(['role' => $role, 'email_verified_at' => $user->email_verified_at ?? now()])->save();
 
         $user->profile()->updateOrCreate([], [
             'locale' => Locale::English,

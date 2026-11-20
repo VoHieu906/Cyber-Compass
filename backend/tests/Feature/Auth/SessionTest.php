@@ -81,3 +81,11 @@ it('logs out and ends the session', function () {
 it('requires a session to log out', function () {
     $this->postJson('/api/v1/auth/logout')->assertUnauthorized();
 });
+
+it('records when the user last signed in', function () {
+    expect($this->user->last_login_at)->toBeNull();
+
+    $this->postJson('/api/v1/auth/login', ['email' => 'learner@example.com', 'password' => 'secure-pass-1'])->assertOk();
+
+    expect($this->user->refresh()->last_login_at)->not->toBeNull();
+});
