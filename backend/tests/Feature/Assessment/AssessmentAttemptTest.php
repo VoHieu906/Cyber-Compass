@@ -51,6 +51,8 @@ it('describes the active assessment with question counts per domain', function (
         ->assertJsonCount(8, 'data.domains')
         ->assertJsonPath('data.domains.0.slug', 'networking')
         ->assertJsonPath('data.domains.0.question_count', 5)
+        ->assertJsonPath('data.formula.developing_from', 40)
+        ->assertJsonPath('data.formula.strength_from', 75)
         ->assertJsonPath('data.open_attempt', null)
         ->assertJsonPath('data.latest_result', null);
 });

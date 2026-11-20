@@ -118,7 +118,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/assessments/active`: slug, title, description, `question_count`, `domains[]` (slug, name, question_count), `open_attempt` {id, answered, total} or null, `latest_result` {id, score, band, submitted_at} or null. 404 if none is active. |
+| 🔒 | GET | `/assessments/active`: slug, title, description, `question_count`, `domains[]` (slug, name, question_count), `formula` (the same object as in the result, so the UI never restates the band edges), `open_attempt` {id, answered, total} or null, `latest_result` {id, score, band, submitted_at} or null. 404 if none is active. |
 | 🔒 | POST | `/assessments/{slug}/attempts`: 201 with a new attempt, or 200 with the open one (one open attempt per learner, enforced by a unique index). |
 | 🔒 | GET | `/assessment-attempts/{id}`: status (`in_progress`, `submitted`), total, answered, `questions[]` (id, position, domain, difficulty, prompt, code, `options[]` {id, label}, `selected_option_id`). No answer key. |
 | 🔒 | PUT | `/assessment-attempts/{id}/answers/{questionId}` (`option_id`, required key, null clears): autosave, returns `answered`. 409 once submitted; 404 for a question the attempt did not draw; 422 for an option of another question. |

@@ -9,10 +9,11 @@ import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { cn } from "@/lib/utils";
 
-/** Routes that exist today. Roadmap, assessment and search join as their phases ship. */
+/** Routes that exist today. Roadmap and search join as their phases ship. Signed-out visitors who open the assessment are sent to log in first. */
 const LINKS = [
   { href: "/courses", key: "courses" },
   { href: "/careers", key: "careers" },
+  { href: "/assessment", key: "assessment" },
 ] as const;
 
 function isActive(pathname: string, href: string) {

@@ -45,13 +45,23 @@ final class AttemptResult
             'strengths' => $domainRows->where('band', ScoreBand::Strength->value)->pluck('domain.slug')->values()->all(),
             'gaps' => $domainRows->where('band', ScoreBand::Gap->value)->pluck('domain.slug')->values()->all(),
             'next_steps' => $this->nextSteps($domainRows),
-            'formula' => [
-                'weights' => ['1' => 1, '2' => 2, '3' => 3],
-                'unanswered' => 'incorrect',
-                'developing_from' => ScoreBand::DEVELOPING_FROM,
-                'strength_from' => ScoreBand::STRENGTH_FROM,
-            ],
+            'formula' => self::formula(),
             'review' => $attempt->answers->map(fn (AssessmentAnswer $answer) => $this->review($answer))->all(),
+        ];
+    }
+
+    /**
+     * The scoring rules as data, so the UI explains them without restating the numbers.
+     *
+     * @return array{weights: array<string, int>, unanswered: string, developing_from: int, strength_from: int}
+     */
+    public static function formula(): array
+    {
+        return [
+            'weights' => ['1' => 1, '2' => 2, '3' => 3],
+            'unanswered' => 'incorrect',
+            'developing_from' => ScoreBand::DEVELOPING_FROM,
+            'strength_from' => ScoreBand::STRENGTH_FROM,
         ];
     }
 

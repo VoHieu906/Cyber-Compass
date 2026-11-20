@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentQuestion;
 use App\Modules\Assessment\Actions\StartAttempt;
 use App\Modules\Assessment\Http\Resources\AttemptResource;
+use App\Modules\Assessment\Services\AttemptResult;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -44,6 +45,7 @@ final class AssessmentController extends Controller
             'time_limit_minutes' => $assessment->time_limit_minutes,
             'question_count' => $questions->count(),
             'domains' => $domains,
+            'formula' => AttemptResult::formula(),
             'open_attempt' => $open ? ['id' => $open->id, 'answered' => $open->answered_count, 'total' => $open->answers_count] : null,
             'latest_result' => $latest ? [
                 'id' => $latest->id,
