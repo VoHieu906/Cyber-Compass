@@ -17,7 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Lesson extends Model
 {
-    protected $attributes = ['status' => 'published'];
+    /** Mirrors the column defaults, so a model created in memory has them without a reload (strict mode). */
+    protected $attributes = ['status' => 'published', 'published_at' => null, 'created_by' => null, 'updated_by' => null];
 
     /** @return BelongsTo<CourseChapter, $this> */
     public function chapter(): BelongsTo
@@ -39,6 +40,17 @@ class Lesson extends Model
     public function draft(): HasOne
     {
         return $this->hasOne(LessonDraft::class);
+    }
+
+    /**
+     * The admin who last changed the live lesson (null for seeded content). Its presence also
+     * makes the database the lesson's owner for content imports (ARCHITECTURE D19).
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function editor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     /** @return HasMany<LessonRevision, $this> */

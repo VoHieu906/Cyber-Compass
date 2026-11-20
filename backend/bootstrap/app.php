@@ -2,11 +2,13 @@
 
 use App\Http\Middleware\RejectSuspendedUsers;
 use App\Http\Middleware\SetRequestLocale;
+use App\Modules\Admin\Http\Middleware\EnsureAdmin;
 use App\Support\Http\ApiExceptionRenderer;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -26,6 +28,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
         $middleware->throttleApi('api');
         $middleware->appendToGroup('api', [SetRequestLocale::class, RejectSuspendedUsers::class]);
+        // Admin routes check the role before route model binding, so a learner always gets 403
+        // and can't learn which lesson or user ids exist from 404s.
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: EnsureAdmin::class);
+        // Lesson content is stored exactly as authored: leading spaces in code blocks matter, and an
+        // empty text must stay "" so the schema can say it is empty. Each block type's normalizer
+        // trims what should be trimmed (Content\Blocks).
+        $contentApi = fn (Request $request) => $request->is('api/v1/admin/content/*');
+        $middleware->trimStrings(except: [$contentApi]);
+        $middleware->convertEmptyStringsToNull(except: [$contentApi]);
         // Behind the AWS ALB, trust X-Forwarded-* so URLs and secure cookies are correct.
         $middleware->trustProxies(at: '*');
     })

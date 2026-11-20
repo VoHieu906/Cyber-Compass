@@ -3,6 +3,7 @@
 namespace App\Modules\Content\Blocks;
 
 use Opis\JsonSchema\Errors\ErrorFormatter;
+use Opis\JsonSchema\Errors\ValidationError;
 use Opis\JsonSchema\Validator;
 use RuntimeException;
 
@@ -56,13 +57,55 @@ abstract class JsonSchemaBlock implements BlockType
             return [];
         }
 
+        $formatter = new ErrorFormatter;
         $errors = [];
-        foreach ((new ErrorFormatter)->format($result->error(), true) as $pointer => $messages) {
+        $messages = $formatter->format(
+            $result->error(),
+            true,
+            fn (ValidationError $e) => self::message($e, $formatter),
+            // A missing property is reported at the property itself, so the editor can show it on that field.
+            fn (ValidationError $e) => $formatter->formatErrorKey($e)
+                .($e->keyword() === 'required' ? '/'.((array) $e->args()['missing'])[0] : ''),
+        );
+        foreach ($messages as $pointer => $list) {
             $path = trim(str_replace('/', '.', (string) $pointer), '.');
-            $errors[$path] = array_values(array_unique((array) $messages));
+            $errors[$path] = array_values(array_unique((array) $list));
         }
 
         return $errors;
+    }
+
+    /**
+     * Authors read these in the editor, so they name the problem in plain words (and are
+     * translatable) instead of the schema library's wording.
+     */
+    private static function message(ValidationError $e, ErrorFormatter $formatter): string
+    {
+        $args = $e->args();
+
+        return match ($e->keyword()) {
+            'required' => __('This field is required.'),
+            'type' => __('Expected :type.', ['type' => self::typeName($args['expected'] ?? null)]),
+            'minLength' => ($args['min'] ?? 0) <= 1
+                ? __('This can not be empty.')
+                : __('Use at least :min characters.', ['min' => $args['min']]),
+            'maxLength' => __('Use at most :max characters.', ['max' => $args['max'] ?? '']),
+            'minItems' => __('Add at least :min items.', ['min' => $args['min'] ?? '']),
+            'maxItems' => __('Use at most :max items.', ['max' => $args['max'] ?? '']),
+            'enum' => __('Choose one of: :values.', ['values' => implode(', ', (array) ($e->schema()->info()->data()->enum ?? []))]),
+            'pattern' => __('This is not in the expected format.'),
+            'additionalProperties' => __('Unknown field: :fields.', ['fields' => implode(', ', (array) ($args['properties'] ?? []))]),
+            'minimum' => __('Use :min or more.', ['min' => $args['min'] ?? '']),
+            'maximum' => __('Use :max or less.', ['max' => $args['max'] ?? '']),
+            default => $formatter->formatErrorMessage($e),
+        };
+    }
+
+    private static function typeName(mixed $expected): string
+    {
+        $names = ['string' => __('text'), 'array' => __('a list'), 'object' => __('an object'), 'integer' => __('a whole number'), 'number' => __('a number'), 'boolean' => __('true or false'), 'null' => __('nothing')];
+
+        return implode(__(' or '), array_map(fn ($t) => $names[$t] ?? $t, (array) $expected));
     }
 
     protected static function loadSchema(string $file): object

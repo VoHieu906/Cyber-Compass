@@ -7,7 +7,7 @@ use Illuminate\Validation\Rule;
 
 class AuditLogIndexRequest extends FormRequest
 {
-    public const SUBJECT_TYPES = ['user', 'lesson', 'chapter'];
+    public const SUBJECT_TYPES = ['user', 'lesson', 'chapter', 'course', 'media'];
 
     public function rules(): array
     {

@@ -5,6 +5,7 @@ namespace App\Modules\Content\Blocks;
 use App\Modules\Content\Blocks\Types\CalloutBlock;
 use App\Modules\Content\Blocks\Types\CodeBlock;
 use App\Modules\Content\Blocks\Types\DiagramBlock;
+use App\Modules\Content\Blocks\Types\MediaBlock;
 use App\Modules\Content\Blocks\Types\ProseBlock;
 use App\Modules\Content\Blocks\Types\StepsBlock;
 use Illuminate\Validation\ValidationException;
@@ -34,6 +35,7 @@ final class BlockRegistry
             new StepsBlock,
             new CodeBlock,
             new DiagramBlock,
+            new MediaBlock,
         ]);
     }
 

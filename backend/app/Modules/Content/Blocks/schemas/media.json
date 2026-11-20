@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "media",
+  "type": "object",
+  "required": ["media"],
+  "additionalProperties": false,
+  "properties": {
+    "media": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "uuid of an uploaded lesson_media image; the alt text lives with the image"
+    },
+    "caption": { "type": ["string", "null"], "maxLength": 300 }
+  },
+  "examples": [{ "media": "3f1c2a9e-3b7d-4e0a-8c5f-9d2e4b7a1c30", "caption": "Wireshark showing the three-way handshake." }]
+}

@@ -17,6 +17,7 @@ Route::prefix('v1')->name('v1.')->group(function () {
         'Careers',
         'Learning',
         'Admin',
+        'Content',
     ] as $module) {
         require app_path("Modules/{$module}/routes.php");
     }

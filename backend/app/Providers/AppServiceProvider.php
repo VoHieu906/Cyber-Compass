@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\Lesson;
 use App\Models\User;
 use App\Modules\Admin\Policies\UserAdminPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
+use App\Modules\Content\Policies\LessonPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -33,8 +35,9 @@ class AppServiceProvider extends ServiceProvider
         ResetPassword::createUrlUsing(fn (User $user, string $token) => config('app.frontend_url')
             .'/reset-password?'.http_build_query(['token' => $token, 'email' => $user->getEmailForPasswordReset()]));
 
-        // Admin user management (one admin role today; see UserAdminPolicy).
+        // Admin console: account management and content authoring (one admin role today, assumption A1).
         Gate::policy(User::class, UserAdminPolicy::class);
+        Gate::policy(Lesson::class, LessonPolicy::class);
 
         $this->configureRateLimits();
     }

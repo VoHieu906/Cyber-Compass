@@ -3,7 +3,10 @@
 namespace App\Modules\Admin\Services;
 
 use App\Models\AdminAuditLog;
+use App\Models\Course;
+use App\Models\CourseChapter;
 use App\Models\Lesson;
+use App\Models\LessonMedia;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -58,6 +61,9 @@ final class AuditLogQuery
         $sources = [
             'user' => fn (Collection $ids) => User::query()->whereIn('id', $ids)->pluck('name', 'id'),
             'lesson' => fn (Collection $ids) => Lesson::query()->whereIn('id', $ids)->pluck('title', 'id'),
+            'chapter' => fn (Collection $ids) => CourseChapter::query()->whereIn('id', $ids)->pluck('title', 'id'),
+            'course' => fn (Collection $ids) => Course::query()->whereIn('id', $ids)->pluck('title', 'id'),
+            'media' => fn (Collection $ids) => LessonMedia::query()->whereIn('id', $ids)->pluck('alt', 'id'),
         ];
 
         foreach ($logs->groupBy('subject_type') as $type => $group) {

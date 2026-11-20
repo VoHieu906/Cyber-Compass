@@ -7,7 +7,6 @@ use App\Models\Course;
 use App\Models\CourseChapter;
 use App\Models\Domain;
 use App\Models\Lesson;
-use App\Models\LessonSection;
 use App\Models\Skill;
 use App\Modules\Content\Blocks\BlockRegistry;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +32,10 @@ final class ContentImporter
 
     private const PARKING_OFFSET = 10000;
 
-    public function __construct(private readonly BlockRegistry $blocks) {}
+    public function __construct(
+        private readonly BlockRegistry $blocks,
+        private readonly SectionWriter $sections,
+    ) {}
 
     /**
      * @param  list<array<string, mixed>>  $courses  parsed content files
@@ -219,7 +221,7 @@ final class ContentImporter
                     'status' => LessonStatus::Published,
                     'published_at' => $current?->published_at ?? $data['published_at'],
                 ]);
-                $this->writeSections($lesson, $l['sections']);
+                $this->sections->write($lesson, $l['sections']);
                 $report['lessons_written']++;
             }
         }
@@ -257,26 +259,5 @@ final class ContentImporter
         $max = (int) Lesson::query()->where('course_chapter_id', $chapter->id)->where('position', '<', self::PARKING_OFFSET)->max('position');
 
         return $max + 1;
-    }
-
-    /** @param  list<array{uuid: string, type: string, heading: ?string, payload: array}>  $sections */
-    private function writeSections(Lesson $lesson, array $sections): void
-    {
-        LessonSection::query()->where('lesson_id', $lesson->id)
-            ->update(['position' => DB::raw('position + '.self::PARKING_OFFSET)]);
-
-        foreach ($sections as $i => $section) {
-            LessonSection::query()->updateOrCreate(['uuid' => $section['uuid']], [
-                'lesson_id' => $lesson->id,
-                'position' => $i + 1,
-                'type' => $section['type'],
-                'heading' => $section['heading'],
-                'payload' => $section['payload'],
-            ]);
-        }
-
-        LessonSection::query()->where('lesson_id', $lesson->id)
-            ->whereNotIn('uuid', array_column($sections, 'uuid'))
-            ->delete();
     }
 }
