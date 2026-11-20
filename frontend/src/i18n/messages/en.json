@@ -6,7 +6,9 @@
     "optional": "optional",
     "breadcrumb": "Breadcrumb",
     "showMore": "Show more",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "close": "Close",
+    "cancel": "Cancel"
   },
   "metadata": {
     "title": "CyberCompass",
@@ -80,7 +82,8 @@
     "careers": "Careers",
     "primary": "Main",
     "menu": "Menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "admin": "Admin console"
   },
   "validation": {
     "required": "This field is required.",
@@ -343,5 +346,185 @@
     "closeTitle": "Start with the first lesson",
     "closeBody": "{lesson}, from {course}.",
     "closeAction": "Open the lesson"
+  },
+  "admin": {
+    "title": "Admin console",
+    "nav": {
+      "label": "Admin",
+      "overview": "Overview",
+      "users": "Users",
+      "audit": "Audit log"
+    },
+    "denied": {
+      "title": "Admins only",
+      "body": "The admin console is for CyberCompass administrators. Your account is a learner account.",
+      "back": "Back to courses"
+    },
+    "roles": {
+      "learner": "Learner",
+      "admin": "Admin"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "overview": {
+      "title": "Overview",
+      "accounts": "Accounts",
+      "users": {
+        "total": "Total",
+        "admins": "Admins",
+        "suspended": "Suspended",
+        "new": "New in 7 days",
+        "active": "Signed in, 7 days"
+      },
+      "lessons": "Lessons",
+      "lessonStatus": {
+        "published": "Published",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "lessonsNote": "Learners only ever see published lessons. The lesson editor arrives in the next part of this phase.",
+      "activity": "Recent admin activity",
+      "allActivity": "Full audit log",
+      "loadError": "The overview could not be loaded.",
+      "retry": "Try again"
+    },
+    "users": {
+      "title": "Users",
+      "search": "Search users",
+      "searchPlaceholder": "Name or email",
+      "role": "Role",
+      "anyRole": "Any role",
+      "status": "Status",
+      "anyStatus": "Any status",
+      "sort": "Sort by",
+      "sorts": {
+        "-created_at": "Newest accounts",
+        "created_at": "Oldest accounts",
+        "name": "Name, A to Z",
+        "-name": "Name, Z to A",
+        "-last_login_at": "Signed in most recently",
+        "last_login_at": "Signed in longest ago"
+      },
+      "results": "{count, plural, =0 {No accounts} one {# account} other {# accounts}}",
+      "clearFilters": "Clear filters",
+      "loadError": "The user list could not be loaded.",
+      "retry": "Try again",
+      "emptyTitle": "No accounts match",
+      "emptyBody": "Try a shorter search or clear the filters.",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "joined": "Joined",
+        "lastLogin": "Last sign-in"
+      },
+      "never": "Never",
+      "you": "(you)",
+      "pagination": "User list pages",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "user": {
+      "title": "User",
+      "you": "(you)",
+      "notFound": "This account does not exist.",
+      "loadError": "This account could not be loaded.",
+      "retry": "Try again",
+      "never": "Never",
+      "yes": "Yes",
+      "no": "No",
+      "facts": {
+        "joined": "Joined",
+        "lastLogin": "Last sign-in",
+        "emailVerified": "Email verified",
+        "language": "Language",
+        "enrollments": "Courses enrolled",
+        "completedLessons": "Lessons completed"
+      },
+      "suspendedSince": "Suspended since {date}.",
+      "suspendedReason": "Reason: {reason}",
+      "actions": "Account actions",
+      "protected": {
+        "self": "You can't do this to your own account. Ask another admin.",
+        "lastAdmin": "This is the last active admin. Promote someone else first."
+      },
+      "role": {
+        "promoteTitle": "Make admin",
+        "promoteBody": "Gives full access to this console, including managing other accounts.",
+        "demoteTitle": "Remove admin access",
+        "demoteBody": "Turns this account back into a learner account.",
+        "promote": "Make admin",
+        "demote": "Remove admin access",
+        "promoteConfirmTitle": "Make {name} an admin?",
+        "promoteConfirmBody": "They will be signed out everywhere and get admin access the next time they sign in.",
+        "demoteConfirmTitle": "Remove admin access from {name}?",
+        "demoteConfirmBody": "They will be signed out everywhere and come back as a learner.",
+        "promoted": "{name} is now an admin.",
+        "demoted": "{name} is now a learner."
+      },
+      "suspend": {
+        "title": "Suspend account",
+        "body": "Blocks sign-in and ends every session. Learning progress is kept.",
+        "action": "Suspend",
+        "confirmTitle": "Suspend {name}?",
+        "confirmBody": "They are signed out at once and can't sign in until an admin reactivates the account.",
+        "reason": "Reason",
+        "reasonHint": "Seen by admins in the audit log, not by the user. Up to {max} characters.",
+        "reasonTooShort": "Write at least {min} characters, so other admins understand why.",
+        "done": "{name} is suspended."
+      },
+      "reactivate": {
+        "title": "Reactivate account",
+        "body": "Lets this person sign in again, with their progress exactly as it was.",
+        "action": "Reactivate",
+        "done": "The account is active again."
+      },
+      "reset": {
+        "title": "Password reset email",
+        "body": "Sends the standard reset link to the account's own address. You never see or set the password.",
+        "action": "Send reset email",
+        "blockedSuspended": "Reactivate the account first.",
+        "confirmTitle": "Send a password reset email?",
+        "confirmBody": "A reset link goes to {email}. It expires after 60 minutes.",
+        "done": "Reset email sent to {email}."
+      },
+      "activity": "Admin activity on this account",
+      "noActivity": "No admin has changed this account."
+    },
+    "audit": {
+      "title": "Audit log",
+      "intro": "Every change an admin makes is recorded here, newest first. Entries can't be edited or deleted.",
+      "subjectType": "About",
+      "anySubject": "Anything",
+      "subjects": {
+        "user": "Accounts",
+        "lesson": "Lessons",
+        "chapter": "Chapters"
+      },
+      "clearFilters": "Clear filters",
+      "filteredByActor": "Showing actions by account #{id}.",
+      "filteredBySubject": "Showing actions about #{id}.",
+      "empty": "No admin actions yet.",
+      "emptyFiltered": "No admin actions match these filters.",
+      "loadError": "The audit log could not be loaded.",
+      "retry": "Try again",
+      "system": "The command line",
+      "reason": "Reason: {reason}",
+      "previousReason": "Was suspended for: {reason}",
+      "actions": {
+        "user_role_changed": "<b>{actor}</b> changed the role of <link>{subject}</link> from {from} to {to}",
+        "user_suspended": "<b>{actor}</b> suspended <link>{subject}</link>",
+        "user_reactivated": "<b>{actor}</b> reactivated <link>{subject}</link>",
+        "user_password_reset_sent": "<b>{actor}</b> sent <link>{subject}</link> a password reset email",
+        "user_promoted_from_cli": "<link>{subject}</link> was made an admin from the command line"
+      },
+      "pagination": "Audit log pages",
+      "previous": "Newer",
+      "next": "Older",
+      "page": "Page {page} of {total}"
+    }
   }
 }

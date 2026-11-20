@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -97,6 +97,14 @@ function AccountMenu({ user }: { user: User }) {
               {t("settings")}
             </Link>
           </li>
+          {user.role === "admin" ? (
+            <li>
+              <Link href="/admin" className={item} onClick={() => setOpen(false)}>
+                <ShieldCheck aria-hidden />
+                {t("admin")}
+              </Link>
+            </li>
+          ) : null}
           <li>
             <button
               type="button"
