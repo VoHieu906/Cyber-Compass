@@ -59,7 +59,14 @@ Inserted between Phase 3 and Phase 4 by the Phase 3.5 prompt. Design and every c
 - **Bug found by the browser run and fixed:** a save that finished while the author kept editing replaced the form with the saved copy and lost the newer edits; the editor now keeps them and only adopts the ids the server assigned.
 - **Exit, verified:** 212 Pest tests (34 new in Part B) and 53 Vitest tests; Pint, tsc, ESLint and Hallmark sloplint clean; the production build passes. A headless-browser run on throwaway content (removed afterwards) covered creating a lesson, refusal to publish an empty one, a block error on its field, save, image upload, preview, learners not seeing the draft, publishing with a note, a two-tab conflict and recovery, history, lesson reorder, archive, and phone layouts with no horizontal scroll. The Part A admin run still passes.
 
-### Part C: visual blocks and pilot content
+### Part C1: interactive 3D blocks ✅ (completed 2026-11-20)
+
+- **Decision:** [SANDBOXED_3D.md](SANDBOXED_3D.md) (D22) compares six approaches and picks two block types on one sandbox: `scene-3d` (declarative: shapes, labels, links with moving packets, animations, click-to-explain, guided steps with camera moves) and `script-3d` (admin-written Three.js). Both run in `<iframe sandbox="allow-scripts">` under a no-network CSP, inside a Web Worker on an OffscreenCanvas, watched by a 3-second watchdog. The runtime (Three.js 0.186.1, pinned and self-hosted, 180 KB brotli) loads only when a 3D block scrolls near, and never enters the app bundle.
+- **Editor:** form fields plus a scene JSON editor or a code editor, each with a live preview through the same sandbox learners get; client-side checks with exact paths; runtime errors with line numbers; inline references. Learners always have a required text description, shown instead of the view when 3D can't run.
+- **Operations:** `CONTENT_SCRIPTED_3D=false` refuses new scripts and stops sending script code to readers.
+- **Exit, verified:** 236 Pest tests (24 new, incl. fixtures and the kill switch; the fixtures found a duplicate-id check that never fired and empty code passing) and 75 Vitest tests (22 new: zod and JSON Schema agree on all 17 fixtures; step logic). Attacks from a real app page in headless Edge: scene code had no fetch/XHR/WebSocket/Worker/importScripts/DOM/storage, could not recover fetch from the prototype chain, endless loops were shut down in setup (3 s) and in the frame loop, a busy scene cost the lesson page at most 7 ms per frame, and the host page's storage and URL were untouched. Editor flow: live previews, a broken reference flagged before saving, a syntax error reported, publish, learner view in both themes, phone width without overflow.
+
+### Part C2: 2D generic blocks (next), C3: pilot content
 
 The block library (`layer-stack`, `sequence`, `flow`, `tree`, `topology`, `comparison`, `timeline`, `bitfield`, `calculator`, `step-through`, `media`, `knowledge-check`) on one `lib/graph`, zod contract tests against the backend fixtures, OSI and TCP moved to generic blocks, the two pilot courses rewritten, `content:export`, and the content authoring guide.
 
