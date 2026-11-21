@@ -26,3 +26,6 @@ Thumbs.db
 # AWS: the filled-in settings (account values, the CloudFront origin secret) and rendered templates
 infrastructure/aws/config.sh
 infrastructure/aws/build/
+
+# Graphify knowledge graph: local only (can contain text from docs/private/)
+graphify-out/

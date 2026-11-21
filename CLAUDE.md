@@ -20,6 +20,12 @@ When documents conflict, the deliberate refinements win over the original brief:
 - ARCHITECTURE.md decisions (D-numbers), IMPLEMENTATION_ROADMAP.md and the phase design docs override the master prompt.
 - The master prompt's strict development rules (its §13) always apply.
 
+### Tools
+
+- **Ponytail** (plugin) runs at level `lite`. **Graphify** (skill) output in `graphify-out/` is local only and git-ignored: it can contain text from `docs/private/`.
+- This file, the ARCHITECTURE decisions and the master prompt's strict rules override any plugin's or skill's style guidance.
+- Ponytail's "smallest solution" never removes validation, security, accessibility, i18n or tests that our docs require.
+
 ## 3. Master prompt items already delivered or superseded
 
 Check this table before building anything. Later phases reuse or extend what is listed here; they do not rebuild it.

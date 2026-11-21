@@ -43,7 +43,7 @@ flowchart LR
 | D | Roadmap | Data-driven graph of topics (stages) and lessons (child nodes) with prerequisites |
 | E | Catalog | Course search, filters, sorting, favorites, pagination, course detail |
 | F | Learning | Lesson reader, interactive visuals, exercise mode with feedback |
-| G | Labs | Safe browser simulations (Linux shell, firewall rules, HTTP inspection, packets) |
+| G | Labs | Safe server-side simulations (Linux shell, firewall rules, HTTP inspection, packets) |
 | H | Dashboard | Progress, streak, learning time, skill profile, recommendations |
 | I | Careers | Role catalog, required domains and skills, goal selection |
 | J | Notifications | In-app notifications, read state, preferences |
@@ -54,7 +54,7 @@ flowchart LR
 1. **Honest personalization.** The roadmap comes from a rule-based engine using assessment scores and career requirements. The product doesn't call this AI, and the rules are documented in [ARCHITECTURE.md](ARCHITECTURE.md#personalization-engine).
 2. **Content is data.** Roadmaps, lessons, exercises and labs live in the database and are seeded. UI components never hardcode them.
 3. **One contract.** The frontend talks to the backend only through the versioned REST API (`/api/v1`) described in [API_SPECIFICATION.md](API_SPECIFICATION.md).
-4. **Safe labs.** Labs are deterministic browser simulations. Nothing runs on the server, and nothing touches external systems.
+4. **Safe labs.** Labs are deterministic simulations run on the server (D28): each action goes to a PHP engine that works on the attempt's stored state in memory, and the browser only draws. No process is executed, and nothing touches the real filesystem or external systems (ARCHITECTURE §7.1).
 5. **Designed, not generated.** The UI follows [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md).
 
 ## Out of scope for the MVP
