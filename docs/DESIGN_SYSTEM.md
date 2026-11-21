@@ -128,6 +128,10 @@ Every interactive control defines **eight states**: default, hover, focus-visibl
 
 Edges use `--color-rule-2` at 1.5px. An edge into a completed node becomes accent. The current node carries a static 2px accent ring with no pulse. Below 768px, the graph collapses to an outline list with the same states and data.
 
+### Charts (Module H, D32)
+
+Charts come from `frontend/src/lib/charts` (`ColumnChart`, `LineChart`, `ChartTable`; pure scales in `scale.ts`). One series, one colour: the accent. Columns are at most 24px wide with a 4px rounded data end and a square foot on the baseline; lines are 2px over a 10% accent wash, with a dot and the value at the last point. Gridlines and axes are solid 1px hairlines in `rule`; a reference such as the weekly goal is a solid `ink-2` hairline with its own label. Text is never in the series colour. Each chart is one tab stop: arrow keys, Home and End move a readout that is also announced, and pointer hover shows the same readout. Every chart has a "Show as a table" disclosure, so no value depends on hovering or on colour. Charts draw at their measured pixel width (no viewBox stretching) and sit in panels that already follow container width. Durations tick in minutes, then hours ("1.5 h"). A chart appears only when it has something to compare: one assessment is a number, two or more are a line.
+
 ### Exercise feedback (Module F)
 
 After submission, each question shows **Correct** or **Incorrect** with an icon and text, the learner's answer (struck through if wrong, on `bad-soft`), the correct answer on `ok-soft`, the explanation, and a "Review: *Section name*" link that scrolls the theory panel to the referenced section. Nothing is revealed before submission.

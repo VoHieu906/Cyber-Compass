@@ -68,6 +68,6 @@ describe("RegisterForm", () => {
 
     await fill({ name: "Lan", email: "lan@example.com", password: "secure-pass-1", confirm: "secure-pass-1" });
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/settings/profile"));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/dashboard"));
   });
 });

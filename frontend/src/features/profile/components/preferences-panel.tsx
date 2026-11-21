@@ -5,6 +5,7 @@ import { useState } from "react";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { Alert } from "@/components/ui/alert";
+import { TimezoneField } from "@/features/progress/components/timezone";
 import { SettingsSection } from "./settings-section";
 
 export function PreferencesPanel() {
@@ -21,6 +22,11 @@ export function PreferencesPanel() {
       <SettingsSection title={t("language")} description={t("languageHint")}>
         <div>
           <LocaleSwitcher long onSaved={setSaved} />
+        </div>
+      </SettingsSection>
+      <SettingsSection title={t("time")} description={t("timeHint")}>
+        <div>
+          <TimezoneField onSaved={setSaved} />
         </div>
       </SettingsSection>
       {saved === true ? <Alert tone="success">{t("saved")}</Alert> : null}

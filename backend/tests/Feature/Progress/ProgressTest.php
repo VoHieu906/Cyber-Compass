@@ -88,6 +88,10 @@ it('stores the timezone as a preference and refuses unknown names', function () 
     setTimezone($this, 'Asia/Ho_Chi_Minh');
     $this->getJson('/api/v1/me')->assertJsonPath('data.profile.timezone', 'Asia/Ho_Chi_Minh');
 
+    // Some browsers report legacy aliases; they work as local time too.
+    setTimezone($this, 'Asia/Saigon');
+    $this->getJson('/api/v1/progress/summary')->assertJsonPath('data.timezone', 'Asia/Saigon');
+
     $this->patchJson('/api/v1/me/preferences', ['timezone' => 'Mars/Olympus_Mons'])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('timezone');
@@ -138,7 +142,8 @@ it('lists my recent activity, newest first, with what it was about', function ()
     passLesson($this->user, 'cia-triad', 900);
     scoredAttempt($this->user, []);
     $this->travel(1)->minutes();
-    $this->actingAs($this->user, 'web')->postJson('/api/v1/lessons/linux-logs/complete', ['time_spent_seconds' => 120])->assertOk();
+    $this->actingAs($this->user, 'web')->postJson('/api/v1/lessons/linux-logs/start')->assertOk(); // starts stay out of the feed
+    $this->postJson('/api/v1/lessons/linux-logs/complete', ['time_spent_seconds' => 120])->assertOk();
     passLesson(User::factory()->create(), 'linux-logs');
 
     $data = $this->getJson('/api/v1/progress/recent')->assertOk()->json('data');

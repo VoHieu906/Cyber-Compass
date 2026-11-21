@@ -72,7 +72,7 @@ describe("LoginForm", () => {
 
     await fill("lan@example.com", "secure-pass-1");
 
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/settings/profile"));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/dashboard"));
   });
 
   it("shows the server's message above the form when credentials are wrong", async () => {

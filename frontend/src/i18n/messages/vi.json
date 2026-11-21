@@ -86,7 +86,8 @@
     "admin": "Trang quản trị",
     "assessment": "Đánh giá",
     "roadmap": "Lộ trình",
-    "labs": "Thực hành"
+    "labs": "Thực hành",
+    "dashboard": "Bảng điều khiển"
   },
   "validation": {
     "required": "Vui lòng điền trường này.",
@@ -183,7 +184,11 @@
       "language": "Ngôn ngữ",
       "languageHint": "Dùng cho giao diện và email chúng tôi gửi cho bạn.",
       "saved": "Đã lưu vào tài khoản.",
-      "saveFailed": "Không lưu được vào tài khoản. Thiết lập vẫn áp dụng trên thiết bị này."
+      "saveFailed": "Không lưu được vào tài khoản. Thiết lập vẫn áp dụng trên thiết bị này.",
+      "time": "Múi giờ",
+      "timeHint": "Quyết định khi nào ngày và tuần của bạn bắt đầu, cho chuỗi ngày học và lời nhắc.",
+      "timezone": "Múi giờ",
+      "timezoneDetected": "Thiết bị này đang dùng {timezone}."
     },
     "goals": {
       "title": "Mục tiêu học tập",
@@ -1354,6 +1359,108 @@
       "send": "Gửi",
       "lastResponse": "Phản hồi",
       "sent": "Các yêu cầu bạn đã gửi"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Bảng điều khiển",
+    "title": "Chào mừng trở lại, {name}",
+    "loading": "Đang tải tiến độ của bạn",
+    "loadError": "Không tải được phần này của bảng điều khiển. Hãy tải lại trang để thử lại.",
+    "streak": {
+      "none": "Học vài phút hôm nay để bắt đầu chuỗi ngày học.",
+      "lapsed": "Chuỗi gần nhất của bạn kéo dài {longest} ngày. Học hôm nay để bắt đầu chuỗi mới.",
+      "today": "{days} ngày liên tiếp, tính cả hôm nay.",
+      "keep": "{days} ngày liên tiếp. Học hôm nay để giữ chuỗi."
+    },
+    "figures": {
+      "streak": "Chuỗi ngày học",
+      "days": "{count} ngày",
+      "longest": "Dài nhất {count} ngày",
+      "week": "Tuần này",
+      "ofGoal": "trên mục tiêu {goal}",
+      "setGoal": "Đặt mục tiêu hằng tuần",
+      "lessons": "Bài học đã hoàn thành",
+      "courses": "Khóa học đã hoàn thành",
+      "coursesValue": "{completed} / {enrolled}",
+      "coursesHint": "{count, plural, =0 {Chưa đăng ký khóa nào} other {Đã đăng ký # khóa}}",
+      "total": "Tổng thời gian học",
+      "roadmap": "Lộ trình",
+      "buildRoadmap": "Tạo lộ trình của bạn"
+    },
+    "next": {
+      "title": "Học tiếp",
+      "source": {
+        "roadmap": "Từ lộ trình của bạn",
+        "courses": "Từ các khóa học của bạn"
+      },
+      "start": "Bắt đầu",
+      "empty": "Làm bài đánh giá để có lộ trình, hoặc đăng ký một khóa học, rồi các bài tiếp theo sẽ hiện ở đây.",
+      "takeAssessment": "Làm bài đánh giá",
+      "browseCourses": "Xem các khóa học"
+    },
+    "activity": {
+      "title": "Quá trình học",
+      "range": "Khoảng thời gian",
+      "ranges": {
+        "4w": "4 tuần",
+        "12w": "12 tuần",
+        "26w": "6 tháng",
+        "52w": "1 năm"
+      },
+      "loading": "Đang tải biểu đồ",
+      "loadError": "Không tải được lịch sử học của bạn.",
+      "minutesTitle": "Số phút học mỗi tuần",
+      "minutesSummary": "{total} trong {weeks} tuần gần nhất.",
+      "minutesSummaryGoal": "{total} trong {weeks} tuần gần nhất; bạn đạt mục tiêu hằng tuần {met, plural, =0 {ở tuần nào} other {trong # tuần}}.",
+      "goal": "Mục tiêu {minutes}",
+      "weekOf": "Tuần bắt đầu {date}",
+      "week": "Tuần",
+      "studied": "Đã học",
+      "lessonsTitle": "Tổng số bài học đã hoàn thành",
+      "lessonsSummary": "{added, plural, =0 {Không có bài mới} other {# bài mới}} trong {weeks} tuần gần nhất; tổng cộng {total} bài.",
+      "lessonCount": "{count} bài",
+      "lessonsTotal": "Tổng số bài",
+      "showTable": "Xem dạng bảng"
+    },
+    "recent": {
+      "title": "Hoạt động gần đây",
+      "empty": "Chưa có gì. Những gì bạn học sẽ hiện ở đây.",
+      "removed": "Một mục không còn nữa",
+      "lesson_started": "Đã bắt đầu <link>{title}</link>",
+      "lesson_completed": "Đã hoàn thành <link>{title}</link>",
+      "study_session": "Đã ôn lại <link>{title}</link>",
+      "lab_completed": "Đã hoàn thành bài thực hành <link>{title}</link>",
+      "exercisePassed": "Đã đạt bài tập của <link>{title}</link> với {score}%",
+      "exerciseTried": "Đã làm bài tập của <link>{title}</link>: {score}%",
+      "assessment": "Đã làm <link>bài đánh giá kỹ năng</link>: {score}%"
+    },
+    "skills": {
+      "title": "Kỹ năng theo lĩnh vực",
+      "map": "Bản đồ kiến thức",
+      "notAssessed": "Điểm lấy từ <link>bài đánh giá kỹ năng</link>; hãy làm bài để biết bạn đang ở đâu.",
+      "noScore": "Chưa đánh giá",
+      "lessons": "Đã học {completed} / {total} bài",
+      "noLessons": "Lĩnh vực này chưa có bài học"
+    },
+    "courses": {
+      "title": "Khóa học của bạn",
+      "empty": "Bạn chưa đăng ký khóa học nào. <link>Tìm một khóa trong danh mục</link>.",
+      "completed": "Đã hoàn thành",
+      "lessons": "{completed} / {total} bài"
+    },
+    "assessments": {
+      "title": "Kết quả đánh giá",
+      "retake": "Làm lại",
+      "empty": "Bạn chưa làm <link>bài đánh giá kỹ năng</link>. Bài mất khoảng 20 phút và định hình lộ trình của bạn.",
+      "latest": "Điểm gần nhất",
+      "result": "Xem kết quả",
+      "single": "Làm lại sau để xem điểm của bạn thay đổi thế nào.",
+      "summary": "{count} lần làm, từ {first}% đến {last}%.",
+      "chart": "Điểm tổng mỗi lần làm",
+      "attempt": "Lần {n}, {date}",
+      "attemptColumn": "Lần làm",
+      "score": "Điểm",
+      "showTable": "Xem dạng bảng"
     }
   }
 }

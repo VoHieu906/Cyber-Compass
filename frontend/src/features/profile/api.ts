@@ -9,7 +9,8 @@ export type ProfileInput = {
   education_level: EducationLevel | null;
 };
 
-export type PreferencesInput = Partial<{ locale: Locale; theme: ThemePreference }>;
+/** `timezone` is an IANA name such as Asia/Ho_Chi_Minh (D33). */
+export type PreferencesInput = Partial<{ locale: Locale; theme: ThemePreference; timezone: string }>;
 
 export type PasswordInput = { current_password: string; password: string; password_confirmation: string };
 

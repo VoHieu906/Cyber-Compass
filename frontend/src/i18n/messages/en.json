@@ -86,7 +86,8 @@
     "admin": "Admin console",
     "assessment": "Assessment",
     "roadmap": "Roadmap",
-    "labs": "Labs"
+    "labs": "Labs",
+    "dashboard": "Dashboard"
   },
   "validation": {
     "required": "This field is required.",
@@ -183,7 +184,11 @@
       "language": "Language",
       "languageHint": "Used for the interface and for emails we send you.",
       "saved": "Saved to your account.",
-      "saveFailed": "Couldn't save to your account. It still applies on this device."
+      "saveFailed": "Couldn't save to your account. It still applies on this device.",
+      "time": "Time zone",
+      "timeHint": "Decides when your day and week start, for streaks and reminders.",
+      "timezone": "Time zone",
+      "timezoneDetected": "This device is set to {timezone}."
     },
     "goals": {
       "title": "Learning goals",
@@ -1354,6 +1359,108 @@
       "send": "Send",
       "lastResponse": "Response",
       "sent": "Requests you sent"
+    }
+  },
+  "dashboard": {
+    "pageTitle": "Dashboard",
+    "title": "Welcome back, {name}",
+    "loading": "Loading your progress",
+    "loadError": "Couldn't load this part of your dashboard. Reload the page to try again.",
+    "streak": {
+      "none": "Study for a few minutes today to start a streak.",
+      "lapsed": "Your last streak ran {longest, plural, =1 {# day} other {# days}}. Study today to start a new one.",
+      "today": "{days, plural, =1 {# day} other {# days}} in a row, today included.",
+      "keep": "{days, plural, =1 {# day} other {# days}} in a row. Study today to keep it going."
+    },
+    "figures": {
+      "streak": "Streak",
+      "days": "{count, plural, =1 {# day} other {# days}}",
+      "longest": "Longest {count, plural, =1 {# day} other {# days}}",
+      "week": "This week",
+      "ofGoal": "of your {goal} goal",
+      "setGoal": "Set a weekly goal",
+      "lessons": "Lessons completed",
+      "courses": "Courses completed",
+      "coursesValue": "{completed} of {enrolled}",
+      "coursesHint": "{count, plural, =0 {Not enrolled yet} =1 {# course enrolled} other {# courses enrolled}}",
+      "total": "Total study time",
+      "roadmap": "Roadmap",
+      "buildRoadmap": "Build your roadmap"
+    },
+    "next": {
+      "title": "Study next",
+      "source": {
+        "roadmap": "From your roadmap",
+        "courses": "From your courses"
+      },
+      "start": "Start",
+      "empty": "Take the assessment to get a roadmap, or enroll in a course, and your next lessons appear here.",
+      "takeAssessment": "Take the assessment",
+      "browseCourses": "Browse courses"
+    },
+    "activity": {
+      "title": "Study over time",
+      "range": "Time range",
+      "ranges": {
+        "4w": "4 weeks",
+        "12w": "12 weeks",
+        "26w": "6 months",
+        "52w": "1 year"
+      },
+      "loading": "Loading the charts",
+      "loadError": "Couldn't load your study history.",
+      "minutesTitle": "Minutes studied per week",
+      "minutesSummary": "{total} over the last {weeks} weeks.",
+      "minutesSummaryGoal": "{total} over the last {weeks} weeks; your weekly goal was met in {met, plural, =0 {none of them} =1 {# week} other {# weeks}}.",
+      "goal": "Goal {minutes}",
+      "weekOf": "Week of {date}",
+      "week": "Week",
+      "studied": "Studied",
+      "lessonsTitle": "Lessons completed, running total",
+      "lessonsSummary": "{added, plural, =0 {No new lessons} =1 {# new lesson} other {# new lessons}} in the last {weeks} weeks; {total} in all.",
+      "lessonCount": "{count, plural, =1 {# lesson} other {# lessons}}",
+      "lessonsTotal": "Lessons in all",
+      "showTable": "Show as a table"
+    },
+    "recent": {
+      "title": "Recent activity",
+      "empty": "Nothing yet. What you study shows up here.",
+      "removed": "Something that is no longer available",
+      "lesson_started": "Started <link>{title}</link>",
+      "lesson_completed": "Completed <link>{title}</link>",
+      "study_session": "Reviewed <link>{title}</link>",
+      "lab_completed": "Completed the lab <link>{title}</link>",
+      "exercisePassed": "Passed the exercise for <link>{title}</link> with {score}%",
+      "exerciseTried": "Tried the exercise for <link>{title}</link>: {score}%",
+      "assessment": "Took the <link>skills assessment</link>: {score}%"
+    },
+    "skills": {
+      "title": "Skills by domain",
+      "map": "Knowledge map",
+      "notAssessed": "Scores come from the <link>skills assessment</link>; take it to see where you stand.",
+      "noScore": "Not assessed",
+      "lessons": "{completed} of {total} lessons done",
+      "noLessons": "No lessons in this domain yet"
+    },
+    "courses": {
+      "title": "Your courses",
+      "empty": "You haven't enrolled in a course yet. <link>Find one in the catalog</link>.",
+      "completed": "Completed",
+      "lessons": "{completed} of {total} lessons"
+    },
+    "assessments": {
+      "title": "Assessment results",
+      "retake": "Take it again",
+      "empty": "You haven't taken the <link>skills assessment</link> yet. It takes about 20 minutes and shapes your roadmap.",
+      "latest": "Latest score",
+      "result": "See the result",
+      "single": "Take it again later to see how your score changes.",
+      "summary": "{count} attempts, from {first}% to {last}%.",
+      "chart": "Overall score per attempt",
+      "attempt": "Attempt {n}, {date}",
+      "attemptColumn": "Attempt",
+      "score": "Score",
+      "showTable": "Show as a table"
     }
   }
 }

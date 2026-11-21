@@ -109,10 +109,16 @@ final class ProgressReport
         ];
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * Opening a lesson is left out of the feed: it would double every completion and every
+     * lesson glanced at. Starts still count for streaks.
+     *
+     * @return list<array<string, mixed>>
+     */
     public function recent(User $user): array
     {
         return $user->learningActivities()
+            ->where('type', '!=', ActivityType::LessonStarted)
             ->with(['subject' => fn (MorphTo $morph) => $morph->morphWith([
                 ExerciseAttempt::class => ['exercise.lesson:id,slug,title'],
                 AssessmentAttempt::class => ['assessment:id,slug,title'],

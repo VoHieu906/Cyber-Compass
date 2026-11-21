@@ -1,5 +1,5 @@
-/** Where a signed-in learner lands by default. Becomes the dashboard in Phase 6. */
-export const HOME_AFTER_LOGIN = "/settings/profile";
+/** Where a signed-in learner lands by default: the dashboard (D35). */
+export const HOME_AFTER_LOGIN = "/dashboard";
 
 /**
  * Only same-site paths are accepted as a post-login destination, so a crafted

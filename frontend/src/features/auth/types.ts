@@ -18,6 +18,8 @@ export type User = {
     education_level: EducationLevel | null;
     locale: Locale;
     theme: ThemePreference;
+    /** IANA timezone for local dates (streaks, weeks, reminders); null until the browser reports one. */
+    timezone: string | null;
   };
   learning_goal: LearningGoal | null;
 };
