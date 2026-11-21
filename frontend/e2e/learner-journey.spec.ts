@@ -99,12 +99,13 @@ test("a new learner goes from sign-up to a completed lesson on the dashboard", a
   });
 
   await test.step("the bell counts the queued notifications", async () => {
-    // Notifications go through the queue worker: wait for them on the API, then let the bell show them.
+    // Notifications go through the queue worker: wait on the API until the lesson's has arrived
+    // (the assessment result's usually comes first), then let the bell show them.
     await expect
-      .poll(async () => (await apiGet<{ count: number }>(page, "/api/v1/notifications/unread-count")).count, {
+      .poll(async () => (await apiGet<{ type: string }[]>(page, "/api/v1/notifications")).map((n) => n.type), {
         timeout: 30_000,
       })
-      .toBeGreaterThan(0);
+      .toContain("lesson_completed");
     await page.reload();
     const bell = page.getByRole("button", { name: /^Notifications/ });
     await expect(bell).toHaveAccessibleName(/^Notifications, \d+ unread$/);
