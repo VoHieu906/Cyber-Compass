@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, type ReactNode } from "react";
 import { ApiError } from "@/lib/api/client";
-import "@/lib/zod-config";
 
 function makeQueryClient() {
   return new QueryClient({

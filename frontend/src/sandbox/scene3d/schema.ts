@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "@/lib/zod-config";
 
 /*
  * The 3D block contracts (docs/SANDBOXED_3D.md). The canonical rules are the JSON Schemas in

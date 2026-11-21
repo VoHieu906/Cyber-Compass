@@ -11,17 +11,20 @@ import { expect, login, test } from "./support/test";
 const ENFORCE = process.env.E2E_PERF === "1";
 const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
 
-/** Route => budgets: compressed JavaScript in KB, and API requests the page makes on load. */
+/**
+ * Route => budgets: JavaScript transferred in KB (gzip from `next start`) and API requests the page
+ * makes on load. Set from CI's production build on 2026-11-21 with about 15% headroom.
+ */
 const BUDGETS: Record<string, { jsKb: number; api: number; signedIn?: boolean }> = {
-  "/": { jsKb: 400, api: 3 },
-  "/courses": { jsKb: 400, api: 4 },
-  "/courses/networking-fundamentals": { jsKb: 400, api: 4 },
-  "/careers/soc-analyst": { jsKb: 400, api: 4 },
-  "/dashboard": { jsKb: 450, api: 12, signedIn: true },
-  "/roadmap": { jsKb: 450, api: 6, signedIn: true },
-  "/learn/osi-model": { jsKb: 500, api: 6, signedIn: true },
-  "/learn/osi-model/exercise": { jsKb: 500, api: 6, signedIn: true },
-  "/labs/investigate-a-suspicious-login": { jsKb: 450, api: 6, signedIn: true },
+  "/": { jsKb: 250, api: 2 },
+  "/courses": { jsKb: 250, api: 4 },
+  "/courses/networking-fundamentals": { jsKb: 250, api: 2 },
+  "/careers/soc-analyst": { jsKb: 250, api: 2 },
+  "/dashboard": { jsKb: 260, api: 10, signedIn: true },
+  "/roadmap": { jsKb: 260, api: 5, signedIn: true },
+  "/learn/osi-model": { jsKb: 300, api: 6, signedIn: true },
+  "/learn/osi-model/exercise": { jsKb: 300, api: 5, signedIn: true },
+  "/labs/investigate-a-suspicious-login": { jsKb: 265, api: 4, signedIn: true },
 };
 
 type Row = { route: string; jsKb: number; cssKb: number; requests: number; api: number; ttfbMs: number; lcpMs: number };

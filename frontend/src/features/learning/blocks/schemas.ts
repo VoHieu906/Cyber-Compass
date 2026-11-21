@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "@/lib/zod-config";
 import { sceneSchema, scriptSchema } from "@/sandbox/scene3d/schema";
 import { diagramDataSchemas, type DiagramKey } from "../diagrams/data";
 

@@ -6,8 +6,8 @@ Where the project stands and what the next phase needs to know. This page only p
 
 - **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
-- **Phase 7 in progress:** Parts A (E2E suite), A2 (CI), B and C (the security review, [SECURITY_REVIEW.md](SECURITY_REVIEW.md)) are done; next is Part D, performance. Parts A2 to G run locally at no cost; Part H waits for the owner. Decisions D37 to D50.
-- **Tests:** 680 Pest, 339 Vitest and 17 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 7 in progress:** Parts A (E2E suite), A2 (CI), B and C (the security review, [SECURITY_REVIEW.md](SECURITY_REVIEW.md)) and D (performance, [PERFORMANCE.md](PERFORMANCE.md)) are done; next is Part E, the responsive, accessibility and Hallmark sweep. Parts A2 to G run locally at no cost; Part H waits for the owner. Decisions D37 to D50.
+- **Tests:** 682 Pest, 340 Vitest and 18 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -34,6 +34,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **CI (D46):** `.github/workflows/ci.yml`, three jobs on every pull request and push to `main`; the backend and E2E jobs use the compose stack (`.github/scripts/`). `npm run typecheck` runs `next typegen` first, so it works on a fresh checkout. Regenerate `package-lock.json` in a Linux container if `npm ci` fails on Linux (Windows drops Linux-only optional packages).
 - **CSP (D42):** every page gets a nonce policy from `src/proxy.ts`. A new external origin (a script, image or API host) goes into `lib/security/csp.ts`; an inline `<script>` needs the nonce (`x-nonce` header, as `Providers` passes it to next-themes). `/sandbox` keeps its own policy.
 - **Production settings the deployment must supply:** `INTERNAL_API_TOKEN` (same value on api and web), `CSP_MEDIA_ORIGIN` (the uploads CloudFront origin) and everything `cybercompass:preflight` checks.
+- **Performance guards:** `QueryBudgetTest` (a new hot endpoint gets a budget there) and `performance.spec.ts` (budgets per route, enforced in CI). A module that uses zod at runtime imports `@/lib/zod-config` (the CSP forbids zod's eval probe); never re-export `z` from another module, which defeats tree-shaking.
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 

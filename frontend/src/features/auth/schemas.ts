@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "@/lib/zod-config";
 
 /**
  * Client-side rules mirror the API's (backend Form Requests) for earlier feedback.

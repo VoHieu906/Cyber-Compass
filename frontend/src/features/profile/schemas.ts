@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "@/lib/zod-config";
 
 type T = (key: string, values?: Record<string, string | number>) => string;
 

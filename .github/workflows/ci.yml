@@ -98,6 +98,8 @@ jobs:
         env:
           # Playwright's bundled Chromium instead of Edge (D45).
           E2E_CHANNEL: ""
+          # A production build: enforce the page weight and API budgets (performance.spec.ts).
+          E2E_PERF: "1"
         run: npm run e2e
       - name: Upload the report on failure
         if: failure()
