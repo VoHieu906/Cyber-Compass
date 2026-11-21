@@ -78,10 +78,10 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Prepare the stack
         run: ./.github/scripts/prepare-stack.sh
-      - name: Start MySQL, Mailpit, the API and the queue worker
-        run: ./.github/scripts/start-stack.sh mysql mailpit api worker
-      - name: Migrate and seed the content
-        run: docker compose exec -T api php artisan migrate --seed --force
+      - name: Start MySQL, Mailpit and the API; migrate and seed the content
+        run: ./.github/scripts/start-stack.sh --seed mysql mailpit api
+      - name: Start the queue worker (notifications are queued)
+        run: docker compose up -d --wait worker
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
