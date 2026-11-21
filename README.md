@@ -124,6 +124,7 @@ To run the frontend in Docker as well, for example to test the container, use `d
 | Artisan / Composer | `docker compose exec -u root api php artisan …` / `… composer …` |
 | Frontend tests | `cd frontend && npm test` |
 | Frontend checks | `npm run typecheck` and `npm run lint` |
+| After changing frontend dependencies on Windows | `npm run lock:linux` (keeps `package-lock.json` installable on Linux) |
 | End-to-end tests (Playwright, Edge) | `cd frontend && npm run e2e` with the Docker stack up; it reuses a running dev server on port 3000 or builds and starts the app |
 | Logs | `docker compose logs -f api worker scheduler web` |
 
@@ -136,7 +137,20 @@ docker build --target production -t cybercompass-api backend
 docker build --target production --build-arg NEXT_PUBLIC_API_URL=https://api.example.com -t cybercompass-web frontend
 ```
 
-The API image caches Laravel's configuration at boot. Database migrations run as a separate one-off task, never on container start. The queue worker and the scheduler use the same API image, with `php artisan queue:work` and `php artisan schedule:work` as their commands (on AWS an EventBridge rule runs `schedule:run` every minute instead of a scheduler service).
+The API image caches Laravel's configuration at boot. Migrations never run on container start: on AWS a one-off task runs `php artisan cybercompass:release` (the production preflight, the migrations and the content import, never the demo accounts). The queue worker and the scheduler use the same API image, with `php artisan queue:work` and `php artisan schedule:work` as their commands; on AWS they are two containers in one task (ARCHITECTURE D37, D38). Every production variable is listed in `backend/.env.production.example` and `frontend/.env.production.example`.
+
+**Run the production images locally** (beside the development stack; SeaweedFS stands in for S3, Mailpit for SES):
+
+```bash
+export PROD_APP_KEY="base64:$(openssl rand -base64 32)"
+export PROD_INTERNAL_API_TOKEN="$(openssl rand -hex 24)" PROD_S3_SECRET="$(openssl rand -hex 16)"
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec api php artisan migrate --force
+docker compose -f docker-compose.prod.yml exec api php artisan db:seed --class='Database\Seeders\ContentSeeder' --force
+# app http://localhost:3100, API http://localhost:8100, mail http://localhost:8125
+```
+
+The end-to-end suite runs against it with `E2E_BASE_URL=http://localhost:3100 E2E_API_URL=http://localhost:8100 E2E_PERF=1 E2E_ARTISAN="docker compose -f docker-compose.prod.yml run --rm -T -e APP_ENV=local api php artisan" npx playwright test` in `frontend/`.
 
 ## Documentation
 

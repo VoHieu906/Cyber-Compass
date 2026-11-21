@@ -48,6 +48,6 @@ test.describe("sign in and out", () => {
     await page.goto("/login?next=https%3A%2F%2Fevil.example%2F");
     // Signed in already: the guest-only page forwards to a safe in-app path instead of the other site.
     await page.waitForURL((url) => url.origin === new URL(page.url()).origin && !url.pathname.startsWith("/login"));
-    expect(new URL(page.url()).host).toBe("localhost:3000");
+    expect(new URL(page.url()).host).not.toBe("evil.example");
   });
 });

@@ -237,8 +237,8 @@ flowchart TB
 |---|---|---|
 | `web` | ECS service, Next.js standalone image. Reached only through CloudFront: the ALB rule for `origin-app.<domain>` requires a secret header that CloudFront adds, so the ALB address cannot bypass CloudFront | CloudFront caches `/_next/static` (immutable, hashed) from the app itself, so a deployment has no separate S3 sync step (D41) |
 | `api` | ECS service, Laravel production image, `api.<domain>` straight on the ALB (no CloudFront) | The ALB's `X-Forwarded-For` entry is the real client, so per-IP limits (login lockout, register) stay per person (D41) |
-| `worker` | ECS service with one task holding two containers from the api image: `queue:work` and `schedule:work` | Notifications and the lesson fan-out are queued (D37); the hourly reminder runs from `routes/console.php` with no extra AWS service (D38) |
-| migrations | One-off ECS task from the api image: `migrate --force`, then the content import (never the demo users) | Never on container start, so two api tasks cannot race |
+| `worker` | ECS service with one task holding two containers from the api image: `queue:work` and `schedule:work` | Notifications and the lesson fan-out are queued (D37); the hourly reminder runs from `routes/console.php` with no extra AWS service (D38). The scheduler also logs the queue's figures once a minute as JSON (`metrics` channel) for the CloudWatch alarms (D48) |
+| migrations | One-off ECS task from the api image: `php artisan cybercompass:release` (the preflight, `migrate --force`, then the content import; never the demo users) | Never on container start, so two api tasks cannot race; an unsafe configuration stops the release before anything changes |
 | Database | RDS MySQL 8.4, `db.t4g.micro`, single AZ, private subnets, reachable only from the three services' security group | D43; Multi-AZ is a documented upgrade |
 | Uploads | Private S3 bucket through the `s3` disk, served by CloudFront with origin access control | The bucket is never public (D41) |
 | Mail | SES through Laravel's `ses` mailer with the task role's permission; DKIM on `<domain>` | No mail password to store (D39) |

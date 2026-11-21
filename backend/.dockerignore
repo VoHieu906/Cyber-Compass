@@ -14,3 +14,10 @@ phpunit.xml
 .phpunit.result.cache
 Dockerfile
 .dockerignore
+# Files uploaded during development never belong in an image.
+storage/app/public/*
+storage/app/private/*
+!storage/app/public/.gitignore
+!storage/app/private/.gitignore
+# The local storage:link symlink; production serves uploads from S3 (D41).
+public/storage

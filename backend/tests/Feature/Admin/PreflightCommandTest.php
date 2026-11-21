@@ -1,32 +1,5 @@
 <?php
 
-/** A production configuration as D37 to D45 describe it. */
-function safeProductionConfig(): void
-{
-    app()->detectEnvironment(fn () => 'production');
-    config([
-        'app.debug' => false,
-        'app.key' => 'base64:'.base64_encode(random_bytes(32)),
-        'app.url' => 'https://api.example.org',
-        'app.frontend_url' => 'https://app.example.org',
-        'session.secure' => true,
-        'session.http_only' => true,
-        'session.same_site' => 'lax',
-        'session.domain' => '.example.org',
-        'sanctum.stateful' => ['app.example.org'],
-        'cors.allowed_origins' => ['https://app.example.org'],
-        'mail.default' => 'ses',
-        'queue.default' => 'database',
-        'cybercompass.uploads_disk' => 's3',
-        'filesystems.disks.s3.bucket' => 'uploads-bucket',
-        'logging.default' => 'stderr',
-        'logging.channels.stderr.level' => 'info',
-        'cybercompass.demo_user_password' => null,
-        'cybercompass.demo_admin_password' => null,
-        'cybercompass.internal_api_token' => str_repeat('k', 40),
-    ]);
-}
-
 it('passes a safe production configuration', function () {
     safeProductionConfig();
 

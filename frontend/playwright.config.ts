@@ -44,10 +44,8 @@ export default defineConfig({
       use: { ...devices["Pixel 7"], ...browser, viewport: { width: 390, height: 844 } },
     },
   ],
-  webServer: {
-    command: "npm run build && npm run start",
-    url: baseURL,
-    reuseExistingServer: true,
-    timeout: 300_000,
-  },
+  // Another stack (E2E_BASE_URL, e.g. docker-compose.prod.yml on :3100) is already running.
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : { command: "npm run build && npm run start", url: baseURL, reuseExistingServer: true, timeout: 300_000 },
 });

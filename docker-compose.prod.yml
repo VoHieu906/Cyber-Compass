@@ -1,0 +1,166 @@
+# The production images, run locally (Phase 7 Part F). It proves the images AWS will run work
+# together before any cloud resource exists: the same containers and commands as the ECS task
+# definitions (ARCHITECTURE §8), with local stand-ins for what only AWS provides.
+#
+#   AWS                          here
+#   RDS MySQL                    mysql (its own volume)
+#   S3 uploads + CloudFront      s3 (SeaweedFS), a bucket whose objects anyone may read (CloudFront's job)
+#   SES                          mailpit (SES cannot run locally; the mailer is a config switch)
+#   ALB with TLS                 plain HTTP on localhost: cookies are not Secure, so the
+#                                production preflight reports the HTTPS checks as failing here
+#
+# It runs beside the development stack (its own project name and ports):
+#   export PROD_APP_KEY="base64:$(openssl rand -base64 32)"
+#   export PROD_INTERNAL_API_TOKEN="$(openssl rand -hex 24)" PROD_S3_SECRET="$(openssl rand -hex 16)"
+#   docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml exec api php artisan migrate --force
+#   docker compose -f docker-compose.prod.yml exec api php artisan db:seed --class=ContentSeeder --force
+#   open http://localhost:3100 (API http://localhost:8100, mail http://localhost:8125)
+#   docker compose -f docker-compose.prod.yml down -v      removes it, data included
+#
+# On AWS the deployment task runs `php artisan cybercompass:release` instead, which also runs the
+# preflight and therefore needs the real HTTPS settings.
+
+name: cybercompass-prod
+
+x-api-env: &api-env
+  APP_ENV: production
+  APP_DEBUG: "false"
+  APP_KEY: ${PROD_APP_KEY:?Set PROD_APP_KEY (see the top of this file)}
+  APP_URL: http://localhost:8100
+  FRONTEND_URL: http://localhost:3100
+  LOG_CHANNEL: stderr
+  LOG_LEVEL: info
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: "3306"
+  DB_DATABASE: cybercompass
+  DB_USERNAME: cybercompass
+  DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env}
+  SESSION_DRIVER: database
+  SESSION_DOMAIN: localhost
+  SESSION_SECURE_COOKIE: "false"
+  SANCTUM_STATEFUL_DOMAINS: localhost:3100
+  CORS_ALLOWED_ORIGINS: http://localhost:3100
+  QUEUE_CONNECTION: database
+  CACHE_STORE: database
+  MAIL_MAILER: smtp
+  MAIL_HOST: mailpit
+  MAIL_PORT: "1025"
+  MAIL_FROM_ADDRESS: no-reply@cybercompass.test
+  UPLOADS_DISK: s3
+  AWS_ACCESS_KEY_ID: cybercompass
+  AWS_SECRET_ACCESS_KEY: ${PROD_S3_SECRET:?Set PROD_S3_SECRET (see the top of this file)}
+  AWS_DEFAULT_REGION: ap-southeast-1
+  AWS_BUCKET: uploads
+  AWS_ENDPOINT: http://s3:8333
+  AWS_USE_PATH_STYLE_ENDPOINT: "true"
+  # The address browsers load uploads from (CloudFront, media.<domain>, on AWS).
+  AWS_URL: http://localhost:9000/uploads
+  INTERNAL_API_TOKEN: ${PROD_INTERNAL_API_TOKEN:?Set PROD_INTERNAL_API_TOKEN (see the top of this file)}
+
+x-api: &api
+  build:
+    context: ./backend
+    target: production
+  image: cybercompass-api:prod
+  environment: *api-env
+  # As an ECS service would: a worker that starts before the first migration exits, then comes back.
+  restart: unless-stopped
+  depends_on:
+    mysql:
+      condition: service_healthy
+    s3-bucket:
+      condition: service_completed_successfully
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: cybercompass
+      MYSQL_USER: cybercompass
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in the root .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in the root .env}
+    command: [--character-set-server=utf8mb4, --collation-server=utf8mb4_unicode_ci]
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # S3-compatible storage (SeaweedFS, Apache-2.0): the API writes with a key; anyone may read an
+  # object, as CloudFront serves them on AWS, but nobody can list the bucket.
+  s3:
+    image: chrislusf/seaweedfs:3.99
+    environment:
+      S3_SECRET: ${PROD_S3_SECRET:?Set PROD_S3_SECRET (see the top of this file)}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        printf '{"identities":[{"name":"cybercompass","credentials":[{"accessKey":"cybercompass","secretKey":"%s"}],"actions":["Admin","Read","Write","List","Tagging"]},{"name":"anonymous","actions":["Read:uploads"]}]}' "$${S3_SECRET}" > /tmp/s3.json &&
+        exec weed server -dir=/data -s3 -s3.port=8333 -s3.config=/tmp/s3.json -volume.max=32 -master.volumeSizeLimitMB=128
+    ports:
+      - "9000:8333"
+    volumes:
+      - s3-data:/data
+
+  # Creates the bucket once the filer answers (SeaweedFS takes a few seconds to start).
+  s3-bucket:
+    image: chrislusf/seaweedfs:3.99
+    depends_on:
+      - s3
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >
+        until echo "s3.bucket.list" | weed shell -master=s3:9333 -filer=s3:8888 2>/dev/null | grep -q uploads; do
+          echo "s3.bucket.create -name uploads" | weed shell -master=s3:9333 -filer=s3:8888 >/dev/null 2>&1; sleep 2;
+        done; echo "bucket uploads ready"
+
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "8125:8025"
+
+  api:
+    <<: *api
+    ports:
+      - "8100:8080"
+
+  # D37 and D38: on ECS these two are one task with two containers.
+  worker:
+    <<: *api
+    command: ["php", "/var/www/html/artisan", "queue:work", "--tries=3", "--sleep=3"]
+    healthcheck:
+      test: ["CMD", "healthcheck-queue"]
+      start_period: 20s
+
+  scheduler:
+    <<: *api
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 20s
+
+  web:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8100
+    image: cybercompass-web:prod
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_URL: http://api:8080
+      INTERNAL_API_TOKEN: ${PROD_INTERNAL_API_TOKEN:?Set PROD_INTERNAL_API_TOKEN (see the top of this file)}
+      CSP_MEDIA_ORIGIN: http://localhost:9000
+    ports:
+      - "3100:3000"
+    depends_on:
+      - api
+
+volumes:
+  mysql-data:
+  s3-data:

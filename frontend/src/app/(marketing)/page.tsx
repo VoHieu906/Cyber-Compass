@@ -50,7 +50,8 @@ export default async function LandingPage() {
             </Link>
           </div>
         </div>
-        <CareerMap careers={data.careers} />
+        {/* Before the first content import (a fresh deployment) there are no careers to draw. */}
+        {data.careers.length > 0 ? <CareerMap careers={data.careers} /> : null}
       </section>
 
       {/* Index: the eight domains, each a way into the catalog. */}

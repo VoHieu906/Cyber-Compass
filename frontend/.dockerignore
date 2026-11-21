@@ -8,3 +8,7 @@ coverage
 Dockerfile
 .dockerignore
 *.tsbuildinfo
+# Test output
+playwright-report
+test-results
+e2e/.auth

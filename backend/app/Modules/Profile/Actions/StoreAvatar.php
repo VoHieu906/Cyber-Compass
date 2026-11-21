@@ -16,6 +16,13 @@ use RuntimeException;
  */
 final class StoreAvatar
 {
+    /**
+     * No visibility option: a private S3 bucket with ACLs disabled (the AWS default, D41) refuses
+     * the public-read ACL it would send; the local `public` disk is public by its own config.
+     * Names are random and never reused, so the file can be cached for good (CloudFront, D41).
+     */
+    private const PUT_OPTIONS = ['ContentType' => 'image/webp', 'CacheControl' => 'public, max-age=31536000, immutable'];
+
     public function handle(User $user, UploadedFile $file): User
     {
         $size = (int) config('cybercompass.avatar.size');
@@ -23,7 +30,7 @@ final class StoreAvatar
 
         $disk = Storage::disk(config('cybercompass.uploads_disk'));
         $path = 'avatars/'.$user->getKey().'/'.Str::random(32).'.webp';
-        $disk->put($path, $webp, ['visibility' => 'public', 'ContentType' => 'image/webp']);
+        $disk->put($path, $webp, self::PUT_OPTIONS);
 
         $profile = $user->profile()->firstOrCreate();
         $previous = $profile->avatar_path;

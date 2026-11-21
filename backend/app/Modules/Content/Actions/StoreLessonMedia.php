@@ -21,6 +21,13 @@ final class StoreLessonMedia
 {
     public const MAX_WIDTH = 1600;
 
+    /**
+     * No visibility option: a private S3 bucket with ACLs disabled (the AWS default, D41) refuses
+     * the public-read ACL it would send; the local `public` disk is public by its own config.
+     * Names are random and never reused, so the file can be cached for good (CloudFront, D41).
+     */
+    private const PUT_OPTIONS = ['ContentType' => 'image/webp', 'CacheControl' => 'public, max-age=31536000, immutable'];
+
     public function __construct(private readonly AuditLogger $audit) {}
 
     public function handle(User $actor, UploadedFile $file, string $alt): LessonMedia
@@ -30,7 +37,7 @@ final class StoreLessonMedia
         $uuid = (string) Str::uuid();
         $path = "lesson-media/{$uuid}.webp";
         $disk = Storage::disk(config('cybercompass.uploads_disk'));
-        $disk->put($path, $bytes, ['visibility' => 'public', 'ContentType' => 'image/webp']);
+        $disk->put($path, $bytes, self::PUT_OPTIONS);
 
         try {
             return DB::transaction(function () use ($actor, $uuid, $path, $alt, $width, $height, $bytes) {

@@ -7,7 +7,7 @@ export const ACCOUNTS_FILE = path.resolve(__dirname, "../.auth/accounts.json");
 export type Accounts = { password: string; learners: string[]; admins: string[] };
 
 /** Fixed roles, so specs running side by side never share an account (or its rate limits). */
-export const LEARNER = { auth: 0, labs: 1, search: 2, phone: 3, security: 4, perf: 5, sweep: 6, sweep2: 7 } as const;
+export const LEARNER = { auth: 0, labs: 1, search: 2, phone: 3, security: 4, perf: 5, sweep: 6, sweep2: 7, uploads: 8 } as const;
 
 export type Account = { email: string; password: string };
 
