@@ -6,7 +6,7 @@ Where the project stands and what the next phase needs to know. This page only p
 
 - **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
-- **Phase 7 in progress:** Part A (E2E suite) is done; next is Part B, security review I (API). Decisions D37 to D45; the extra scope (CI, CD, budgets and alarms, sleep and wake, WAF) is waiting on the owner's choices.
+- **Phase 7 in progress:** Part A (E2E suite) is done; next is Part A2 (CI), then Part B, security review I (API). Decisions D37 to D50.
 - **Tests:** 642 Pest, 334 Vitest and 12 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
@@ -14,7 +14,7 @@ Where the project stands and what the next phase needs to know. This page only p
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D45) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D50) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
