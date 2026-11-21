@@ -80,7 +80,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | PATCH | `/me/profile` (name, phone, date_of_birth, education_level) | ✅ Phase 2 |
 | 🔒 | POST | `/me/avatar` (multipart `avatar`: jpg/png/webp, 64–6000 px, ≤ 2 MB; stored as a 256 px WebP under a random name) | ✅ Phase 2 |
 | 🔒 | DELETE | `/me/avatar` | ✅ Phase 2 |
-| 🔒 | PATCH | `/me/preferences` (locale, theme; either or both) | ✅ Phase 2 |
+| 🔒 | PATCH | `/me/preferences` (locale, theme; either or both; Phase 6 adds `timezone`, an IANA name) | ✅ Phase 2 |
 | 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
 | 🔒 | PUT | `/me/learning-goal` (`career` slug, `self_level` beginner/intermediate/advanced, `weekly_minutes` 30 to 2400, `domains[]` slugs). Every field is optional and only the ones sent change; null clears. Returns me, whose `learning_goal` is `{career {slug, title} \| null, self_level, weekly_minutes, domains[]}` or null. Changing the career never rebuilds the roadmap. | ✅ Phase 4 |
 | 🔒 | GET/PUT | `/me/notification-preferences` | Phase 6 |
@@ -250,6 +250,10 @@ The lesson (`GET /lessons/{slug}`) lists `labs` [{slug, title}] that practise it
 | 🔒 | GET | `/progress/skills` (latest domain scores + completion per domain) |
 | 🔒 | GET | `/progress/recent` (activity feed) |
 | 🔒 | GET | `/progress/next` (up to 3 recommended next lessons from the roadmap) |
+| 🔒 | GET | `/progress/courses` (completion per enrolled course) |
+| 🔒 | GET | `/progress/assessments` (submitted attempts with overall and domain scores, oldest first) |
+
+Streaks and weeks use the learner's local date (`user_profiles.timezone`, D33). Phase 6 Part A.
 
 ### Notifications
 

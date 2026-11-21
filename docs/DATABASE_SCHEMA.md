@@ -82,7 +82,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 **admin_audit_logs** (✅ Phase 3.5): `actor_id` FK users null (null on delete; null for the command line), `action` varchar(60) (e.g. `user.role_changed`), `subject_type` varchar(40) (`user`, `lesson`, `chapter`), `subject_id` null, `changes` JSON null (`{field: [from, to]}` plus context such as `reason`; passwords and tokens are stripped at any depth), `ip`, `created_at`. No `updated_at`. Append-only: the model throws on update and delete, and no code path does either. Indexes (`subject_type`,`subject_id`,`id`), (`actor_id`,`id`), `action`.
 
-**user_profiles** (✅ Phase 2): `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`.
+**user_profiles** (✅ Phase 2): `user_id` (unique FK, cascade), `avatar_path` null, `phone` null, `date_of_birth` date null, `education_level` enum(`high_school`,`undergraduate`,`graduate`,`other`) null, `locale` enum(`en`,`vi`) default `en`, `theme` enum(`light`,`dark`,`system`) default `system`, `timezone` varchar(64) null (IANA; Phase 6, D33: filled from the browser, editable under Preferences, UTC until set).
 
 **learning_goals** (✅ Phase 4): `user_id` (unique FK cascade), `career_id` FK null (null on delete), `self_level` enum(`beginner`,`intermediate`,`advanced`) null, `weekly_minutes` smallint null (30 to 2400).
 **learning_goal_domains**: `learning_goal_id`, `domain_id`. The primary key is the pair (areas of interest).
@@ -143,7 +143,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 **enrollments**: `user_id`, `course_id`, `enrolled_at`, `completed_at` null (an event timestamp, set once). Unique pair.
 **course_favorites**: `user_id`, `course_id`, `created_at`. Unique pair.
 **lesson_progress**: `user_id`, `lesson_id`, `status` enum(`started`,`completed`), `started_at`, `completed_at` null, `time_spent_seconds` int. Unique pair. Index (`user_id`,`completed_at`).
-**learning_activities**: `user_id`, `type` enum(`lesson_started`,`lesson_completed`,`exercise_submitted`,`assessment_submitted`,`lab_completed`,`study_session`), `subject_type`/`subject_id` (morph), `duration_seconds` int default 0, `occurred_at`. Index (`user_id`,`occurred_at`). This is an append-only source for streaks, weekly time and the recent-activity feed.
+**learning_activities**: `user_id`, `type` enum(`lesson_started`,`lesson_completed`,`exercise_submitted`,`assessment_submitted`,`lab_completed`,`study_session`), `subject_type`/`subject_id` (morph), `duration_seconds` int default 0, `occurred_at`. Index (`user_id`,`occurred_at`). This is an append-only source for streaks, weekly time and the recent-activity feed (Phase 6, D33). Rows are written only by event listeners; `study_session` is reserved and not written yet.
 
 ### Labs
 
@@ -153,13 +153,13 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 ### Notifications
 
 **notifications**: Laravel standard (uuid `id`, `type`, `notifiable_*`, `data` JSON, `read_at`).
-**notification_preferences**: `user_id`, `type` enum(`recommendation`,`lesson_completed`,`milestone`,`reminder`,`assessment_result`), `in_app` bool, `email` bool. Unique (`user_id`,`type`).
+**notification_preferences**: `user_id`, `type` enum(`recommendation`,`lesson_completed`,`milestone`,`reminder`,`assessment_result`), `in_app` bool, `email` bool. Unique (`user_id`,`type`). A row exists only once a learner changes a type; the defaults live in code (in app on, email off; D34).
 
 ## Transactions
 
 | Operation | Rows written atomically |
 |---|---|
-| Register | users, user_profiles, notification_preferences defaults |
+| Register | users, user_profiles (notification preferences have code defaults, D34) |
 | Submit assessment | answers scored, attempt score + submitted_at (the activity row is added by a Phase 6 listener on `AssessmentSubmitted`) |
 | Generate roadmap | archive old path, insert path + nodes |
 | Lab action | the attempt row is locked and its version checked; new state, version, action count, checkpoints passed and `completed_at` on the first completion (`LabCompleted` after commit) |

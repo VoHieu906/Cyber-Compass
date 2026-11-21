@@ -150,7 +150,16 @@ Roadmap graph on the Phase 4 `GET /learning-path` response (status, reasons, `re
 
 ## Phase 6: Progress and engagement
 
-Activity recording through events, streak calculator (local-date aware), dashboard summary, weekly time, assessment history, skill-by-domain chart, recent activity, next lessons. Notifications (list, read, read-all, delete, preferences). Scheduled reminder job. Header bell with unread count.
+Activity recording through events, streak calculator (local-date aware), dashboard summary, weekly time, assessment history, skill-by-domain chart, recent activity, next lessons. Notifications (list, read, read-all, delete, preferences). Scheduled reminder job. Header bell with unread count. Global search.
+
+**Impact check (decisions D32 to D36):**
+- **Conflict, decided:** the brief names Recharts; the charts are our own SVG components in `lib/charts`, as D23 and D27 did for graphs (D32).
+- **Shift, decided:** global search was deferred to Phase 6 by Phase 3 and the API spec but missing from this line; it is Part E (D36).
+- **Decided:** in-app notifications plus opt-in email; preferences default in code, not rows at registration (D34). A stored timezone for streaks and reminders (D33). `/dashboard` becomes the page after login (D35).
+- **Reused, not rebuilt:** `PathProgress`, `KnowledgeMap::domains()`, `AttemptResult::scores()`, `CourseProgress`, the Phase 4 and 5 events, the queue worker and Mailpit.
+- **Known gap:** reading a lesson without reaching its end records no time, as before.
+
+**Parts:** A activity and progress API; B dashboard; C notifications backend (types, milestones, reminders, scheduler service); D notifications UI (bell, page, settings tab); E search.
 
 ## Phase 7: Quality and deployment
 
