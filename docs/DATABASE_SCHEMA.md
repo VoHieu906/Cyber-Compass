@@ -147,8 +147,8 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Labs
 
-**labs**: `slug` (unique), `title`, `summary`, `domain_id`, `lesson_id` FK null, `engine` varchar (`linux-shell`, `firewall-rules`, `http-inspector`, `packet-flow`), `provider` varchar default `browser-sim`, `scenario` JSON, `difficulty`.
-**lab_attempts**: `user_id`, `lab_id`, `actions` JSON, `checkpoints_passed` JSON, `completed_at` null.
+**labs**: `slug` (unique), `title`, `summary`, `domain_id`, `lesson_id` FK null, `engine` varchar (`linux-shell`, `firewall-rules`, `http-inspector`, `packet-flow`), `provider` varchar default `simulated` (D28), `scenario` JSON (checkpoint answers included; never serialized), `difficulty`, `position`, `is_archived` bool.
+**lab_attempts**: `user_id`, `lab_id`, `state` JSON (engine state, at most 256 KB), `state_version` int (optimistic lock, D28), `action_count` int, `checkpoints_passed` JSON, `completed_at` null. One open attempt per user and lab (reset starts the state over).
 
 ### Notifications
 

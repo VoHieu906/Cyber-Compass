@@ -111,6 +111,15 @@ Delivered in three gated parts:
 
 ## Phase 5: Interactive learning
 
+**Plan (impact check 2026-11-21; decisions D27 to D31), four gated parts:**
+- **Part A:** roadmap graph (layout function separate from the renderer, `RoadmapNodeCard` buttons over SVG prerequisite edges, lessons as child nodes, lesson drawer), knowledge map at `/roadmap/map` (`GET /knowledge-map`: domains by topic level, cross-domain prerequisites, score, band and completion per domain).
+- **Part B:** exercises backend (`Learning` module, `ExerciseLoader`, seven question types, D31 scoring and completion rule, D30 section-delete guard, `ExerciseSubmitted`) and exercise content for the networking and security fundamentals lessons.
+- **Part C:** exercise UI (split screen with theory from the existing block renderers, tabs on phones, keyboard inputs for every type, feedback and retry) and the reader's end-of-lesson action.
+- **Part D:** labs on server engines (D28, §7.1 security rules): `linux-shell`, `firewall-rules`, `http-inspector`, one lab each, `/labs` pages, `LabCompleted`.
+
+**Shifts:** the per-domain aggregation (latest score, band, completion) is built here for the knowledge map and reused by Phase 6 `/progress/skills`. Topic status moves from `PathProgress` into one shared calculator so the knowledge map can show topics outside the path; status is still computed in one place. Additive API fields: roadmap lessons gain `summary` and `exercise`, the lesson response gains `exercise`. The `packet-flow` lab engine is dropped (the 3D scene covers packet traversal).
+
+
 Roadmap graph on the Phase 4 `GET /learning-path` response (status, reasons, `requires` and `edges` already computed by `PathProgress`), rendered as static SVG edges with focusable HTML nodes (D27, no React Flow), with stage-based layout kept separate from rendering (`lib/graph` dagre only for coordinates when needed), no pan or zoom canvas: expand and collapse, statuses, prerequisites, lesson drawer, overall completion. The outline view from Phase 4 (D25) stays as the phone view. Knowledge map by domain, on the same SVG approach (D27). Exercise mode in all seven question types, split-screen and mobile tabs, feedback with theory references, completion rules. Labs: `linux-shell`, `firewall-rules`, `http-inspector` engines with server checkpoint validation. ~~One 3D visual (packet traversal across a topology)~~: already delivered in Phase 3.5 C3 as the `scene-3d` "follow a packet" scene in the networking intro lesson; new 3D is content on the D22 blocks.
 
 ## Phase 6: Progress and engagement
@@ -119,7 +128,7 @@ Activity recording through events, streak calculator (local-date aware), dashboa
 
 ## Phase 7: Quality and deployment
 
-Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise, dashboard). Security review (OWASP checklist, dependency audit, headers, rate limits). Performance (bundle analysis, image sizes, N+1 checks). Responsive and accessibility audit. Hallmark sweep. Production Dockerfiles, ECS task definitions, step-by-step AWS deployment guide.
+Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise, dashboard). Security review (OWASP checklist, dependency audit, headers, rate limits, and the lab engine checklist: ARCHITECTURE §7.1 rules re-verified, the no-exec architecture test passing, ReDoS patterns tried against `grep -E`, oversized commands, output and state refused, the action rate limit and the 409 on stale state exercised). Performance (bundle analysis, image sizes, N+1 checks). Responsive and accessibility audit. Hallmark sweep. Production Dockerfiles, ECS task definitions, step-by-step AWS deployment guide.
 
 ## Follow-ups (not scheduled in a phase)
 
