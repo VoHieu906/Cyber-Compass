@@ -4,6 +4,7 @@ namespace App\Modules\Learning\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Exercise;
+use App\Models\Lab;
 use App\Models\Lesson;
 use App\Modules\Catalog\Services\CourseProgress;
 use App\Modules\Learning\Actions\RecordLessonProgress;
@@ -17,8 +18,8 @@ final class LessonController extends Controller
      * Read a lesson.
      *
      * Sections, objectives, takeaways, resources, the previous and next lesson in the
-     * course, my progress, and the lesson's exercise (question count, pass mark, whether I
-     * passed) or null. Any signed-in learner can read any published lesson.
+     * course, my progress, the lesson's exercise (question count, pass mark, whether I
+     * passed) or null, and the labs that practise it. Any signed-in learner can read any published lesson.
      */
     public function show(Request $request, string $slug, CourseProgress $courseProgress): LessonResource
     {
@@ -35,6 +36,7 @@ final class LessonController extends Controller
             'next' => $link($ordered->get($index + 1)),
         ]);
         $lesson->setRelation('viewerProgress', $request->user()->lessonProgress()->where('lesson_id', $lesson->id)->first());
+        $lesson->setRelation('practiceLabs', Lab::query()->offered()->where('lesson_id', $lesson->id)->orderBy('position')->get(['slug', 'title']));
         $exercise = Exercise::query()->where('lesson_id', $lesson->id)->withCount('questions')->first();
         $lesson->setRelation('exerciseSummary', $exercise && $exercise->questions_count > 0 ? [
             'question_count' => $exercise->questions_count,

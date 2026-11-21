@@ -9,12 +9,13 @@ import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { cn } from "@/lib/utils";
 
-/** Routes that exist today; search joins in Phase 6. Signed-out visitors who open the assessment or roadmap are sent to log in first. */
+/** Routes that exist today; search joins in Phase 6. Signed-out visitors who open the assessment, roadmap or labs are sent to log in first. */
 const LINKS = [
   { href: "/courses", key: "courses" },
   { href: "/careers", key: "careers" },
   { href: "/assessment", key: "assessment" },
   { href: "/roadmap", key: "roadmap" },
+  { href: "/labs", key: "labs" },
 ] as const;
 
 function isActive(pathname: string, href: string) {

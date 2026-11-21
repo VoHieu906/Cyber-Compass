@@ -30,6 +30,7 @@ const lesson = {
   navigation: { position: 2, total: 6, previous: null, next: { slug: "tcp-ip-model", title: "The TCP/IP model" } },
   progress: { status: "started", completed_at: null },
   exercise: { question_count: 7, pass_percent: 70, passed: false },
+  labs: [],
 } satisfies Lesson;
 
 const layers = { id: "sec-layers", heading: "The seven layers" };

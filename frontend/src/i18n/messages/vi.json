@@ -85,7 +85,8 @@
     "closeMenu": "Đóng menu",
     "admin": "Trang quản trị",
     "assessment": "Đánh giá",
-    "roadmap": "Lộ trình"
+    "roadmap": "Lộ trình",
+    "labs": "Thực hành"
   },
   "validation": {
     "required": "Vui lòng điền trường này.",
@@ -420,7 +421,8 @@
     "exerciseRequired": "Bài học này được hoàn thành khi bạn đạt bài tập của nó: {count, plural, other {# câu hỏi}}, điểm đạt {pass}%.",
     "takeExercise": "Làm bài tập",
     "exercisePassed": "Đã đạt bài tập",
-    "practiseAgain": "Luyện tập lại"
+    "practiseAgain": "Luyện tập lại",
+    "practiseInLab": "Luyện tập trong bài thực hành:"
   },
   "careers": {
     "title": "Nghề nghiệp",
@@ -1258,6 +1260,100 @@
       "or": "hoặc",
       "showTheory": "Đọc lý thuyết: {heading}",
       "theSection": "phần bài học"
+    }
+  },
+  "labs": {
+    "title": "Thực hành",
+    "intro": "Luyện tập những gì bài học dạy trên các hệ thống dựng sẵn: điều tra máy chủ qua shell, viết luật tường lửa và phân tích lưu lượng của một ứng dụng web.",
+    "simulated": "Mỗi bài thực hành là một mô phỏng chạy trên máy chủ của chúng tôi. Không lệnh nào chạm tới hệ thống thật và không yêu cầu nào ra khỏi bài thực hành.",
+    "loadError": "Không tải được các bài thực hành. Hãy thử lại sau giây lát.",
+    "notFound": "Bài thực hành này không tồn tại hoặc không còn được cung cấp.",
+    "backToLabs": "Tất cả bài thực hành",
+    "loading": "Đang tải bài thực hành",
+    "engines": {
+      "linux-shell": "Shell Linux",
+      "firewall-rules": "Tường lửa",
+      "http-inspector": "Phân tích HTTP"
+    },
+    "checkpoints": "Đã xong {passed}/{total} nhiệm vụ",
+    "completed": "Đã hoàn thành",
+    "action": {
+      "start": "Bắt đầu",
+      "continue": "Tiếp tục",
+      "review": "Mở lại"
+    },
+    "practises": "Luyện tập cho: {lesson}",
+    "start": "Bắt đầu bài thực hành",
+    "tasks": "Nhiệm vụ",
+    "complete": "Đã hoàn thành bài thực hành. Làm tốt lắm.",
+    "completedBefore": "Bạn đã hoàn thành bài này trước đó. Bạn đã bắt đầu lại nên các nhiệm vụ được mở lại.",
+    "taskNumber": "Nhiệm vụ {number}",
+    "done": "đã xong",
+    "notDone": "chưa xong",
+    "yourAnswer": "Câu trả lời của bạn",
+    "check": "Kiểm tra",
+    "notQuite": "Chưa đúng. Hãy xem lại rồi thử câu trả lời khác.",
+    "hint": "Xem gợi ý",
+    "reset": "Bắt đầu lại",
+    "resetTitle": "Bắt đầu lại bài thực hành này?",
+    "resetBody": "Công việc trong bài và các nhiệm vụ đã xong sẽ bị xóa. Nếu bạn đã hoàn thành bài, điều đó vẫn được ghi nhận.",
+    "staleReloaded": "Bài thực hành đã thay đổi ở tab hoặc cửa sổ khác nên đã được tải lại. Hãy làm lại bước cuối nếu bạn vẫn cần.",
+    "tooFast": "Bạn thao tác quá nhanh. Hãy đợi một lát rồi thử lại.",
+    "actionError": "Thao tác không thành công. Hãy thử lại sau giây lát.",
+    "shell": {
+      "label": "Shell trên {host}",
+      "readOnly": "Chỉ đọc",
+      "welcome": "Gõ help để xem các lệnh. Phím lên và xuống gọi lại các lệnh trước.",
+      "transcript": "Nội dung shell",
+      "command": "Lệnh",
+      "commands": "Các lệnh: {list}"
+    },
+    "firewall": {
+      "label": "Tường lửa của {server}",
+      "server": "Tường lửa chiều vào của {name} ({ip}).",
+      "order": "Các luật được xét từ trên xuống; luật khớp đầu tiên quyết định, chính sách mặc định xử lý phần còn lại.",
+      "rules": "Luật",
+      "action": "Hành động",
+      "proto": "Giao thức",
+      "port": "Cổng",
+      "source": "Nguồn",
+      "controls": "Sắp xếp và xóa",
+      "noRules": "Không có luật: chính sách mặc định quyết định mọi thứ.",
+      "ruleName": "luật {number}",
+      "anyPort": "mọi cổng",
+      "anyProto": "mọi giao thức",
+      "allow": "Cho phép",
+      "deny": "Chặn",
+      "moveUp": "Chuyển {rule} lên",
+      "moveDown": "Chuyển {rule} xuống",
+      "remove": "Xóa {rule}",
+      "default": "Chính sách mặc định",
+      "addRule": "Thêm luật",
+      "addAtTop": "Thêm lên đầu",
+      "add": "Thêm luật",
+      "full": "Danh sách đã đầy. Hãy xóa bớt một luật.",
+      "testPacket": "Thử một gói tin",
+      "from": "Địa chỉ nguồn",
+      "test": "Thử",
+      "fromIp": "từ {ip}",
+      "byDefault": "theo chính sách mặc định",
+      "byRule": "theo luật {number}"
+    },
+    "http": {
+      "label": "Phân tích HTTP cho {app}",
+      "captured": "Lưu lượng đã ghi",
+      "request": "Yêu cầu",
+      "response": "Phản hồi",
+      "compose": "Gửi yêu cầu",
+      "method": "Phương thức",
+      "path": "Đường dẫn trên {origin}",
+      "sendSession": "Gửi cookie phiên của tôi",
+      "headers": "Header, mỗi dòng một header (Tên: giá trị)",
+      "headerFormat": "Viết mỗi header theo dạng Tên: giá trị, mỗi dòng một header.",
+      "body": "Nội dung",
+      "send": "Gửi",
+      "lastResponse": "Phản hồi",
+      "sent": "Các yêu cầu bạn đã gửi"
     }
   }
 }

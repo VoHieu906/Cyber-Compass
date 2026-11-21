@@ -85,7 +85,8 @@
     "closeMenu": "Close menu",
     "admin": "Admin console",
     "assessment": "Assessment",
-    "roadmap": "Roadmap"
+    "roadmap": "Roadmap",
+    "labs": "Labs"
   },
   "validation": {
     "required": "This field is required.",
@@ -420,7 +421,8 @@
     "exerciseRequired": "This lesson is completed by passing its exercise: {count, plural, =1 {# question} other {# questions}}, pass mark {pass}%.",
     "takeExercise": "Take the exercise",
     "exercisePassed": "Exercise passed",
-    "practiseAgain": "Practise again"
+    "practiseAgain": "Practise again",
+    "practiseInLab": "Practise in a lab:"
   },
   "careers": {
     "title": "Careers",
@@ -1258,6 +1260,100 @@
       "or": "or",
       "showTheory": "Read the theory: {heading}",
       "theSection": "the lesson section"
+    }
+  },
+  "labs": {
+    "title": "Labs",
+    "intro": "Practise what the lessons teach on systems built for it: investigate a server from its shell, write a firewall, and pick apart a web app's traffic.",
+    "simulated": "Every lab is a simulation that runs on our server. No command touches a real system and no request leaves the lab.",
+    "loadError": "The labs couldn't be loaded. Try again in a moment.",
+    "notFound": "This lab doesn't exist or is no longer offered.",
+    "backToLabs": "All labs",
+    "loading": "Loading the lab",
+    "engines": {
+      "linux-shell": "Linux shell",
+      "firewall-rules": "Firewall",
+      "http-inspector": "HTTP inspector"
+    },
+    "checkpoints": "{passed} of {total} tasks done",
+    "completed": "Completed",
+    "action": {
+      "start": "Start the lab",
+      "continue": "Continue",
+      "review": "Open again"
+    },
+    "practises": "Practises: {lesson}",
+    "start": "Start the lab",
+    "tasks": "Tasks",
+    "complete": "Lab complete. Well done.",
+    "completedBefore": "You completed this lab before. You started it over, so the tasks are open again.",
+    "taskNumber": "Task {number}",
+    "done": "done",
+    "notDone": "not done yet",
+    "yourAnswer": "Your answer",
+    "check": "Check",
+    "notQuite": "Not quite. Look again, then try another answer.",
+    "hint": "Show a hint",
+    "reset": "Start over",
+    "resetTitle": "Start this lab over?",
+    "resetBody": "Your work in the lab and the tasks you've done are cleared. If you have completed the lab, that stays on your record.",
+    "staleReloaded": "This lab changed in another tab or window, so it has been reloaded. Run your last step again if you still need it.",
+    "tooFast": "That's a lot of actions in a short time. Wait a moment, then try again.",
+    "actionError": "That didn't work. Try again in a moment.",
+    "shell": {
+      "label": "Shell on {host}",
+      "readOnly": "Read-only",
+      "welcome": "Type help to see the commands. Up and Down bring back earlier commands.",
+      "transcript": "Shell transcript",
+      "command": "Command",
+      "commands": "Commands: {list}"
+    },
+    "firewall": {
+      "label": "Firewall of {server}",
+      "server": "Inbound firewall of {name} ({ip}).",
+      "order": "Rules are checked from the top; the first match decides, and the default policy handles the rest.",
+      "rules": "Rules",
+      "action": "Action",
+      "proto": "Protocol",
+      "port": "Port",
+      "source": "Source",
+      "controls": "Order and remove",
+      "noRules": "No rules: the default policy decides everything.",
+      "ruleName": "rule {number}",
+      "anyPort": "any",
+      "anyProto": "any",
+      "allow": "Allow",
+      "deny": "Deny",
+      "moveUp": "Move {rule} up",
+      "moveDown": "Move {rule} down",
+      "remove": "Remove {rule}",
+      "default": "Default policy",
+      "addRule": "Add a rule",
+      "addAtTop": "Add at the top",
+      "add": "Add rule",
+      "full": "The list is full. Remove a rule first.",
+      "testPacket": "Test a packet",
+      "from": "From address",
+      "test": "Test",
+      "fromIp": "from {ip}",
+      "byDefault": "by the default policy",
+      "byRule": "by rule {number}"
+    },
+    "http": {
+      "label": "HTTP inspector for {app}",
+      "captured": "Recorded traffic",
+      "request": "Request",
+      "response": "Response",
+      "compose": "Send a request",
+      "method": "Method",
+      "path": "Path on {origin}",
+      "sendSession": "Send my session cookie",
+      "headers": "Headers, one per line (Name: value)",
+      "headerFormat": "Write each header as Name: value, one per line.",
+      "body": "Body",
+      "send": "Send",
+      "lastResponse": "Response",
+      "sent": "Requests you sent"
     }
   }
 }

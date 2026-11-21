@@ -147,8 +147,8 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Labs
 
-**labs**: `slug` (unique), `title`, `summary`, `domain_id`, `lesson_id` FK null, `engine` varchar (`linux-shell`, `firewall-rules`, `http-inspector`, `packet-flow`), `provider` varchar default `simulated` (D28), `scenario` JSON (checkpoint answers included; never serialized), `difficulty`, `position`, `is_archived` bool.
-**lab_attempts**: `user_id`, `lab_id`, `state` JSON (engine state, at most 256 KB), `state_version` int (optimistic lock, D28), `action_count` int, `checkpoints_passed` JSON, `completed_at` null. One open attempt per user and lab (reset starts the state over).
+**labs** (✅ Phase 5, D28): `slug` (unique), `title`, `summary`, `briefing` (markdown), `domain_id`, `lesson_id` FK null (null on delete), `engine` varchar (`linux-shell`, `firewall-rules`, `http-inspector`), `provider` varchar default `simulated`, `scenario` JSON (checkpoints with their answers, hidden packets and routes; hidden on the model, never serialized), `difficulty`, `estimated_minutes`, `position`, `is_archived` bool (left the content file; never deleted). Index (`is_archived`,`position`).
+**lab_attempts**: `user_id`, `lab_id`, `state` JSON ({engine, answers}; at most 256 KB), `state_version` int (optimistic lock), `action_count` int, `checkpoints_passed` JSON (ids), `completed_at` null (set once, kept through a reset). Unique (`user_id`,`lab_id`): one attempt per learner and lab; reset starts its state over.
 
 ### Notifications
 
@@ -162,6 +162,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 | Register | users, user_profiles, notification_preferences defaults |
 | Submit assessment | answers scored, attempt score + submitted_at (the activity row is added by a Phase 6 listener on `AssessmentSubmitted`) |
 | Generate roadmap | archive old path, insert path + nodes |
+| Lab action | the attempt row is locked and its version checked; new state, version, action count, checkpoints passed and `completed_at` on the first completion (`LabCompleted` after commit) |
 | Submit exercise | attempt, attempt answers, lesson_progress completion when passed (the activity row is added by a Phase 6 listener on `ExerciseSubmitted`) |
 | Complete lesson | lesson_progress, enrollment.completed_at when the course is done, activity |
 

@@ -220,12 +220,26 @@ Topic status uses the same rule as the roadmap (`TopicStatus`, ARCHITECTURE §6.
 
 `score` and `band` are null before the first submitted assessment.
 
-### Labs
+### Labs (✅ Phase 5 Part D, ARCHITECTURE §7, D28)
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/labs`, `/labs/{slug}` (scenario without the solution) |
-| 🔒 | POST | `/labs/{slug}/attempts` (actions[]), which is validated server-side and returns the checkpoints passed |
+| 🔒 | GET | `/labs`: labs on offer, in order: slug, title, summary, engine, difficulty, estimated_minutes, domain, lesson (only if learners can see it), `progress` {started, completed, passed, total} |
+| 🔒 | GET | `/labs/{slug}`: the summary plus `briefing` (markdown), `scenario` (only what the learner may see: never answers, hidden test packets, routes or files), `checkpoints` [{id, title, kind, hint, passed}] and `attempt` {id, version, state, completed_at} or null. 404 for an archived lab. |
+| 🔒 | POST | `/labs/{slug}/attempts`: start, 201 the first time, then 200 with my existing attempt (one per learner and lab). |
+| 🔒 | POST | `/lab-attempts/{id}/actions` `{version, action}` (`throttle:lab-actions`, 60 per minute; action at most 8 KB): runs one action on the server engine and returns `{output, newly_passed, checkpoints, attempt}`. 409 when `version` is not the attempt's current version (another tab moved on; nothing changes). 422 (`errors.action`) for a malformed action or when the stored state would pass 256 KB. Someone else's attempt is 404. |
+| 🔒 | POST | `/lab-attempts/{id}/reset` `{version}`: starts the attempt over (same version check); completion is kept. |
+
+Actions by engine (each engine validates its own; a refused shell command is output, not an error):
+
+| Engine | Actions | Output |
+|---|---|---|
+| every engine | `{type: "answer", checkpoint, value}` (≤ 200 characters; compared ignoring case and spacing) | `{checkpoint, correct}` |
+| `linux-shell` | `{type: "command", command}` (≤ 500 characters, ≤ 5 pipe stages) | `{text, error, clear?}` (≤ 64 KB) |
+| `firewall-rules` | `add_rule {rule, position?}`, `remove_rule {index}`, `move_rule {from, to}`, `set_default {policy}`, `test {packet}` | `{verdict, rule}` for a test |
+| `http-inspector` | `{type: "send", request: {method, path, headers?, cookies?, body?}}` | `{response: {status, headers, body}}` |
+
+The lesson (`GET /lessons/{slug}`) lists `labs` [{slug, title}] that practise it.
 
 ### Progress
 

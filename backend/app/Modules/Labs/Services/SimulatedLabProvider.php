@@ -1,0 +1,143 @@
+<?php
+
+namespace App\Modules\Labs\Services;
+
+use App\Models\Lab;
+use App\Modules\Labs\Engines\FirewallRulesEngine;
+use App\Modules\Labs\Engines\HttpInspectorEngine;
+use App\Modules\Labs\Engines\LabActionRejected;
+use App\Modules\Labs\Engines\LabEngine;
+use App\Modules\Labs\Engines\LabLimits;
+use App\Modules\Labs\Engines\Shell\LinuxShellEngine;
+use App\Modules\Learning\Services\QuestionTypes;
+
+/**
+ * Runs labs on the in-memory PHP engines (D28). The attempt state is an envelope:
+ * {engine: the engine's state, answers: {checkpoint id: true}}. Answer checkpoints work the
+ * same for every engine: the learner submits text, compared with the accepted answers ignoring
+ * case and extra spaces, and the answers never leave the server.
+ */
+final class SimulatedLabProvider implements LabProvider
+{
+    /** @var array<string, LabEngine> */
+    private array $engines;
+
+    public function __construct(LinuxShellEngine $shell, FirewallRulesEngine $firewall, HttpInspectorEngine $http)
+    {
+        foreach ([$shell, $firewall, $http] as $engine) {
+            $this->engines[$engine->key()] = $engine;
+        }
+    }
+
+    public function key(): string
+    {
+        return 'simulated';
+    }
+
+    /** @return list<string> */
+    public function engineKeys(): array
+    {
+        return array_keys($this->engines);
+    }
+
+    public function initialState(Lab $lab): array
+    {
+        return ['engine' => $this->engine($lab->engine)->initialState($lab->scenario), 'answers' => (object) []];
+    }
+
+    public function apply(Lab $lab, array $state, array $action): array
+    {
+        if (($action['type'] ?? null) === 'answer') {
+            return $this->answer($lab, $state, $action);
+        }
+        $result = $this->engine($lab->engine)->apply($lab->scenario, $state['engine'], $action);
+        $state['engine'] = $result['state'];
+
+        return ['state' => $state, 'output' => $result['output']];
+    }
+
+    public function checkpoints(Lab $lab, array $state): array
+    {
+        $engine = $this->engine($lab->engine);
+        $answers = (array) ($state['answers'] ?? []);
+
+        return array_map(fn (array $c) => [
+            'id' => $c['id'],
+            'title' => $c['title'],
+            'kind' => $c['kind'],
+            'hint' => $c['hint'] ?? null,
+            'passed' => $c['kind'] === 'answer' ? isset($answers[$c['id']]) : $engine->checkpointPassed($lab->scenario, $state['engine'], $c),
+        ], $lab->scenario['checkpoints']);
+    }
+
+    public function publicScenario(Lab $lab): array
+    {
+        return $this->engine($lab->engine)->publicScenario($lab->scenario);
+    }
+
+    public function view(Lab $lab, array $state): array
+    {
+        return $this->engine($lab->engine)->view($lab->scenario, $state['engine']);
+    }
+
+    public function validate(string $engine, array $scenario): array
+    {
+        if (! isset($this->engines[$engine])) {
+            return ['engine must be one of: '.implode(', ', array_keys($this->engines))];
+        }
+        $kinds = ['answer', ...$this->engines[$engine]->checkpointKinds()];
+        $errors = [];
+        $checkpoints = $scenario['checkpoints'] ?? null;
+        if (! is_array($checkpoints) || $checkpoints === [] || ! array_is_list($checkpoints)) {
+            $errors[] = 'checkpoints must be a non-empty list';
+        } else {
+            $ids = [];
+            foreach ($checkpoints as $i => $c) {
+                if (! is_string($c['id'] ?? null) || ! preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c['id'])) {
+                    $errors[] = "checkpoint {$i}: id must be lowercase words joined by hyphens";
+                }
+                if (in_array($c['id'] ?? null, $ids, true)) {
+                    $errors[] = "checkpoint {$i}: duplicate id";
+                }
+                $ids[] = $c['id'] ?? null;
+                if (! is_string($c['title'] ?? null) || trim($c['title']) === '') {
+                    $errors[] = "checkpoint {$i}: title is required";
+                }
+                if (! in_array($c['kind'] ?? null, $kinds, true)) {
+                    $errors[] = "checkpoint {$i}: kind must be one of ".implode(', ', $kinds);
+                }
+                if (($c['kind'] ?? null) === 'answer' && (! is_array($c['answers'] ?? null) || $c['answers'] === [] || ! collect($c['answers'])->every(fn ($a) => is_string($a) && trim($a) !== ''))) {
+                    $errors[] = "checkpoint {$i}: answers must list the accepted texts";
+                }
+            }
+        }
+
+        return [...$errors, ...$this->engines[$engine]->validateScenario($scenario)];
+    }
+
+    /** @return array{state: array<string, mixed>, output: array<string, mixed>} */
+    private function answer(Lab $lab, array $state, array $action): array
+    {
+        $checkpoint = collect($lab->scenario['checkpoints'])->first(fn ($c) => $c['kind'] === 'answer' && $c['id'] === ($action['checkpoint'] ?? null));
+        $value = $action['value'] ?? null;
+        if (! $checkpoint) {
+            throw new LabActionRejected('There is no question with that id in this lab.');
+        }
+        if (! is_string($value) || trim($value) === '' || mb_strlen($value) > LabLimits::MAX_ANSWER_LENGTH) {
+            throw new LabActionRejected('Answer with text of at most '.LabLimits::MAX_ANSWER_LENGTH.' characters.');
+        }
+        $correct = in_array(QuestionTypes::normalize($value), array_map(QuestionTypes::normalize(...), $checkpoint['answers']), true);
+        if ($correct) {
+            $answers = (array) ($state['answers'] ?? []);
+            $answers[$checkpoint['id']] = true;
+            $state['answers'] = $answers;
+        }
+
+        return ['state' => $state, 'output' => ['checkpoint' => $checkpoint['id'], 'correct' => $correct]];
+    }
+
+    private function engine(string $key): LabEngine
+    {
+        return $this->engines[$key] ?? throw new \LogicException("No lab engine {$key}.");
+    }
+}

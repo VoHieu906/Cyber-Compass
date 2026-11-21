@@ -20,6 +20,7 @@ Route::prefix('v1')->name('v1.')->group(function () {
         'Content',
         'Assessment',
         'Roadmap',
+        'Labs',
     ] as $module) {
         require app_path("Modules/{$module}/routes.php");
     }

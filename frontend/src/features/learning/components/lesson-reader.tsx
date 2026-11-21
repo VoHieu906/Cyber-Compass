@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Check, CircleCheck, ExternalLink, PencilLine, Target } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, ExternalLink, FlaskConical, PencilLine, Target } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
@@ -206,6 +206,19 @@ function LessonFooter({ lesson }: { lesson: Lesson }) {
             <Link href={`/learn/${lesson.slug}/exercise`} className="text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent">
               {t("practiseAgain")}
             </Link>
+          </p>
+        ) : null}
+        {lesson.labs?.length ? (
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <span className="inline-flex items-center gap-1.5 text-ink">
+              <FlaskConical aria-hidden className="size-4 text-accent" />
+              {t("practiseInLab")}
+            </span>
+            {lesson.labs.map((lab) => (
+              <Link key={lab.slug} href={`/labs/${lab.slug}`} className="text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent">
+                {lab.title}
+              </Link>
+            ))}
           </p>
         ) : null}
         {course.data ? (

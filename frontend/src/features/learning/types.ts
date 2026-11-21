@@ -73,6 +73,8 @@ export type Lesson = {
   progress: { status: LessonStatus; completed_at: string | null };
   /** The lesson's exercise (ARCHITECTURE D29, D31); passing it completes the lesson. */
   exercise: { question_count: number; pass_percent: number; passed: boolean } | null;
+  /** Labs that practise this lesson (ARCHITECTURE §7). */
+  labs: LessonLink[];
 };
 
 export type CompleteLessonResult = {

@@ -145,6 +145,16 @@ Exercises are graded practice at the end of a lesson; passing one completes the 
 - **Removing a question** archives it; past attempts keep it. Changing a question's type after someone answered it is refused: give the changed question a new key.
 - **Blocks that questions use cannot be deleted.** Publishing a draft or importing a file that drops such a block is refused with a message naming the questions (D30), and the editor marks those blocks and warns before removing one. Renaming a block's heading in a file counts as removing it (its identity is derived from the heading), so update the exercise file first.
 
+## 4b. Labs (Phase 5)
+
+Labs live in `backend/database/seeders/content/labs.php`, keyed by slug in the order offered, and are loaded by `LabSeeder` after the lessons (`php artisan db:seed --class=LabSeeder` on its own). Each lab has a title, summary, markdown `briefing`, domain, optional `lesson` slug (the lesson then links to it), `engine`, difficulty, minutes and a `scenario`.
+
+- **Engines and scenarios.** `linux-shell`: hostname, user, home, cwd, `files` (absolute path => text, at most 128 KB) and optional extra `dirs`. `firewall-rules`: server, starting `default` and `rules`. `http-inspector`: app, the learner's `session` cookie, `captured` exchanges, `routes` (each with an id, method, path, optional required cookie and a response) and `not_found`. Formats: the class header of each engine in `app/Modules/Labs/Engines`.
+- **Checkpoints.** Every lab lists `checkpoints` with a stable `id`, a `title` (the task as the learner reads it) and an optional `hint`. Kinds: `answer` (accepted `answers`, compared ignoring case and spacing) for every engine; `read` {path} for the shell; `traffic` {packets with `expect`} for the firewall; `request` {route} for the HTTP inspector.
+- **Kept on the server.** File contents, answers, traffic packets and routes never reach the browser; the learner discovers them through the engine. Do not put an answer in a title, hint or briefing.
+- **Write a story, not a quiz.** Each lab should be a small, believable situation that the lesson's skills solve, with checkpoints in the order an investigator would reach them. Use documentation addresses (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) and `.example` domains.
+- **Removing a lab** archives it; attempts keep it.
+
 ## 5. Before you publish
 
 - [ ] The lesson reads well with every visual skipped.

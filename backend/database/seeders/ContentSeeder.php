@@ -58,6 +58,7 @@ class ContentSeeder extends Seeder
         }
         // Exercises point at the sections just written (D29).
         $this->call(ExerciseSeeder::class);
+        $this->call(LabSeeder::class);
         // The question bank is content too; its domains must exist first.
         $this->call(AssessmentSeeder::class);
     }

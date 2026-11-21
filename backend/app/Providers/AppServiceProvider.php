@@ -9,6 +9,7 @@ use App\Modules\Admin\Policies\UserAdminPolicy;
 use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
 use App\Modules\Content\Policies\LessonPolicy;
+use App\Modules\Labs\Engines\LabLimits;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -61,6 +62,9 @@ class AppServiceProvider extends ServiceProvider
             ->by('admin:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
         RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(10)
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+        // Lab actions run a server-side engine each (ARCHITECTURE §7.1).
+        RateLimiter::for('lab-actions', fn (Request $request) => Limit::perMinute(LabLimits::ACTIONS_PER_MINUTE)
+            ->by('lab:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
         // Exercise attempts are scored and stored on every submit; retries are fine, a loop is not.
         RateLimiter::for('exercise-attempts', fn (Request $request) => Limit::perMinute(20)
             ->by('exercise:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));

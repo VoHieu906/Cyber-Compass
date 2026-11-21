@@ -4,9 +4,9 @@ Where the project stands and what the next phase needs to know. This page only p
 
 ## Current state (2026-11-21)
 
-- **Phases 1 to 4 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Parts A (roadmap graph, lesson drawer, knowledge map), B (exercises backend and content) and C (the exercise screen) are done; next is Part D (labs on server engines, D28 and ARCHITECTURE §7.1).
-- **Tests at handoff:** 474 Pest and 297 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phases 1 to 5 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
+- **Next: Phase 6**, progress and engagement: activity recording, streaks, the dashboard, analytics and notifications ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)).
+- **Tests at handoff:** 561 Pest and 303 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -24,14 +24,20 @@ Where the project stands and what the next phase needs to know. This page only p
 | Backend commands and module rules | [backend/CLAUDE.md](../backend/CLAUDE.md) |
 | Next.js version notes | [frontend/AGENTS.md](../frontend/AGENTS.md) |
 
-## What Phase 5 builds on
+## What Phase 6 builds on
 
-- **Roadmap graph:** `GET /learning-path` already returns everything a graph needs: nodes with computed status, percent, reason and `requires`, plus `edges`, lessons per node and the next lesson. Render it as HTML nodes over static SVG edges (D27, no React Flow), with stage-based layout kept separate from rendering and `layoutGraph()` only for coordinates when needed. Keep the Phase 4 outline (`features/roadmap/components/roadmap-view.tsx`) as the phone view (D25), and reuse `RoadmapNodeCard`.
-- **Status lives in one place:** `Roadmap\Services\PathProgress` (ARCHITECTURE §6.3). When exercises change the completion rule, the change goes into lesson completion (`RecordLessonProgress`); node status follows automatically.
+- **Events to listen to:** `AssessmentSubmitted`, `ExerciseSubmitted` and `LabCompleted` are dispatched after commit with no listeners yet. Lesson completion has no event: add `LessonCompleted` in `Learning\Actions\RecordLessonProgress` (the one place lessons complete, including through a passing exercise) rather than recording activity in controllers.
+- **Study time already recorded:** `lesson_progress.time_spent_seconds` (capped at 4 hours per visit), `exercise_attempts.time_spent_seconds`, and `lab_attempts.action_count` for lab activity.
+- **Dashboard pieces that exist:** roadmap completion, the time estimate and the next lesson come from `Roadmap\Services\PathProgress` (`present()`, `nextLesson()`); skills by domain (latest score, band, completion) come from `Roadmap\Services\KnowledgeMap::domains()`; assessment history from `GET /assessment-attempts`; lab progress from `GET /labs`. Reuse them for `/progress/*`; never recompute status or scores.
+- **Charts:** Recharts is not installed yet. Weigh it against the D27 reasoning (static SVG from our own components) when the dashboard is designed.
+- **Notifications** arrive as another settings tab beside personal, learning goals, security and preferences.
+
+## Phase 5 notes that stay true
+
+- **Graphs:** the roadmap graph and knowledge map are HTML nodes over static SVG edges laid out by `lib/graph/grid.ts` (D27). Keep the outline below 48rem.
 - **Blocks size themselves by their container:** every lesson `Section` is a CSS container and block layouts use `@xl:`-style container queries, so the same renderer works in the reader, the exercise theory panel and the editor preview. Use container queries, not viewport breakpoints, in any new block.
-- **Exercises are not assessment:** exercise answer keys stay server-side until submission, like the assessment's. Lesson practice checks (`knowledge-check`) stay ungraded. Exercise theory references point at section UUIDs (D20).
-- **3D:** the packet-traversal visual is already delivered as a `scene-3d` lesson block. New 3D is lesson content on the D22 sandbox, not new runtime code.
-- **Labs** follow ARCHITECTURE §7: browser engines with server-side checkpoint validation.
+- **Exercises are not assessment:** exercise keys stay server-side until submission; a passing attempt completes the lesson (D31); sections that teach a question cannot be deleted (D30).
+- **Labs run on the server** (D28) under the ARCHITECTURE §7.1 rules. A new engine implements `LabEngine`, registers in `SimulatedLabProvider` and must pass `tests/Unit/Labs/EngineSafetyTest.php`.
 
 ## Conventions to keep
 
@@ -56,7 +62,9 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Tests coupled to seeded content:** derive expected values from the data rather than hard-coding them.
 - **Export formatting:** `content:export` output can reorder payload keys (MySQL JSON); review the diff before committing.
 - **3D scripts** can be switched off with `CONTENT_SCRIPTED_3D=false` ([SANDBOXED_3D.md](SANDBOXED_3D.md)).
-- **Not built yet:** email verification; learning activities, notifications and global search (Phase 6). `AssessmentSubmitted` is dispatched after commit with no listeners yet; Phase 6 attaches the activity and notification listeners.
+- **Not built yet:** email verification; learning activities, notifications and global search (Phase 6).
+- **Lab content is English** like lessons (O2); engine messages (shell errors, refusals) are English too, while the UI around them is bilingual.
+- **Browser checks in the session scratchpad** (`graph-check.mjs`, `exercise-c-check.mjs`, `labs-check.mjs`) register `assess-check-*@example.test` learners; delete them afterwards. `exercise-c-check.mjs` reads the answer key through a temporary `backend/storage/app/exercise-key.php`, which must be deleted after the run.
 
 ## Local environment
 

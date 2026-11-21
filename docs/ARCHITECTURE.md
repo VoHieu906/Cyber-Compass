@@ -200,10 +200,11 @@ flowchart LR
 |---|---|
 | No process or real filesystem access | Engines never call `exec`, `shell_exec`, `system`, `passthru`, `proc_open`, `popen`, backticks, or any filesystem function (`fopen`, `file_get_contents`, `scandir`, ...). An architecture test scans `app/Modules/Labs/Engines` and fails if any appears. Files exist only as arrays in the attempt state. |
 | No shell metacharacters | The tokenizer accepts words, quotes and `|`. Redirects (`>`, `<`, `>>`), `;`, `&&`, `||`, `&`, backticks, `$()` and `${}`, and `find -exec`/`-delete` are refused with a friendly message, never an exception. Unknown commands and flags get the same treatment. |
-| No ReDoS | `grep` matches literal text by default (`-i` folds case). `grep -E` accepts a regex only up to 100 characters, run with `pcre.backtrack_limit` and `pcre.recursion_limit` lowered for the call; a pattern that fails or hits the limit returns an error message. Lab patterns elsewhere use the same helper. |
+| No ReDoS | `grep` matches literal text by default (`-i` folds case). `grep -E` accepts a regex only up to 100 characters, run through `Engines\SafeRegex` with `pcre.backtrack_limit` (10 000) and `pcre.recursion_limit` (1 000) lowered and the PCRE JIT off for the call (the JIT ignores the backtrack limit), all restored afterwards; a pattern that does not compile or hits a limit returns an error message. Any future learner-supplied pattern uses the same helper. |
 | Bounded work | Command length ≤ 500 characters, ≤ 5 pipe stages, output ≤ 64 KB (truncated with a notice), stored state ≤ 256 KB (the action is refused above it), and a per-user rate limit on the action endpoint (`throttle:lab-actions`, 60 per minute). |
 | No lost updates | `lab_attempts.state_version` is sent with every action and checked under a row lock; a stale version returns 409, so two tabs cannot overwrite each other. |
-| No external targets | The HTTP inspector talks only to the scenario's simulated app; there is no outbound request. |
+| No external targets | The HTTP inspector answers only from the scenario's routes; there is no outbound request. Requests are bounded (method from a list, path ≤ 200 characters without spaces, ≤ 10 headers and cookies of ≤ 500 characters, body ≤ 2 000). |
+| Bounded envelope | The action request is at most 8 KB; answers are at most 200 characters; the firewall holds at most 20 rules; the shell keeps 40 history entries of at most 4 KB each. |
 
 ## 8. Deployment architecture (AWS)
 

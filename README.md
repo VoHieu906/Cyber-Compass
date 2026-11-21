@@ -2,7 +2,7 @@
 
 A personalized learning platform for cybersecurity. Take a knowledge assessment, choose a career goal, and follow a roadmap built from what you already know: lessons, exercises and safe browser-based labs, with progress tracking throughout.
 
-> **Status: Phases 1 to 4 complete; Phase 5 in progress (roadmap graph, knowledge map and exercises built; labs next).** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins manage accounts and write, preview and publish lessons in the admin console at `/admin`; lessons can include interactive 3D scenes and sandboxed Three.js scripts (docs/SANDBOXED_3D.md) and eleven 2D blocks (layer stacks, sequences, flows, trees, network topologies, comparisons, timelines, bit fields, calculators, step-throughs and practice questions). The two pilot courses (Networking Fundamentals, Security Fundamentals) use them throughout, with a practice check in every lesson; [docs/CONTENT_AUTHORING_GUIDE.md](docs/CONTENT_AUTHORING_GUIDE.md) explains how to write lessons, and `content:export` writes curated lessons back to the content files. Learners take a 40-question knowledge assessment scored with a published formula, choose a career goal, and get a personal roadmap built from both, shown as a graph with a lesson drawer (an outline on phones), next to a knowledge map of every topic by domain. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
+> **Status: Phases 1 to 5 complete.** Courses, lessons with interactive diagrams, careers and the landing page work end to end on seeded content. Admins manage accounts and write, preview and publish lessons in the admin console at `/admin`; lessons can include interactive 3D scenes and sandboxed Three.js scripts (docs/SANDBOXED_3D.md) and eleven 2D blocks (layer stacks, sequences, flows, trees, network topologies, comparisons, timelines, bit fields, calculators, step-throughs and practice questions). The two pilot courses (Networking Fundamentals, Security Fundamentals) use them throughout, with a practice check in every lesson; [docs/CONTENT_AUTHORING_GUIDE.md](docs/CONTENT_AUTHORING_GUIDE.md) explains how to write lessons, and `content:export` writes curated lessons back to the content files. Learners take a 40-question knowledge assessment scored with a published formula, choose a career goal, and get a personal roadmap built from both, shown as a graph with a lesson drawer (an outline on phones), next to a knowledge map of every topic by domain. Features listed below are **planned** unless marked as built. See [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md).
 
 ## Features
 
@@ -23,7 +23,7 @@ A personalized learning platform for cybersecurity. Take a knowledge assessment,
 | Career goal, learning goals, and a personalized roadmap (outline view, versioned) | ✅ Built |
 | Interactive roadmap graph and knowledge map | ✅ Built |
 | Exercises (7 question types, theory beside each question, graded on the server) | ✅ Built |
-| Practical labs (simulated, server-validated) | Planned (Phase 5) |
+| Practical labs: a Linux shell, a firewall and an HTTP inspector, simulated on the server | ✅ Built |
 | Dashboard, analytics, streaks, notifications | Planned (Phase 6) |
 
 ## Screenshots
