@@ -6,8 +6,8 @@ Where the project stands and what the next phase needs to know. This page only p
 
 - **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
-- **Phase 7 in progress:** Parts A (E2E suite) and A2 (CI on GitHub Actions) are done; next is Part B, security review I (API). Parts A2 to G run locally at no cost; Part H waits for the owner. Decisions D37 to D50.
-- **Tests:** 642 Pest, 334 Vitest and 12 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 7 in progress:** Parts A (E2E suite), A2 (CI) and B (security review of the API, [SECURITY_REVIEW.md](SECURITY_REVIEW.md)) are done; next is Part C, security review II (web, headers and CSP). Parts A2 to G run locally at no cost; Part H waits for the owner. Decisions D37 to D50.
+- **Tests:** 667 Pest, 334 Vitest and 12 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -32,6 +32,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Rate limits to review:** `api` 120 per minute per user (one dashboard load makes 8 requests and the bell polls once a minute), `search` 60, `lab-actions` 60, `exercise-attempts` 20, `admin` 120, `uploads` 10, `register` 10 per hour, `password` 5.
 - **End-to-end suite (D45):** `frontend/e2e`, run with `npm run e2e` against the Docker API and the app on port 3000 (Edge locally; `E2E_CHANNEL=` for bundled Chromium). Global setup makes throwaway accounts with `php artisan cybercompass:e2e-users` (local and testing only) and teardown purges every `e2e-*@example.test` account, including the learner the journey registers through the form. Every page fails its test on a console error unless the spec lists the expected status. Specs: the learner journey (register, assessment, goal, roadmap, exercise failed then passed from the revealed answers, dashboard, bell), auth edges, labs (refusals, completion, the 409), search, the admin console, and a phone layout pass.
 - **CI (D46):** `.github/workflows/ci.yml`, three jobs on every pull request and push to `main`; the backend and E2E jobs use the compose stack (`.github/scripts/`). `npm run typecheck` runs `next typegen` first, so it works on a fresh checkout. Regenerate `package-lock.json` in a Linux container if `npm ci` fails on Linux (Windows drops Linux-only optional packages).
+- **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
 ## Phase 6 notes that stay true

@@ -22,6 +22,7 @@ use App\Modules\Notifications\Listeners\NotifyLearner;
 use App\Modules\Progress\Events\MilestoneReached;
 use App\Modules\Progress\Listeners\CheckMilestones;
 use App\Modules\Progress\Listeners\RecordLearningActivity;
+use App\Support\Validation\MaxBytes;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +47,8 @@ class AppServiceProvider extends ServiceProvider
         // Fail loudly in development on lazy loading (N+1), silent attribute drops and missing attributes.
         Model::shouldBeStrict(! $this->app->isProduction());
 
-        Password::defaults(fn () => Password::min(8)->max(128)->letters()->numbers());
+        // bcrypt reads only the first 72 bytes, so longer passwords are refused (MaxBytes).
+        Password::defaults(fn () => Password::min(8)->max(128)->letters()->numbers()->rules([new MaxBytes(72)]));
 
         // Password reset emails link to the frontend, which posts the token back to the API.
         ResetPassword::createUrlUsing(fn (User $user, string $token) => config('app.frontend_url')
@@ -95,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
 
         // Login has its own per-email lockout in AttemptLogin; these cover the other auth endpoints.
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(20)->by('login:'.$request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
         RateLimiter::for('password', fn (Request $request) => Limit::perMinute(5)
             ->by(($request->user()?->getAuthIdentifier() ?? 'guest').'|'.$request->ip()));

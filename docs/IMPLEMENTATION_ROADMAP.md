@@ -227,6 +227,12 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 - **Found by the first runs and fixed:** `package-lock.json`, written on Windows, lacked three Linux-only optional packages, so `npm ci` failed on Linux (and would have broken the production web image); regenerated in a Linux container, `npm ci` passes on both. `npm run typecheck` relied on route types (`PageProps`, `LayoutProps`) that only a running dev server had generated; it now runs `next typegen` first. An unmigrated API answers 500 to its health check (the rate limiter's counters live in the database cache), so the stack migrates before it is checked. The journey waited for any notification, and in CI the assessment result arrived before the lesson's; it now waits for `lesson_completed` itself.
 - **Result:** green on run 3 (backend 2.5 min, frontend 1.5 min, end-to-end 3.3 min, in parallel). Free on this public repository.
 
+**Part B exit, verified (2026-11-21):**
+- **Delivered:** [SECURITY_REVIEW.md](SECURITY_REVIEW.md), the API half of the review over every phase: findings, a checklist per area (auth and sessions, authorization, answer keys, the lab engines' §7.1 rules, injection and uploads, notifications and search, rate limits) with the test that proves each item, and an OWASP Top 10 summary.
+- **Fixed:** password spraying (S1: `throttle:login`, 20 a minute per address on top of the per-account lockout); unsafe production configuration (S2: `cybercompass:preflight`, 16 checks, run by the migration task from Part F); bcrypt's 72-byte limit (S3: `MaxBytes(72)` in the password rules, en and vi messages); no guard on future routes (S4: `RouteInventoryTest` over all 85 routes, including a 401 for guests on every protected one).
+- **Accepted:** unverified email addresses (S5, with the follow-up to verify before opt-in email) and per-account limits across addresses (S6). `composer audit` and `npm audit` clean.
+- **Tests:** 667 Pest (25 new) and the 12 Playwright tests green with the new limiter. Pint clean.
+
 **Carried from Phase 6:** E2E covers the dashboard, the bell and search. The security review adds the `search` limiter, 404 for another learner's notification, email only by opt-in, and drafts never reaching search. Deployment adds the scheduler container (D38, hourly reminders), the queue worker as a service (D37), SES for mail (D39), and a check that one dashboard load (8 API requests) stays well inside the 120-per-minute `api` limit for normal use.
 
 ## Follow-ups (not scheduled in a phase)

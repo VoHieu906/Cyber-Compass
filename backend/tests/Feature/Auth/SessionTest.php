@@ -45,6 +45,16 @@ it('locks the account and IP after five failed attempts', function () {
     $this->assertGuest('web');
 });
 
+it('limits one address trying many accounts (password spraying)', function () {
+    foreach (range(1, 20) as $i) {
+        $this->postJson('/api/v1/auth/login', ['email' => "spray{$i}@example.com", 'password' => 'wrong-pass-1'])
+            ->assertUnprocessable();
+    }
+
+    $this->postJson('/api/v1/auth/login', ['email' => 'spray21@example.com', 'password' => 'wrong-pass-1'])
+        ->assertStatus(429);
+});
+
 it('sets a remember-me cookie only when asked', function () {
     $this->postJson('/api/v1/auth/login', ['email' => 'learner@example.com', 'password' => 'secure-pass-1', 'remember' => true])
         ->assertOk()

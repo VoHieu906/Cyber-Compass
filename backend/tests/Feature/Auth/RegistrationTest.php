@@ -54,6 +54,8 @@ it('requires a password of 8+ characters with letters and numbers, confirmed', f
     'no number' => [['password' => 'onlyletters', 'password_confirmation' => 'onlyletters'], 'password'],
     'no letter' => [['password' => '1234567890', 'password_confirmation' => '1234567890'], 'password'],
     'mismatch' => [['password_confirmation' => 'different-1'], 'password'],
+    // bcrypt reads 72 bytes: 19 four-byte characters are 76 bytes, though only 19 characters long.
+    'over 72 bytes' => [['password' => str_repeat('😀', 19).'a1', 'password_confirmation' => str_repeat('😀', 19).'a1'], 'password'],
     'bad email' => [['email' => 'not-an-email'], 'email'],
     'missing name' => [['name' => '   '], 'name'],
 ]);

@@ -20,6 +20,7 @@ return [
     'file' => ':attribute phải là một tệp.',
     'image' => ':attribute phải là hình ảnh.',
     'in' => ':attribute đã chọn không hợp lệ.',
+    'max_bytes' => ':attribute quá dài. Hãy dùng ít ký tự hơn (tối đa :max byte).',
     'max' => [
         'file' => ':attribute không được lớn hơn :max KB.',
         'string' => ':attribute không được dài quá :max ký tự.',

@@ -98,6 +98,7 @@ return [
         'string' => 'The :attribute field must be less than or equal to :value characters.',
     ],
     'mac_address' => 'The :attribute field must be a valid MAC address.',
+    'max_bytes' => 'The :attribute field is too long. Use fewer characters (at most :max bytes).',
     'max' => [
         'array' => 'The :attribute field must not have more than :max items.',
         'file' => 'The :attribute field must not be greater than :max kilobytes.',
