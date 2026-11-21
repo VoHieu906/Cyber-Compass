@@ -13,7 +13,7 @@ Where the project stands and what the next phase needs to know. This page only p
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D26) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D27) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
@@ -26,7 +26,7 @@ Where the project stands and what the next phase needs to know. This page only p
 
 ## What Phase 5 builds on
 
-- **Roadmap graph:** `GET /learning-path` already returns everything a graph needs: nodes with computed status, percent, reason and `requires`, plus `edges`, lessons per node and the next lesson. Draw it with `lib/graph` `layoutGraph()`. Decide React Flow versus the D23 static SVG at the start of the phase. Keep the Phase 4 outline (`features/roadmap/components/roadmap-view.tsx`) as the phone view (D25), and reuse `RoadmapNodeCard`.
+- **Roadmap graph:** `GET /learning-path` already returns everything a graph needs: nodes with computed status, percent, reason and `requires`, plus `edges`, lessons per node and the next lesson. Render it as HTML nodes over static SVG edges (D27, no React Flow), with stage-based layout kept separate from rendering and `layoutGraph()` only for coordinates when needed. Keep the Phase 4 outline (`features/roadmap/components/roadmap-view.tsx`) as the phone view (D25), and reuse `RoadmapNodeCard`.
 - **Status lives in one place:** `Roadmap\Services\PathProgress` (ARCHITECTURE §6.3). When exercises change the completion rule, the change goes into lesson completion (`RecordLessonProgress`); node status follows automatically.
 - **Exercises are not assessment:** exercise answer keys stay server-side until submission, like the assessment's. Lesson practice checks (`knowledge-check`) stay ungraded. Exercise theory references point at section UUIDs (D20).
 - **3D:** the packet-traversal visual is already delivered as a `scene-3d` lesson block. New 3D is lesson content on the D22 sandbox, not new runtime code.
