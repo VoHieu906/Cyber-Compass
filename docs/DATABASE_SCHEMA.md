@@ -143,7 +143,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 **enrollments**: `user_id`, `course_id`, `enrolled_at`, `completed_at` null (an event timestamp, set once). Unique pair.
 **course_favorites**: `user_id`, `course_id`, `created_at`. Unique pair.
 **lesson_progress**: `user_id`, `lesson_id`, `status` enum(`started`,`completed`), `started_at`, `completed_at` null, `time_spent_seconds` int. Unique pair. Index (`user_id`,`completed_at`).
-**learning_activities**: `user_id`, `type` enum(`lesson_started`,`lesson_completed`,`exercise_submitted`,`assessment_submitted`,`lab_completed`,`study_session`), `subject_type`/`subject_id` (morph), `duration_seconds` int default 0, `occurred_at`. Index (`user_id`,`occurred_at`). This is an append-only source for streaks, weekly time and the recent-activity feed (Phase 6, D33). Rows are written only by event listeners; `study_session` is reserved and not written yet.
+**learning_activities**: `user_id`, `type` enum(`lesson_started`,`lesson_completed`,`exercise_submitted`,`assessment_submitted`,`lab_completed`,`study_session`), `subject_type`/`subject_id` (morph), `duration_seconds` int default 0, `occurred_at`. Index (`user_id`,`occurred_at`). This is an append-only source for streaks, weekly time and the recent-activity feed (✅ Phase 6, D33). Rows are written only by the Progress listener (`ActivityRecorder`), after commit; the subject morph uses the aliases `lesson`, `lab`, `exercise_attempt` and `assessment_attempt`. `lesson_completed` is the first completion; a later visit to a completed lesson is a `study_session` with its time. A lesson completed by a passing exercise carries 0 seconds, because the `exercise_submitted` row holds that time. `progress:backfill` fills rows for earlier progress once.
 
 ### Labs
 
@@ -164,7 +164,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 | Generate roadmap | archive old path, insert path + nodes |
 | Lab action | the attempt row is locked and its version checked; new state, version, action count, checkpoints passed and `completed_at` on the first completion (`LabCompleted` after commit) |
 | Submit exercise | attempt, attempt answers, lesson_progress completion when passed (the activity row is added by a Phase 6 listener on `ExerciseSubmitted`) |
-| Complete lesson | lesson_progress, enrollment.completed_at when the course is done, activity |
+| Complete lesson | lesson_progress, enrollment.completed_at when the course is done (the activity row is added after commit by the listener on `LessonCompleted`) |
 
 Notifications are dispatched **after commit** (`afterCommit` listeners).
 

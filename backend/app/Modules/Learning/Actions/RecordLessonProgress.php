@@ -9,6 +9,8 @@ use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\User;
 use App\Modules\Catalog\Services\CourseProgress;
+use App\Modules\Learning\Events\LessonCompleted;
+use App\Modules\Learning\Events\LessonStarted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -28,15 +30,25 @@ final class RecordLessonProgress
 
     public function start(User $user, Lesson $lesson): LessonProgress
     {
-        return LessonProgress::query()->firstOrCreate(
+        $progress = LessonProgress::query()->firstOrCreate(
             ['user_id' => $user->id, 'lesson_id' => $lesson->id],
             ['status' => LessonProgressStatus::Started, 'started_at' => now()],
         );
+
+        if ($progress->wasRecentlyCreated) {
+            LessonStarted::dispatch($user, $lesson);
+        }
+
+        return $progress;
     }
 
-    public function complete(User $user, Lesson $lesson, int $secondsSpent): LessonProgress
+    /**
+     * `$fromExercise` marks a completion by a passing exercise attempt: the attempt records its
+     * own time as activity, so the `LessonCompleted` event carries none (D33).
+     */
+    public function complete(User $user, Lesson $lesson, int $secondsSpent, bool $fromExercise = false): LessonProgress
     {
-        return DB::transaction(function () use ($user, $lesson, $secondsSpent) {
+        return DB::transaction(function () use ($user, $lesson, $secondsSpent, $fromExercise) {
             $progress = LessonProgress::query()->lockForUpdate()->firstOrNew(
                 ['user_id' => $user->id, 'lesson_id' => $lesson->id],
                 ['started_at' => now(), 'time_spent_seconds' => 0],
@@ -46,14 +58,18 @@ final class RecordLessonProgress
                 throw ValidationException::withMessages(['exercise' => [__('Pass the lesson exercise to complete this lesson.')]]);
             }
 
-            $progress->time_spent_seconds += min(max($secondsSpent, 0), self::MAX_SECONDS_PER_VISIT);
-            if ($progress->status !== LessonProgressStatus::Completed) {
+            $seconds = min(max($secondsSpent, 0), self::MAX_SECONDS_PER_VISIT);
+            $progress->time_spent_seconds += $seconds;
+            $firstTime = $progress->status !== LessonProgressStatus::Completed;
+            if ($firstTime) {
                 $progress->status = LessonProgressStatus::Completed;
                 $progress->completed_at = now();
             }
             $progress->save();
 
             $this->completeCourseIfFinished($user, $lesson);
+
+            LessonCompleted::dispatch($user, $lesson, $fromExercise ? 0 : $seconds, $firstTime);
 
             return $progress;
         });

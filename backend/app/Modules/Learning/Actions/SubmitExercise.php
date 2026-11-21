@@ -71,7 +71,7 @@ final class SubmitExercise
             ])->values()->all());
 
             if ($attempt->passed) {
-                $this->progress->complete($user, $lesson, $seconds);
+                $this->progress->complete($user, $lesson, $seconds, fromExercise: true);
             } else {
                 $this->progress->start($user, $lesson);
             }

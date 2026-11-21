@@ -3,17 +3,27 @@
 namespace App\Providers;
 
 use App\Models\AssessmentAttempt;
+use App\Models\ExerciseAttempt;
+use App\Models\Lab;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Modules\Admin\Policies\UserAdminPolicy;
+use App\Modules\Assessment\Events\AssessmentSubmitted;
 use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
 use App\Modules\Content\Policies\LessonPolicy;
 use App\Modules\Labs\Engines\LabLimits;
+use App\Modules\Labs\Events\LabCompleted;
+use App\Modules\Learning\Events\ExerciseSubmitted;
+use App\Modules\Learning\Events\LessonCompleted;
+use App\Modules\Learning\Events\LessonStarted;
+use App\Modules\Progress\Listeners\RecordLearningActivity;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -46,6 +56,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AssessmentAttempt::class, AssessmentAttemptPolicy::class);
 
         $this->configureRateLimits();
+        $this->configureLearningEvents();
+    }
+
+    /** Activity recording (D33): listeners on the learning events, and short morph names for activity subjects. */
+    private function configureLearningEvents(): void
+    {
+        Relation::morphMap([
+            'lesson' => Lesson::class,
+            'lab' => Lab::class,
+            'exercise_attempt' => ExerciseAttempt::class,
+            'assessment_attempt' => AssessmentAttempt::class,
+        ]);
+
+        Event::listen(LessonStarted::class, [RecordLearningActivity::class, 'lessonStarted']);
+        Event::listen(LessonCompleted::class, [RecordLearningActivity::class, 'lessonCompleted']);
+        Event::listen(ExerciseSubmitted::class, [RecordLearningActivity::class, 'exerciseSubmitted']);
+        Event::listen(AssessmentSubmitted::class, [RecordLearningActivity::class, 'assessmentSubmitted']);
+        Event::listen(LabCompleted::class, [RecordLearningActivity::class, 'labCompleted']);
     }
 
     private function configureRateLimits(): void

@@ -26,12 +26,7 @@ final class KnowledgeMap
     /** @return array<string, mixed> */
     public function present(User $user): array
     {
-        $topics = Topic::query()
-            ->with(['domain:id,slug,name,position', 'prerequisites:id,slug', 'lessons' => TopicStatus::lessonsConstraint()])
-            ->get()
-            ->filter(fn (Topic $t) => $t->lessons->isNotEmpty())
-            ->sortBy(fn (Topic $t) => [$t->domain->position, $t->level, $t->id])
-            ->values();
+        $topics = $this->studyableTopics();
         $progress = $this->topics->progress($topics, $user);
         $inPath = $user->learningPaths()->active()->first()?->nodes()->pluck('topic_id')->all() ?? [];
 
@@ -58,6 +53,30 @@ final class KnowledgeMap
             'topics' => $rows->all(),
             'edges' => $rows->flatMap(fn ($row) => array_map(fn ($from) => ['from' => $from, 'to' => $row['slug']], $row['requires']))->values()->all(),
         ];
+    }
+
+    /**
+     * Skills by domain for the dashboard (`/progress/skills`): the same rows as the map's
+     * `domains`, without the topics.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function skills(User $user): array
+    {
+        $topics = $this->studyableTopics();
+
+        return $this->domains($user, $topics, $this->topics->progress($topics, $user));
+    }
+
+    /** @return Collection<int, Topic> */
+    private function studyableTopics(): Collection
+    {
+        return Topic::query()
+            ->with(['domain:id,slug,name,position', 'prerequisites:id,slug', 'lessons' => TopicStatus::lessonsConstraint()])
+            ->get()
+            ->filter(fn (Topic $t) => $t->lessons->isNotEmpty())
+            ->sortBy(fn (Topic $t) => [$t->domain->position, $t->level, $t->id])
+            ->values();
     }
 
     /**

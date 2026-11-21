@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['avatar_path', 'phone', 'date_of_birth', 'education_level', 'locale', 'theme'])]
+#[Fillable(['avatar_path', 'phone', 'date_of_birth', 'education_level', 'locale', 'theme', 'timezone'])]
 class UserProfile extends Model
 {
     /** @use HasFactory<UserProfileFactory> */

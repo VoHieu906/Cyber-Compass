@@ -80,7 +80,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | PATCH | `/me/profile` (name, phone, date_of_birth, education_level) | ✅ Phase 2 |
 | 🔒 | POST | `/me/avatar` (multipart `avatar`: jpg/png/webp, 64–6000 px, ≤ 2 MB; stored as a 256 px WebP under a random name) | ✅ Phase 2 |
 | 🔒 | DELETE | `/me/avatar` | ✅ Phase 2 |
-| 🔒 | PATCH | `/me/preferences` (locale, theme; either or both; Phase 6 adds `timezone`, an IANA name) | ✅ Phase 2 |
+| 🔒 | PATCH | `/me/preferences` (locale, theme, `timezone` (an IANA name, Phase 6); any of them) | ✅ Phase 2, timezone Phase 6 |
 | 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
 | 🔒 | PUT | `/me/learning-goal` (`career` slug, `self_level` beginner/intermediate/advanced, `weekly_minutes` 30 to 2400, `domains[]` slugs). Every field is optional and only the ones sent change; null clears. Returns me, whose `learning_goal` is `{career {slug, title} \| null, self_level, weekly_minutes, domains[]}` or null. Changing the career never rebuilds the roadmap. | ✅ Phase 4 |
 | 🔒 | GET/PUT | `/me/notification-preferences` | Phase 6 |
@@ -245,15 +245,15 @@ The lesson (`GET /lessons/{slug}`) lists `labs` [{slug, title}] that practise it
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/progress/summary` (enrolled, completed courses, completed lessons, total minutes, streak, roadmap %) |
-| 🔒 | GET | `/progress/activity?range=12w` (weekly minutes, lessons completed per week) |
-| 🔒 | GET | `/progress/skills` (latest domain scores + completion per domain) |
-| 🔒 | GET | `/progress/recent` (activity feed) |
-| 🔒 | GET | `/progress/next` (up to 3 recommended next lessons from the roadmap) |
-| 🔒 | GET | `/progress/courses` (completion per enrolled course) |
-| 🔒 | GET | `/progress/assessments` (submitted attempts with overall and domain scores, oldest first) |
+| 🔒 | GET | `/progress/summary`: `{enrolled_courses, completed_courses, completed_lessons, total_minutes, week {starts_on, minutes, goal_minutes}, streak {current, longest, active_today, last_active_on}, roadmap {career, completion_percent} \| null, timezone}` ✅ |
+| 🔒 | GET | `/progress/activity?range=12w` (4w to 52w, else 422): `{timezone, lessons_completed_before, weeks [{starts_on, minutes, lessons_completed}]}`, oldest first, Monday weeks ✅ |
+| 🔒 | GET | `/progress/skills`: the knowledge map's `domains` rows `[{slug, name, score, band, completion {completed, total, percent}}]` ✅ |
+| 🔒 | GET | `/progress/recent`: the last 15 activities `[{id, type, occurred_at, minutes, subject}]`; `subject.kind` is `lesson` {slug, title}, `lab` {slug, title}, `exercise` {lesson, score, passed} or `assessment` {id, title, score} ✅ |
+| 🔒 | GET | `/progress/next`: `{source: roadmap \| courses \| null, lessons [{slug, title, topic or course, estimated_minutes}]}`; up to 3 from the active roadmap (`PathProgress::nextLessons`), else the next lesson of each unfinished enrolled course ✅ |
+| 🔒 | GET | `/progress/courses`: `[{slug, title, domain, enrolled_at, completed_at, completed_lessons, total_lessons, percent}]`, unfinished first ✅ |
+| 🔒 | GET | `/progress/assessments`: the last 20 submitted attempts, oldest first, in the `/assessment-attempts` summary shape ✅ |
 
-Streaks and weeks use the learner's local date (`user_profiles.timezone`, D33). Phase 6 Part A.
+Streaks and weeks use the learner's local date (`user_profiles.timezone`, D33; UTC until set). Phase 6 Part A.
 
 ### Notifications
 

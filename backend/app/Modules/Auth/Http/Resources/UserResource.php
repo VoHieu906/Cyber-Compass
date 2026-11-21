@@ -36,6 +36,7 @@ class UserResource extends JsonResource
                 'education_level' => $profile?->education_level?->value,
                 'locale' => $profile?->locale?->value ?? 'en',
                 'theme' => $profile?->theme?->value ?? 'system',
+                'timezone' => $profile?->timezone,
             ],
             'learning_goal' => $goal ? [
                 'career' => $goal->career ? ['slug' => $goal->career->slug, 'title' => $goal->career->title] : null,

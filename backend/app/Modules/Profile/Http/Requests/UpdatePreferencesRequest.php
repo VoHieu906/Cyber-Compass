@@ -14,6 +14,8 @@ class UpdatePreferencesRequest extends FormRequest
         return [
             'locale' => ['sometimes', 'required', Rule::enum(Locale::class)],
             'theme' => ['sometimes', 'required', Rule::enum(ThemePreference::class)],
+            // An IANA name such as Asia/Ho_Chi_Minh; decides "today" for streaks and reminders (D33).
+            'timezone' => ['sometimes', 'required', 'string', 'max:64', 'timezone:all'],
         ];
     }
 }

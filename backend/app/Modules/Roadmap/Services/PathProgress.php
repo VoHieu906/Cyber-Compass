@@ -98,19 +98,38 @@ final class PathProgress
      */
     public function nextLesson(Collection $rows): ?array
     {
+        $next = $this->nextLessons($rows, 1)[0] ?? null;
+
+        return $next ? ['slug' => $next['slug'], 'title' => $next['title'], 'topic' => $next['topic']] : null;
+    }
+
+    /**
+     * Up to `$limit` unfinished lessons in roadmap order, by the same rule as `nextLesson()`:
+     * open required topics first, then open review topics. Used by `/progress/next`.
+     *
+     * @param  Collection<int, array<string, mixed>>  $rows
+     * @return list<array{slug: string, title: string, topic: string, estimated_minutes: int}>
+     */
+    public function nextLessons(Collection $rows, int $limit): array
+    {
+        $found = [];
         foreach (['required', 'review'] as $recommendation) {
             foreach ($rows as $row) {
                 if ($row['recommendation'] !== $recommendation || ! in_array($row['status'], ['in_progress', 'available'], true)) {
                     continue;
                 }
                 foreach ($row['lessons'] as $lesson) {
-                    if ($lesson['status'] !== 'completed') {
-                        return ['slug' => $lesson['slug'], 'title' => $lesson['title'], 'topic' => $row['topic']['title']];
+                    if ($lesson['status'] === 'completed' || isset($found[$lesson['slug']])) {
+                        continue;
+                    }
+                    $found[$lesson['slug']] = ['slug' => $lesson['slug'], 'title' => $lesson['title'], 'topic' => $row['topic']['title'], 'estimated_minutes' => (int) $lesson['estimated_minutes']];
+                    if (count($found) >= $limit) {
+                        return array_values($found);
                     }
                 }
             }
         }
 
-        return null;
+        return array_values($found);
     }
 }

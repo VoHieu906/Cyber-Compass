@@ -5,8 +5,8 @@ Where the project stands and what the next phase needs to know. This page only p
 ## Current state (2026-11-21)
 
 - **Phases 1 to 5 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Next: Phase 6**, progress and engagement: activity recording, streaks, the dashboard, analytics and notifications ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)).
-- **Tests at handoff:** 561 Pest and 303 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 6 in progress** ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)): Part A (activity recording, streaks, `/progress/*`) is done; next is Part B, the dashboard.
+- **Tests at handoff:** 595 Pest and 303 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 

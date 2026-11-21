@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         __DIR__.'/../app/Modules/Content/Console',
         __DIR__.'/../app/Modules/Admin/Console',
+        __DIR__.'/../app/Modules/Progress/Console',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum SPA authentication: session cookies + CSRF for requests from the frontend origin.

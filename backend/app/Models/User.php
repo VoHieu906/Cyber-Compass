@@ -64,6 +64,12 @@ class User extends Authenticatable implements HasLocalePreference
         return $this->hasMany(LessonProgress::class);
     }
 
+    /** @return HasMany<LearningActivity, $this> */
+    public function learningActivities(): HasMany
+    {
+        return $this->hasMany(LearningActivity::class);
+    }
+
     /** @return HasMany<ExerciseAttempt, $this> */
     public function exerciseAttempts(): HasMany
     {
