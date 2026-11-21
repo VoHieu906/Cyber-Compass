@@ -106,6 +106,9 @@ class AppServiceProvider extends ServiceProvider
         // Lab actions run a server-side engine each (ARCHITECTURE §7.1).
         RateLimiter::for('lab-actions', fn (Request $request) => Limit::perMinute(LabLimits::ACTIONS_PER_MINUTE)
             ->by('lab:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
+        // Header search runs while typing (debounced); generous, but bounded per user or address.
+        RateLimiter::for('search', fn (Request $request) => Limit::perMinute(60)
+            ->by('search:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
         // Exercise attempts are scored and stored on every submit; retries are fine, a loop is not.
         RateLimiter::for('exercise-attempts', fn (Request $request) => Limit::perMinute(20)
             ->by('exercise:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));

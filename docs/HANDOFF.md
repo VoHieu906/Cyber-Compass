@@ -4,9 +4,9 @@ Where the project stands and what the next phase needs to know. This page only p
 
 ## Current state (2026-11-21)
 
-- **Phases 1 to 5 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Phase 6 in progress** ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)): Parts A (activity recording, streaks, `/progress/*`) B (the dashboard at `/dashboard`, charts in `lib/charts`) C (the notifications backend, reminders, scheduler service) and D (the header bell, `/notifications`, the notifications settings tab) are done; next is Part E, global search.
-- **Tests at handoff:** 627 Pest and 327 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
+- **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
+- **Tests at handoff:** 638 Pest and 333 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -24,13 +24,20 @@ Where the project stands and what the next phase needs to know. This page only p
 | Backend commands and module rules | [backend/CLAUDE.md](../backend/CLAUDE.md) |
 | Next.js version notes | [frontend/AGENTS.md](../frontend/AGENTS.md) |
 
-## What Phase 6 builds on
+## What Phase 7 builds on
 
-- **Events to listen to:** `AssessmentSubmitted`, `ExerciseSubmitted` and `LabCompleted` are dispatched after commit with no listeners yet. Lesson completion has no event: add `LessonCompleted` in `Learning\Actions\RecordLessonProgress` (the one place lessons complete, including through a passing exercise) rather than recording activity in controllers.
-- **Study time already recorded:** `lesson_progress.time_spent_seconds` (capped at 4 hours per visit), `exercise_attempts.time_spent_seconds`, and `lab_attempts.action_count` for lab activity.
-- **Dashboard pieces that exist:** roadmap completion, the time estimate and the next lesson come from `Roadmap\Services\PathProgress` (`present()`, `nextLesson()`); skills by domain (latest score, band, completion) come from `Roadmap\Services\KnowledgeMap::domains()`; assessment history from `GET /assessment-attempts`; lab progress from `GET /labs`. Reuse them for `/progress/*`; never recompute status or scores.
-- **Charts:** Recharts is not installed yet. Weigh it against the D27 reasoning (static SVG from our own components) when the dashboard is designed.
-- **Notifications** arrive as another settings tab beside personal, learning goals, security and preferences.
+- **Services to deploy:** `api`, `worker` (notifications and the lesson recommendation fan-out are queued) and the scheduler. Locally the `scheduler` compose service runs `schedule:work`; on AWS an EventBridge rule runs `schedule:run` every minute (ARCHITECTURE §8). The only scheduled task is `notifications:send-reminders`, hourly.
+- **Mail:** Mailpit locally; SES in production. Email is opt-in per notification type (D34), so most learners receive none.
+- **Rate limits to review:** `api` 120 per minute per user (one dashboard load makes 8 requests and the bell polls once a minute), `search` 60, `lab-actions` 60, `exercise-attempts` 20, `admin` 120, `uploads` 10, `register` 10 per hour, `password` 5.
+- **E2E targets:** login lands on `/dashboard`; the header carries search (`/`, Ctrl+K) and the bell; below 1280px the primary nav sits in the Menu button.
+- **Browser checks in the session scratchpad** cover each Phase 6 part (`dashboard-check.mjs`, `notifications-check.mjs`, `search-check.mjs`); they are a starting point for the Playwright suite.
+
+## Phase 6 notes that stay true
+
+- **Activity is written only by listeners** (D33) through `Progress\Services\ActivityRecorder`; streaks and weeks use the learner's stored timezone through `LearnerClock` (legacy aliases such as Asia/Saigon accepted). Never compute progress in the UI.
+- **Notifications store type, parameters and a path, never text** (D34); the app words them (`useNotificationText`) and emails use `lang/*/notifications.php`. One-off sends claim a key through `SendOnce`.
+- **Charts** are `lib/charts` components with a table view each (D32); no chart library.
+- **Search** goes through `App\Support\Search\Like` (D15) and `Lesson::scopeVisibleToLearners` (D36).
 
 ## Phase 5 notes that stay true
 
@@ -57,14 +64,16 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Fixed question bank:** every attempt asks the same 40 questions. The result reveals answers only for missed questions (D26); a larger, randomly drawn pool is a follow-up content task ([roadmap follow-ups](IMPLEMENTATION_ROADMAP.md#follow-ups-not-scheduled-in-a-phase)). The schema already supports it.
 - **Topic links and admin-owned lessons:** `topics.php` can add an admin-owned lesson to a topic, but removing it from the file does not unlink it (D19).
 - **Assessment content is English:** the title, description and questions are content (O2); the UI around them is bilingual.
-- **Vitest timing flake:** `register-form.test.tsx` once exceeded the 5-second default timeout during a full run under load; it passes alone and in later runs.
+- **Vitest timing under load:** long interaction tests can pass the 5-second default during a full run (`register-form.test.tsx` once; the exercise-screen test now has 15 seconds). They pass alone and in later runs.
 - **3D in automated screenshots:** full-page captures in headless Edge can stall a 3D scene until the watchdog closes it. Capture at viewport size.
 - **Tests coupled to seeded content:** derive expected values from the data rather than hard-coding them.
 - **Export formatting:** `content:export` output can reorder payload keys (MySQL JSON); review the diff before committing.
 - **3D scripts** can be switched off with `CONTENT_SCRIPTED_3D=false` ([SANDBOXED_3D.md](SANDBOXED_3D.md)).
-- **Not built yet:** email verification; learning activities, notifications and global search (Phase 6).
+- **Not built yet:** email verification.
+- **Lesson time** counts only when a learner reaches the end of a lesson; reading part of one records nothing (Phase 6 known gap).
+- **Notifications created in the same second** can list in either order (timestamps are per second).
 - **Lab content is English** like lessons (O2); engine messages (shell errors, refusals) are English too, while the UI around them is bilingual.
-- **Browser checks in the session scratchpad** (`graph-check.mjs`, `exercise-c-check.mjs`, `labs-check.mjs`) register `assess-check-*@example.test` learners; delete them afterwards. `exercise-c-check.mjs` reads the answer key through a temporary `backend/storage/app/exercise-key.php`, which must be deleted after the run.
+- **Browser checks in the session scratchpad** (`graph-check.mjs`, `exercise-c-check.mjs`, `labs-check.mjs`, and the Phase 6 scripts) use `assess-check-*@example.test` learners; delete them afterwards (deleting a user also deletes its notifications). `exercise-c-check.mjs` reads the answer key through a temporary `backend/storage/app/exercise-key.php`, which must be deleted after the run.
 
 ## Local environment
 

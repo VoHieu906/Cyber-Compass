@@ -7,17 +7,24 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
+import { useCurrentUser } from "@/features/auth/hooks";
 import { cn } from "@/lib/utils";
 
-/** Routes that exist today; search joins in Phase 6 Part E. Signed-out visitors who open the dashboard, assessment, roadmap or labs are sent to log in first. */
+/** Routes that exist today; search is the header's search dialog (D36). The dashboard shows once signed in; signed-out visitors who open the assessment, roadmap or labs are sent to log in first. */
 const LINKS = [
-  { href: "/dashboard", key: "dashboard" },
+  { href: "/dashboard", key: "dashboard", signedIn: true },
   { href: "/courses", key: "courses" },
   { href: "/careers", key: "careers" },
   { href: "/assessment", key: "assessment" },
   { href: "/roadmap", key: "roadmap" },
   { href: "/labs", key: "labs" },
 ] as const;
+
+/** The links to show: the dashboard only once signed in, so the guest header stays short. */
+function useLinks() {
+  const { data: user } = useCurrentUser();
+  return LINKS.filter((link) => !("signedIn" in link) || Boolean(user));
+}
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -26,10 +33,11 @@ function isActive(pathname: string, href: string) {
 export function MainNav() {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const links = useLinks();
   return (
-    <nav aria-label={t("primary")} className="max-md:hidden">
+    <nav aria-label={t("primary")} className="max-xl:hidden">
       <ul className="flex items-center gap-1">
-        {LINKS.map((link) => {
+        {links.map((link) => {
           const active = isActive(pathname, link.href);
           return (
             <li key={link.href}>
@@ -51,10 +59,11 @@ export function MainNav() {
   );
 }
 
-/** Below the md breakpoint: one button that opens the links and the display preferences. */
+/** Below the xl breakpoint (1280px): one button that opens the links and the display preferences. The full signed-in header (six links, search, bell, account, language, theme) needs that width. */
 export function MobileMenu() {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const links = useLinks();
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +81,7 @@ export function MobileMenu() {
   }, [open]);
 
   return (
-    <div className="md:hidden">
+    <div className="xl:hidden">
       <button
         ref={buttonRef}
         type="button"
@@ -92,7 +101,7 @@ export function MobileMenu() {
         <div className="container-page flex flex-col gap-5 py-5">
           <nav aria-label={t("primary")}>
             <ul className="flex flex-col">
-              {LINKS.map((link) => (
+              {links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

@@ -144,7 +144,8 @@ describe("ExerciseView", () => {
     await user.click(within(wrong).getByRole("button", { name: "Read the theory: Encapsulation" }));
     expect(within(theory).getByRole("heading", { name: "Encapsulation" })).toBeInTheDocument();
     expect(window.sessionStorage.getItem("exercise-draft:osi-model")).toBe("{}");
-  });
+    // Drives seven question types through the real inputs; under a full parallel run it can pass 5 s.
+  }, 15_000);
 
   it("uses tabs for the exercise and the theory on narrow screens", async () => {
     const user = userEvent.setup();

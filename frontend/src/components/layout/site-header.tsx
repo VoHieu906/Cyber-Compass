@@ -3,6 +3,7 @@ import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { AccountNav } from "@/features/auth/components/account-nav";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { SearchDialog } from "@/features/search/components/search-dialog";
 import { MainNav, MobileMenu } from "./main-nav";
 import { Wordmark } from "./wordmark";
 
@@ -17,10 +18,11 @@ export async function SiteHeader() {
           <MainNav />
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-2 max-md:hidden">
+          <div className="flex items-center gap-2 max-xl:hidden">
             <LocaleSwitcher />
             <ThemeSwitcher />
           </div>
+          <SearchDialog />
           <NotificationBell />
           <AccountNav />
           <MobileMenu />

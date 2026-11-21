@@ -97,7 +97,7 @@ Scale: `--text-xs .8125rem · sm .875rem · md 1rem · lg 1.25rem · xl 1.5625re
 - **Three depths, no lamp.** Ground, then panel, then deepest (inputs, code, terminal, the changed row). No glow, bloom, gradient surfaces or glass.
 - **Container** capped at 1440px and centred. At wide viewports the gutters grow, not the grid.
 - `overflow-x: clip` on `html` and `body`.
-- **App shell:** a 64px top bar (wordmark, primary nav, search, notifications, avatar) and a left rail inside the learning views only (lesson outline). No sidebar dashboard on every page.
+- **App shell:** a 64px top bar (wordmark, primary nav, search, notifications, avatar) and a left rail inside the learning views only (lesson outline). No sidebar dashboard on every page. Below 1280px the primary nav, language and theme move into the Menu button, because the signed-in bar (six links, search, bell, account and the two switches) needs that width; search, the bell and the account stay in the bar at every width. Search is an icon button that also opens with `/` or Ctrl+K, in a native dialog with results grouped by kind and the match marked.
 
 ## 6. Components and states
 

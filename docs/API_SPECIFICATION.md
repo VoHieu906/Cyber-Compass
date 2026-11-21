@@ -320,13 +320,13 @@ Audit entry shape: `{ id, action, actor: {id, name} | null, subject: {type, id, 
 
 | | Method | Path |
 |---|---|---|
-| 🔓 | GET | `/search?q=` (courses, lessons, careers, grouped; max 5 each). Phase 6; the catalog has its own search today. |
+| 🔓 | GET | `/search?q=` (2 to 100 characters after trimming, else 422): `{query, courses [{slug, title, summary, domain}], lessons [{slug, title, summary, course}], careers [{slug, title, summary}]}`, at most 5 each, titles starting with the term first. D15 matching on title and summary; `%` and `_` match themselves. Throttle `search`: 60 per minute per learner or address. ✅ Phase 6 Part E (D36) |
 
 ## Security notes
 
 - Exercise and assessment answer keys never appear in a response before the attempt is submitted. Feature tests assert this.
 - Policies scope every user-owned record. Another user's record returns 404, not 403. Admin routes are the exception by design: a learner gets 403 on every `/admin/*` route (AdminAccessTest checks all of them, read from the router).
 - Admins never see password hashes, remember tokens or reset tokens, and the audit log strips them from `changes`.
-- Phase 6 global search must use `Lesson::scopeVisibleToLearners`, so drafts never leak through it.
+- Global search uses `Lesson::scopeVisibleToLearners` and only published courses and careers, so drafts, archived lessons and unpublished courses never leak through it (tested).
 - Uploads are validated by MIME type and dimensions, stored under random names, and served from S3 or CloudFront. User-supplied SVG is never served.
 - Lesson content is structured JSON rendered by React components. There is no `dangerouslySetInnerHTML` with user or content HTML.

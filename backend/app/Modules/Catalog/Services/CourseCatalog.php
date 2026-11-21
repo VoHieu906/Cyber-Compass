@@ -5,6 +5,7 @@ namespace App\Modules\Catalog\Services;
 use App\Enums\Difficulty;
 use App\Models\Course;
 use App\Models\User;
+use App\Support\Search\Like;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -34,8 +35,7 @@ final class CourseCatalog
         }
 
         if ($term = trim((string) ($params['q'] ?? ''))) {
-            $like = '%'.addcslashes($term, '%_\\').'%';
-            $query->where(fn (Builder $q) => $q->where('title', 'like', $like)->orWhere('summary', 'like', $like));
+            Like::anyColumn($query, ['title', 'summary'], $term);
         }
 
         $filter = $params['filter'] ?? [];

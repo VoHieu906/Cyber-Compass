@@ -1533,5 +1533,21 @@
       "milestoneRoadmap": "Lộ trình {title} của bạn đã xong {percent}%.",
       "milestoneStreak": "{days} ngày liên tiếp. Hãy giữ chuỗi nhé."
     }
+  },
+  "search": {
+    "open": "Tìm kiếm",
+    "title": "Tìm trong CyberCompass",
+    "close": "Đóng tìm kiếm",
+    "label": "Tìm khóa học, bài học và nghề nghiệp",
+    "placeholder": "Khóa học, bài học, nghề nghiệp…",
+    "hint": "Nhập ít nhất 2 ký tự.",
+    "searching": "Đang tìm…",
+    "count": "{count} kết quả",
+    "none": "Không có kết quả cho “{query}”. Hãy thử từ ngắn hơn hoặc từ khác.",
+    "error": "Hiện không tìm được. Hãy thử lại sau giây lát.",
+    "courses": "Khóa học",
+    "lessons": "Bài học",
+    "careers": "Nghề nghiệp",
+    "shortcut": "Tìm kiếm (nhấn / hoặc Ctrl+K)"
   }
 }

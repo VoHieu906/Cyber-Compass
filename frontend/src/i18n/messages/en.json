@@ -1533,5 +1533,21 @@
       "milestoneRoadmap": "Your {title} roadmap is {percent}% done.",
       "milestoneStreak": "{days} days in a row. Keep it going."
     }
+  },
+  "search": {
+    "open": "Search",
+    "title": "Search CyberCompass",
+    "close": "Close search",
+    "label": "Search courses, lessons and careers",
+    "placeholder": "Courses, lessons, careers…",
+    "hint": "Type at least 2 characters.",
+    "searching": "Searching…",
+    "count": "{count, plural, =1 {# result} other {# results}}",
+    "none": "Nothing matches “{query}”. Try a shorter or different word.",
+    "error": "Search isn't available right now. Try again in a moment.",
+    "courses": "Courses",
+    "lessons": "Lessons",
+    "careers": "Careers",
+    "shortcut": "Search (press / or Ctrl+K)"
   }
 }
