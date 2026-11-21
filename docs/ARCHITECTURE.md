@@ -208,28 +208,47 @@ flowchart LR
 
 ## 8. Deployment architecture (AWS)
 
+Decided in the Phase 7 impact check (D37 to D45, 2026-11-21). Region: `ap-southeast-1`. `<domain>` stands for the project's domain until it is registered.
+
 ```mermaid
 flowchart TB
-  U[Users] --> CF[CloudFront]
-  CF -->|"/_next/static, assets"| S3S[(S3 static assets)]
-  CF --> ALB[Application Load Balancer]
-  ALB -->|"host: app."| WEB[ECS Fargate: web<br/>Next.js standalone]
-  ALB -->|"host: api."| API[ECS Fargate: api<br/>Laravel nginx + php-fpm]
-  WRK[ECS Fargate: worker<br/>same api image, queue:work] --> RDS
-  API --> RDS[(RDS MySQL 8.4)]
-  API --> S3U[(S3 uploads: avatars, lesson media)]
-  API --> SES[SES mail]
-  SM[Secrets Manager] -.-> API & WRK & WEB
-  API & WEB & WRK -.-> CW[CloudWatch Logs]
-  EB[EventBridge schedule] -.->|schedule:run task| API
+  U[Browser] -->|"app.domain"| CFA[CloudFront: web<br/>caches /_next/static]
+  U -->|"media.domain"| CFM[CloudFront: uploads]
+  U -->|"api.domain"| ALB
+  CFA -->|"origin-app.domain<br/>+ secret origin header"| ALB[Application Load Balancer<br/>ACM certificate, host rules]
+  CFM -->|OAC| S3U[(S3 uploads, private:<br/>avatars, lesson media)]
+  ALB -->|"host: origin-app."| WEB[ECS service web<br/>Next.js standalone]
+  ALB -->|"host: api."| API[ECS service api<br/>Laravel nginx + php-fpm]
+  subgraph WT[ECS service worker: one task, two containers]
+    WRK[queue:work]
+    SCH[schedule:work]
+  end
+  API & WRK & SCH --> RDS[(RDS MySQL 8.4<br/>db.t4g.micro, private subnets)]
+  API --> S3U
+  API & WRK --> SES[SES API<br/>DKIM on domain]
+  SM[Secrets Manager] -.-> API & WT & WEB
+  API & WEB & WT -.-> CW[CloudWatch Logs]
+  R53[Route 53: domain + hosted zone] -.-> CFA & CFM & ALB
 ```
 
-MVP deliberately leaves out:
+| Piece | How it runs | Why |
+|---|---|---|
+| `web` | ECS service, Next.js standalone image. Reached only through CloudFront: the ALB rule for `origin-app.<domain>` requires a secret header that CloudFront adds, so the ALB address cannot bypass CloudFront | CloudFront caches `/_next/static` (immutable, hashed) from the app itself, so a deployment has no separate S3 sync step (D41) |
+| `api` | ECS service, Laravel production image, `api.<domain>` straight on the ALB (no CloudFront) | The ALB's `X-Forwarded-For` entry is the real client, so per-IP limits (login lockout, register) stay per person (D41) |
+| `worker` | ECS service with one task holding two containers from the api image: `queue:work` and `schedule:work` | Notifications and the lesson fan-out are queued (D37); the hourly reminder runs from `routes/console.php` with no extra AWS service (D38) |
+| migrations | One-off ECS task from the api image: `migrate --force`, then the content import (never the demo users) | Never on container start, so two api tasks cannot race |
+| Database | RDS MySQL 8.4, `db.t4g.micro`, single AZ, private subnets, reachable only from the three services' security group | D43; Multi-AZ is a documented upgrade |
+| Uploads | Private S3 bucket through the `s3` disk, served by CloudFront with origin access control | The bucket is never public (D41) |
+| Mail | SES through Laravel's `ses` mailer with the task role's permission; DKIM on `<domain>` | No mail password to store (D39) |
+| Network | Tasks in public subnets with public IPs; security groups accept traffic only from the ALB; RDS in private subnets; no NAT gateway | Cheapest path to ECR, Secrets Manager, CloudWatch, S3 and SES (D40) |
+
+MVP deliberately leaves out, each documented as a later step:
 
 - ElastiCache. Sessions, cache and queue use the **database** driver, which is enough at this scale. Switching to Redis is a config change.
-- NAT-free VPC endpoints and WAF. Both are documented as hardening steps.
+- A NAT gateway or VPC endpoints with private task subnets (D40), Multi-AZ RDS (D43) and infrastructure as code (D44).
+- EventBridge: the scheduler is a container (D38).
 
-Configuration is read from environment variables only. Secrets come from Secrets Manager, injected through ECS task definitions. No AWS resource names appear in application code. Files go through Laravel's `Storage` facade (`s3` disk in production, `local` disk in development).
+Configuration is read from environment variables only. Secrets come from Secrets Manager, injected through ECS task definitions; the task role grants S3 and SES access, so no AWS keys exist in the app's configuration. No AWS resource names appear in application code. Files go through Laravel's `Storage` facade (`s3` disk in production, `public` disk in development).
 
 ## 9. Key decisions
 
@@ -271,6 +290,15 @@ Configuration is read from environment variables only. Secrets come from Secrets
 | D34 | Notifications use Laravel's **database channel plus opt-in mail**, queued and sent after commit. Types: `recommendation` (a lesson published for the first time, sent to learners whose active roadmap holds one of its topics or who are enrolled in its course; fanned out by a queued job in chunks), `lesson_completed`, `milestone` (`MilestoneReached`: course completed, roadmap 25/50/75/100%, streaks of 7, 30 and 100 days; each sent once), `reminder`, `assessment_result`. Preferences are stored only when changed; the defaults live in code (in app on, email off for every type). The reminder job runs hourly and notifies, at 18:00 local time and at most once a day, learners with a learning goal and no activity that day. The header polls the unread count every 60 seconds and on focus | Preference rows created at registration; websockets (Reverb) for live counts; in-app only | Email is what reaches a learner who stopped visiting, and the queue and mail setup already exist (Mailpit locally, SES on AWS). Polling needs no extra service on ECS. Lazy defaults avoid backfilling rows for existing users |
 | D35 | `/dashboard` is the learner's home: the page after login and the first header link | Keeping `/settings/profile` as the landing | The dashboard is where progress, next lessons and notifications meet |
 | D36 | Global search (`GET /search`, header search) is Phase 6 Part E and reuses the D15 substring matching across courses, lessons and careers (at most 5 each), with lessons through `Lesson::scopeVisibleToLearners` | A search engine; leaving search to Phase 7 | The brief lists Search in the navigation; at this scale D15 matching is enough, and the visibility scope keeps drafts out |
+| D37 | The queue worker runs as its own ECS service (`worker`, one task, `queue:work --tries=3`) on the api image | Worker containers inside the `api` task; no worker (`sync` or `deferred` queue) | Every notification is queued after commit and a first publish fans out through `RecommendNewLesson`. With `sync` the publish request would wait for the fan-out and every mail call and fail with them; `deferred` drops failed jobs. A separate service keeps slow mail away from API requests and scales on its own. About $13 a month (Phase 7 impact check, 2026-11-21) |
+| D38 | The scheduler is a **second container in the worker task** running `schedule:work`; it replaces the planned EventBridge rule that ran `schedule:run` every minute | EventBridge every minute (the earlier plan); EventBridge Scheduler running `notifications:send-reminders` hourly | Laravel runs an `hourly()` task only if the clock still reads minute 0 when `schedule:run` starts, and a Fargate task takes 30 to 60 s to start, so reminders would be skipped; starting about 43 000 tasks a month also costs as much as a running container. A container keeps the schedule in `routes/console.php` only, adds no AWS service, and `onOneServer()` (database cache lock) keeps it single if the worker scales |
+| D39 | Mail in production goes through **Amazon SES's API** (Laravel `ses` mailer) with permission from the task role; `<domain>` is verified with DKIM. `league/flysystem-aws-s3-v3` (which brings `aws/aws-sdk-php`) is added, because the `s3` uploads disk could not work without it | SES SMTP with stored credentials; a third-party SMTP service; no production mail | Password reset (Phase 2) needs mail, and notification email is opt-in (D34), so volume is tiny (about $0.10 per 1 000). The SDK is required for S3 anyway, and the task role means no mail secret exists. SES starts in its sandbox: production access is requested during deployment |
+| D40 | ECS tasks run in **public subnets with public IPs**; their security groups accept traffic only from the ALB. RDS sits in private subnets, reachable only from the tasks' security group. No NAT gateway | Private subnets with a NAT gateway (about $43 a month); private subnets with VPC endpoints (about $70 a month or more) | Tasks need outbound access to ECR, Secrets Manager, CloudWatch, S3 and SES. A public IP costs about $3.65 per task per month and inbound traffic is still refused. NAT is the documented hardening step |
+| D41 | **Domain layout (closes O3):** the domain is registered in Route 53 (hosted zone for ACM and SES DNS records). `api.<domain>` goes straight to one ALB with an ACM certificate. `app.<domain>` is a CloudFront distribution in front of the same ALB (origin `origin-app.<domain>`, an ALB host rule that also requires a secret header from CloudFront), caching `/_next/static` from the app. A second CloudFront distribution (`media.<domain>`) serves the private uploads bucket through origin access control | One host with `/api/*` path routing behind CloudFront; S3 for static assets | Two subdomains match the Sanctum and CORS setup (D1). Keeping the API off CloudFront means the ALB's `X-Forwarded-For` entry is the real client, so the per-IP limits are not shared by everyone behind one CloudFront edge. Caching static files from the app removes an S3 sync step from every deployment. The uploads bucket is never public |
+| D42 | Security headers on every response: HSTS, `X-Content-Type-Options`, `Referrer-Policy: strict-origin-when-cross-origin` (`no-referrer` on `/reset-password`), `frame-ancestors`, `Permissions-Policy`; a **nonce-based CSP** set in `proxy.ts`, shipped report-only first and enforced once the E2E suite passes under it. The API sends the same non-CSP headers | No CSP; a static CSP with `'unsafe-inline'` | Every route is already dynamic (D9), so nonces cost little. The reset token sits in the URL and must not leak through the Referer header. The sandbox keeps its own stricter CSP (D22) |
+| D43 | RDS MySQL 8.4 on `db.t4g.micro`, single AZ, 20 GB gp3, automated backups for 7 days | Multi-AZ (twice the cost); Aurora Serverless | Enough for a graduation demo (about $15 a month plus storage). Multi-AZ is a documented upgrade |
+| D44 | AWS setup is **documented AWS CLI commands and JSON templates** in `infrastructure/aws/`, written to be read and explained step by step. A real deployment is Phase 7 Part H: the owner runs each step in their account and the result is verified. Infrastructure as code is future work | Terraform or CDK | The owner must understand and defend every resource, and the brief asks for deployment documentation. IaC would add a tool to learn without changing the architecture |
+| D45 | End-to-end tests use **Playwright** (`@playwright/test`, plus `@axe-core/playwright` for Part E), dev dependencies only: Edge locally (no browser download), bundled Chromium in CI. Accounts are throwaway `e2e-*@example.test` users made and purged by `cybercompass:e2e-users`, which refuses to run in production | The scratchpad puppeteer scripts; Cypress | Playwright is what the roadmap named, runs Edge through its `msedge` channel, and replaces the session-only check scripts with a committed suite. Creating accounts by command keeps the register limit (10 per hour per IP) a real limit while the suite registers one learner through the UI per run |
 
 ## 10. Risks
 

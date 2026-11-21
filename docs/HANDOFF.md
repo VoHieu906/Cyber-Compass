@@ -6,14 +6,15 @@ Where the project stands and what the next phase needs to know. This page only p
 
 - **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
-- **Tests at handoff:** 638 Pest and 333 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 7 in progress:** Part A (E2E suite) is done; next is Part B, security review I (API). Decisions D37 to D45; the extra scope (CI, CD, budgets and alarms, sleep and wake, WAF) is waiting on the owner's choices.
+- **Tests:** 642 Pest, 334 Vitest and 12 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D36) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D45) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
@@ -26,11 +27,11 @@ Where the project stands and what the next phase needs to know. This page only p
 
 ## What Phase 7 builds on
 
-- **Services to deploy:** `api`, `worker` (notifications and the lesson recommendation fan-out are queued) and the scheduler. Locally the `scheduler` compose service runs `schedule:work`; on AWS an EventBridge rule runs `schedule:run` every minute (ARCHITECTURE §8). The only scheduled task is `notifications:send-reminders`, hourly.
-- **Mail:** Mailpit locally; SES in production. Email is opt-in per notification type (D34), so most learners receive none.
+- **Services to deploy:** `api`, `web` and `worker` (D37: notifications and the lesson recommendation fan-out are queued). The worker task also runs `schedule:work` as a second container (D38; it replaced the planned EventBridge rule). The only scheduled task is `notifications:send-reminders`, hourly. Deployment layout: ARCHITECTURE §8 and D37 to D45.
+- **Mail:** Mailpit locally; the SES API with the task role in production (D39). Email is opt-in per notification type (D34), so most learners receive none.
 - **Rate limits to review:** `api` 120 per minute per user (one dashboard load makes 8 requests and the bell polls once a minute), `search` 60, `lab-actions` 60, `exercise-attempts` 20, `admin` 120, `uploads` 10, `register` 10 per hour, `password` 5.
-- **E2E targets:** login lands on `/dashboard`; the header carries search (`/`, Ctrl+K) and the bell; below 1280px the primary nav sits in the Menu button.
-- **Browser checks in the session scratchpad** cover each Phase 6 part (`dashboard-check.mjs`, `notifications-check.mjs`, `search-check.mjs`); they are a starting point for the Playwright suite.
+- **End-to-end suite (D45):** `frontend/e2e`, run with `npm run e2e` against the Docker API and the app on port 3000 (Edge locally; `E2E_CHANNEL=` for bundled Chromium). Global setup makes throwaway accounts with `php artisan cybercompass:e2e-users` (local and testing only) and teardown purges every `e2e-*@example.test` account, including the learner the journey registers through the form. Every page fails its test on a console error unless the spec lists the expected status. Specs: the learner journey (register, assessment, goal, roadmap, exercise failed then passed from the revealed answers, dashboard, bell), auth edges, labs (refusals, completion, the 409), search, the admin console, and a phone layout pass.
+- **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
 ## Phase 6 notes that stay true
 
@@ -73,7 +74,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Lesson time** counts only when a learner reaches the end of a lesson; reading part of one records nothing (Phase 6 known gap).
 - **Notifications created in the same second** can list in either order (timestamps are per second).
 - **Lab content is English** like lessons (O2); engine messages (shell errors, refusals) are English too, while the UI around them is bilingual.
-- **Browser checks in the session scratchpad** (`graph-check.mjs`, `exercise-c-check.mjs`, `labs-check.mjs`, and the Phase 6 scripts) use `assess-check-*@example.test` learners; delete them afterwards (deleting a user also deletes its notifications). `exercise-c-check.mjs` reads the answer key through a temporary `backend/storage/app/exercise-key.php`, which must be deleted after the run.
+- **Old browser checks** (scratchpad `*-check.mjs`, Phases 3.5 to 6) are replaced by the Playwright suite. Four `e2e-*@example.com` accounts from 2026-11-19 remain in the dev database; they are outside the purge pattern on purpose.
 
 ## Local environment
 

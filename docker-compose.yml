@@ -65,8 +65,8 @@ services:
       test: ["CMD", "healthcheck-queue"]
       start_period: 10s
 
-  # Runs scheduled tasks (hourly learning reminders, D34). On AWS an EventBridge rule runs
-  # `schedule:run` every minute instead (docs/ARCHITECTURE.md §8).
+  # Runs scheduled tasks (hourly learning reminders, D34). On AWS the same command runs as a
+  # second container in the worker task (D38, docs/ARCHITECTURE.md §8).
   scheduler:
     <<: *api-common
     command: ["php", "/var/www/html/artisan", "schedule:work"]
