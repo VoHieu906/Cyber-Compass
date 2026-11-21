@@ -140,7 +140,8 @@
       "profile": "Personal information",
       "security": "Security",
       "preferences": "Preferences",
-      "goals": "Learning goals"
+      "goals": "Learning goals",
+      "notifications": "Notifications"
     },
     "profile": {
       "avatar": "Photo",
@@ -208,6 +209,41 @@
       "saved": "Goals saved.",
       "savedCareer": "Goals saved. Update your roadmap to use the new career.",
       "openRoadmap": "Open my roadmap"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "lede": "Choose what you hear about, in the app and by email. Email is off until you turn it on.",
+      "loading": "Loading your settings",
+      "loadError": "Couldn't load your notification settings.",
+      "type": "Notification",
+      "inApp": "In the app",
+      "email": "Email",
+      "inAppFor": "{type} in the app",
+      "emailFor": "{type} by email",
+      "saved": "Saved.",
+      "saveFailed": "Couldn't save that change. Try again.",
+      "types": {
+        "recommendation": {
+          "label": "New lessons",
+          "hint": "When a lesson is published in a course you take or on your roadmap."
+        },
+        "lesson_completed": {
+          "label": "Lesson completions",
+          "hint": "When you finish a lesson for the first time."
+        },
+        "milestone": {
+          "label": "Milestones",
+          "hint": "A finished course, each quarter of your roadmap, and 7, 30 and 100-day streaks."
+        },
+        "reminder": {
+          "label": "Study reminders",
+          "hint": "At 18:00 your time on days you haven't studied, if you have a learning goal."
+        },
+        "assessment_result": {
+          "label": "Assessment results",
+          "hint": "When your skills assessment is scored."
+        }
+      }
     }
   },
   "units": {
@@ -1461,6 +1497,41 @@
       "attemptColumn": "Attempt",
       "score": "Score",
       "showTable": "Show as a table"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "bell": "Notifications",
+    "bellUnread": "Notifications, {count} unread",
+    "loading": "Loading notifications",
+    "loadError": "Couldn't load your notifications. Try again in a moment.",
+    "empty": "No notifications yet. Lesson completions, milestones and reminders show up here.",
+    "emptyUnread": "Nothing unread.",
+    "unread": "New",
+    "unreadCount": "{count, plural, =1 {# unread notification} other {# unread notifications}}",
+    "allRead": "You're all caught up.",
+    "markAllRead": "Mark all as read",
+    "markRead": "Mark as read",
+    "markReadOf": "Mark as read: {text}",
+    "deleteOf": "Delete: {text}",
+    "seeAll": "See all notifications",
+    "settings": "Notification settings",
+    "filter": "Show",
+    "filterAll": "All",
+    "filterUnread": "Unread",
+    "pagination": "Notification pages",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {page} of {total}",
+    "items": {
+      "recommendation": "New lesson for you: {lesson}, in {context}.",
+      "lessonCompleted": "You completed {lesson}.",
+      "assessmentResult": "Your assessment result is ready: {score}%.",
+      "reminder": "You haven't studied yet today. A short lesson keeps you moving.",
+      "reminderStreak": "Keep your {days}-day streak going: study a few minutes today.",
+      "milestoneCourse": "Course completed: {title}.",
+      "milestoneRoadmap": "Your {title} roadmap is {percent}% done.",
+      "milestoneStreak": "{days} days in a row. Keep it going."
     }
   }
 }

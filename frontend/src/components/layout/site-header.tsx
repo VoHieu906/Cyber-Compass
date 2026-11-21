@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { AccountNav } from "@/features/auth/components/account-nav";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { MainNav, MobileMenu } from "./main-nav";
 import { Wordmark } from "./wordmark";
 
@@ -20,6 +21,7 @@ export async function SiteHeader() {
             <LocaleSwitcher />
             <ThemeSwitcher />
           </div>
+          <NotificationBell />
           <AccountNav />
           <MobileMenu />
         </div>

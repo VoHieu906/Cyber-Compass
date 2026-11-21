@@ -10,6 +10,7 @@ const tabs = [
   { href: "/settings/goals", key: "goals" },
   { href: "/settings/security", key: "security" },
   { href: "/settings/preferences", key: "preferences" },
+  { href: "/settings/notifications", key: "notifications" },
 ] as const;
 
 /**

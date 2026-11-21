@@ -132,6 +132,10 @@ Edges use `--color-rule-2` at 1.5px. An edge into a completed node becomes accen
 
 Charts come from `frontend/src/lib/charts` (`ColumnChart`, `LineChart`, `ChartTable`; pure scales in `scale.ts`). One series, one colour: the accent. Columns are at most 24px wide with a 4px rounded data end and a square foot on the baseline; lines are 2px over a 10% accent wash, with a dot and the value at the last point. Gridlines and axes are solid 1px hairlines in `rule`; a reference such as the weekly goal is a solid `ink-2` hairline with its own label. Text is never in the series colour. Each chart is one tab stop: arrow keys, Home and End move a readout that is also announced, and pointer hover shows the same readout. Every chart has a "Show as a table" disclosure, so no value depends on hovering or on colour. Charts draw at their measured pixel width (no viewBox stretching) and sit in panels that already follow container width. Durations tick in minutes, then hours ("1.5 h"). A chart appears only when it has something to compare: one assessment is a number, two or more are a line.
 
+### Notifications (Module J)
+
+The header bell is an icon button whose accessible name carries the unread count ("Notifications, 3 unread"); the badge is decorative, accent on `accent-ink`, capped at 9+. Unread rows sit on a faint `accent-soft` wash and say "New" with an icon, never a bare dot. The panel is a disclosure like the account menu (Escape and outside click close it and focus returns to the bell); on phones it spans the screen under the header. Row actions are named for the notification they act on.
+
 ### Exercise feedback (Module F)
 
 After submission, each question shows **Correct** or **Incorrect** with an icon and text, the learner's answer (struck through if wrong, on `bad-soft`), the correct answer on `ok-soft`, the explanation, and a "Review: *Section name*" link that scrolls the theory panel to the referenced section. Nothing is revealed before submission.

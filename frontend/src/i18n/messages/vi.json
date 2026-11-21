@@ -140,7 +140,8 @@
       "profile": "Thông tin cá nhân",
       "security": "Bảo mật",
       "preferences": "Tùy chọn",
-      "goals": "Mục tiêu học tập"
+      "goals": "Mục tiêu học tập",
+      "notifications": "Thông báo"
     },
     "profile": {
       "avatar": "Ảnh đại diện",
@@ -208,6 +209,41 @@
       "saved": "Đã lưu mục tiêu.",
       "savedCareer": "Đã lưu mục tiêu. Hãy cập nhật lộ trình để dùng nghề mới.",
       "openRoadmap": "Mở lộ trình"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "lede": "Chọn những gì bạn muốn được báo, trong ứng dụng và qua email. Email tắt cho đến khi bạn bật.",
+      "loading": "Đang tải cài đặt",
+      "loadError": "Không tải được cài đặt thông báo.",
+      "type": "Thông báo",
+      "inApp": "Trong ứng dụng",
+      "email": "Email",
+      "inAppFor": "{type} trong ứng dụng",
+      "emailFor": "{type} qua email",
+      "saved": "Đã lưu.",
+      "saveFailed": "Không lưu được thay đổi. Hãy thử lại.",
+      "types": {
+        "recommendation": {
+          "label": "Bài học mới",
+          "hint": "Khi có bài học mới trong khóa bạn học hoặc trên lộ trình của bạn."
+        },
+        "lesson_completed": {
+          "label": "Hoàn thành bài học",
+          "hint": "Khi bạn học xong một bài lần đầu."
+        },
+        "milestone": {
+          "label": "Cột mốc",
+          "hint": "Hoàn thành khóa học, mỗi phần tư lộ trình, và chuỗi 7, 30, 100 ngày."
+        },
+        "reminder": {
+          "label": "Lời nhắc học",
+          "hint": "Lúc 18:00 giờ của bạn vào những ngày bạn chưa học, nếu bạn có mục tiêu học tập."
+        },
+        "assessment_result": {
+          "label": "Kết quả đánh giá",
+          "hint": "Khi bài đánh giá kỹ năng của bạn được chấm."
+        }
+      }
     }
   },
   "units": {
@@ -1461,6 +1497,41 @@
       "attemptColumn": "Lần làm",
       "score": "Điểm",
       "showTable": "Xem dạng bảng"
+    }
+  },
+  "notifications": {
+    "title": "Thông báo",
+    "bell": "Thông báo",
+    "bellUnread": "Thông báo, {count} chưa đọc",
+    "loading": "Đang tải thông báo",
+    "loadError": "Không tải được thông báo. Hãy thử lại sau giây lát.",
+    "empty": "Chưa có thông báo. Bài học đã hoàn thành, cột mốc và lời nhắc sẽ hiện ở đây.",
+    "emptyUnread": "Không có thông báo chưa đọc.",
+    "unread": "Mới",
+    "unreadCount": "{count} thông báo chưa đọc",
+    "allRead": "Bạn đã đọc hết.",
+    "markAllRead": "Đánh dấu đã đọc tất cả",
+    "markRead": "Đánh dấu đã đọc",
+    "markReadOf": "Đánh dấu đã đọc: {text}",
+    "deleteOf": "Xóa: {text}",
+    "seeAll": "Xem tất cả thông báo",
+    "settings": "Cài đặt thông báo",
+    "filter": "Hiển thị",
+    "filterAll": "Tất cả",
+    "filterUnread": "Chưa đọc",
+    "pagination": "Các trang thông báo",
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang {page} / {total}",
+    "items": {
+      "recommendation": "Bài học mới cho bạn: {lesson}, trong {context}.",
+      "lessonCompleted": "Bạn đã hoàn thành {lesson}.",
+      "assessmentResult": "Đã có kết quả đánh giá của bạn: {score}%.",
+      "reminder": "Hôm nay bạn chưa học. Một bài ngắn cũng giúp bạn tiến lên.",
+      "reminderStreak": "Giữ chuỗi {days} ngày của bạn: hãy học vài phút hôm nay.",
+      "milestoneCourse": "Đã hoàn thành khóa học: {title}.",
+      "milestoneRoadmap": "Lộ trình {title} của bạn đã xong {percent}%.",
+      "milestoneStreak": "{days} ngày liên tiếp. Hãy giữ chuỗi nhé."
     }
   }
 }
