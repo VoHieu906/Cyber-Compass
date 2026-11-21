@@ -163,7 +163,7 @@ The end-to-end suite runs against it with `E2E_BASE_URL=http://localhost:3100 E2
 
 ## AWS deployment
 
-Planned target: ECS Fargate services for `web`, `api` and `worker` behind an ALB, with RDS MySQL, S3 + CloudFront and Secrets Manager. See [ARCHITECTURE.md §8](docs/ARCHITECTURE.md#8-deployment-architecture-aws). A step-by-step guide arrives in Phase 7.
+ECS Fargate services for `web`, `api` and `worker` (the queue worker and the scheduler in one task) behind an Application Load Balancer, with RDS MySQL, a private S3 bucket and CloudFront, SES, Secrets Manager and CloudWatch; about $125 a month awake and $38 asleep. The layout and its decisions: [ARCHITECTURE.md §8](docs/ARCHITECTURE.md#8-deployment-architecture-aws). The step-by-step guide, with every AWS CLI command and what it costs: [docs/DEPLOYMENT_AWS.md](docs/DEPLOYMENT_AWS.md), using the templates and scripts in [infrastructure/aws/](infrastructure/aws/). The guide is written and checked locally; the deployment itself has not been run yet (Phase 7 Part H).
 
 ## Contributors
 

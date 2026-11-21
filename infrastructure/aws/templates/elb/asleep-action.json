@@ -1,0 +1,10 @@
+[
+  {
+    "Type": "fixed-response",
+    "FixedResponseConfig": {
+      "StatusCode": "503",
+      "ContentType": "text/html",
+      "MessageBody": "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width\"><title>CyberCompass is asleep</title><body style=\"font:16px/1.5 system-ui,sans-serif;max-width:32rem;margin:15vh auto;padding:0 1rem\"><h1>CyberCompass is asleep</h1><p>This is a graduation project demo. It is switched off between presentations to keep its cloud costs down. Please come back later.</p></body></html>"
+    }
+  }
+]

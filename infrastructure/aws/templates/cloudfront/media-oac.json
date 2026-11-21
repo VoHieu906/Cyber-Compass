@@ -1,0 +1,7 @@
+{
+  "Name": "${APP}-uploads",
+  "Description": "CloudFront reads the private uploads bucket",
+  "SigningProtocol": "sigv4",
+  "SigningBehavior": "always",
+  "OriginAccessControlOriginType": "s3"
+}

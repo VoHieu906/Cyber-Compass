@@ -22,3 +22,7 @@ Thumbs.db
 # Logs
 *.log
 !.env.production.example
+
+# AWS: the filled-in settings (account values, the CloudFront origin secret) and rendered templates
+infrastructure/aws/config.sh
+infrastructure/aws/build/

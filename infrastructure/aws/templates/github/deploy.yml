@@ -1,0 +1,59 @@
+# Continuous deployment (ARCHITECTURE D47). INACTIVE DRAFT: GitHub runs only files in
+# .github/workflows/. Part H2 copies it there once the AWS role exists (docs/DEPLOYMENT_AWS.md,
+# step 16), so no run fails while there is no AWS account to deploy to.
+#
+# After CI passes on main, this waits for the owner's approval (the `production` environment's
+# required reviewer), then runs infrastructure/aws/scripts/deploy.sh: the same steps as a manual
+# deployment. AWS access comes from GitHub's OIDC token: no AWS key is stored anywhere.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write # lets the job ask GitHub for an OIDC token that AWS trusts
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    environment: production # the approval gate, and the only subject the AWS role trusts
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/cybercompass-github-deploy
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # deploy.sh reads infrastructure/aws/config.sh: the example (which tags the images with the
+      # checked-out commit, the one CI tested) plus the environment's variables. They are ids and
+      # names, not secrets; the app's secrets stay in AWS Secrets Manager.
+      - name: Write config.sh
+        run: |
+          {
+            cat infrastructure/aws/config.example.sh
+            echo "export AWS_REGION=${{ vars.AWS_REGION }}"
+            echo "export AWS_ACCOUNT_ID=${{ vars.AWS_ACCOUNT_ID }}"
+            echo "export DOMAIN=${{ vars.DOMAIN }}"
+            echo "export PUBLIC_SUBNETS=${{ vars.PUBLIC_SUBNETS }}"
+            echo "export SG_TASKS=${{ vars.SG_TASKS }}"
+            echo "export RDS_ENDPOINT=${{ vars.RDS_ENDPOINT }}"
+            echo "export SECRET_ARN=${{ vars.SECRET_ARN }}"
+            # Derived from the account id in the example, so it must be set again here.
+            echo "export UPLOADS_BUCKET=${{ vars.UPLOADS_BUCKET }}"
+          } > infrastructure/aws/config.sh
+
+      - name: Deploy
+        run: infrastructure/aws/scripts/deploy.sh

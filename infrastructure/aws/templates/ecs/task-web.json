@@ -1,0 +1,55 @@
+{
+  "family": "${APP}-web",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "512",
+  "memory": "1024",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/${APP}-ecs-execution",
+  "containerDefinitions": [
+    {
+      "name": "web",
+      "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_WEB}:${IMAGE_TAG}",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "INTERNAL_API_URL",
+          "value": "https://api.${DOMAIN}"
+        },
+        {
+          "name": "CSP_MEDIA_ORIGIN",
+          "value": "https://media.${DOMAIN}"
+        },
+        {
+          "name": "CSP_REPORT_ONLY",
+          "value": "true"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "INTERNAL_API_TOKEN",
+          "valueFrom": "${SECRET_ARN}:INTERNAL_API_TOKEN::"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${APP}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "web"
+        }
+      }
+    }
+  ]
+}

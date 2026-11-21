@@ -1,0 +1,9 @@
+{
+  "BudgetName": "${APP}-monthly",
+  "BudgetLimit": {
+    "Amount": "60",
+    "Unit": "USD"
+  },
+  "TimeUnit": "MONTHLY",
+  "BudgetType": "COST"
+}
