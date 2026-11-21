@@ -417,7 +417,10 @@
       },
       "entropyCaveat": "This estimate assumes every character was picked at random. Words, names and patterns make real passwords much weaker than this number."
     },
-    "exerciseRequired": "This lesson is completed by passing its exercise: {count, plural, =1 {# question} other {# questions}}, pass mark {pass}%."
+    "exerciseRequired": "This lesson is completed by passing its exercise: {count, plural, =1 {# question} other {# questions}}, pass mark {pass}%.",
+    "takeExercise": "Take the exercise",
+    "exercisePassed": "Exercise passed",
+    "practiseAgain": "Practise again"
   },
   "careers": {
     "title": "Careers",
@@ -1155,7 +1158,9 @@
       "required": "Required",
       "start": "Start lesson",
       "continue": "Continue lesson",
-      "review": "Review lesson"
+      "review": "Review lesson",
+      "exercisePassed": "Exercise passed",
+      "exerciseTodo": "Has an exercise to pass"
     },
     "map": {
       "title": "Knowledge map",
@@ -1173,6 +1178,86 @@
         "2": "Working knowledge",
         "3": "Deep expertise"
       }
+    }
+  },
+  "exercise": {
+    "notFound": "This lesson has no exercise.",
+    "loadError": "The exercise couldn't be loaded. Try again in a moment.",
+    "backToLesson": "Back to the lesson",
+    "loading": "Loading the exercise",
+    "crumb": "Exercise",
+    "title": "Exercise: {lesson}",
+    "meta": "{count, plural, =1 {# question} other {# questions}} · pass mark {pass}%",
+    "alreadyPassed": "You have passed this exercise",
+    "best": "Best score so far: {score}%",
+    "tabs": "Exercise and theory",
+    "tabExercise": "Exercise",
+    "progress": "{answered} of {total} answered",
+    "current": "current",
+    "answered": "answered",
+    "unanswered": "not answered",
+    "jumpTo": "Question {number}, {state}",
+    "toReview": "Review and submit",
+    "previous": "Previous",
+    "next": "Next",
+    "questionOf": "Question {number} of {total}",
+    "questionNumber": "Question {number}",
+    "types": {
+      "single_choice": "Single choice",
+      "multi_choice": "Multiple choice",
+      "true_false": "True or false",
+      "fill_blank": "Fill in the blanks",
+      "matching": "Matching",
+      "ordering": "Ordering",
+      "scenario": "Scenario"
+    },
+    "reviewHeading": "Review and submit",
+    "reviewUnanswered": "{count, plural, =1 {# question has no answer and will count as wrong.} other {# questions have no answer and will count as wrong.}}",
+    "reviewAll": "Every question has an answer. Answers are checked only when you submit.",
+    "submit": "Submit answers",
+    "submitAnyway": "Submit anyway",
+    "submitError": "Your answers couldn't be submitted. Try again in a moment.",
+    "backToQuestions": "Back to the questions",
+    "input": {
+      "chooseAll": "Choose all that apply.",
+      "true": "True",
+      "false": "False",
+      "blank": "Blank {number} of {total}",
+      "choose": "Choose…",
+      "moveUp": "Move {item} up",
+      "moveDown": "Move {item} down",
+      "moved": "{item} moved to position {position} of {total}."
+    },
+    "theory": {
+      "label": "Theory",
+      "forQuestion": "Theory for this question",
+      "inLesson": "Open this part of the lesson",
+      "noSection": "This question has no linked section.",
+      "concepts": "Key concepts",
+      "objectives": "Learning objectives"
+    },
+    "result": {
+      "passed": "Passed with {score}%",
+      "failed": "Not passed yet: {score}%",
+      "summary": "{correct} of {total} correct. The pass mark is {pass}%.",
+      "lessonDone": "The lesson is complete.",
+      "tryAgainHint": "Read the explanations and the theory, then try again.",
+      "nextLesson": "Next: {title}",
+      "backToCourse": "Back to the course",
+      "retry": "Try again",
+      "backToLesson": "Back to the lesson",
+      "retakeAnyway": "Take it again",
+      "answers": "Your answers",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "unanswered": "Not answered",
+      "yourAnswer": "Your answer",
+      "correctAnswer": "Correct answer",
+      "noAnswer": "No answer",
+      "empty": "(empty)",
+      "or": "or",
+      "showTheory": "Read the theory: {heading}",
+      "theSection": "the lesson section"
     }
   }
 }

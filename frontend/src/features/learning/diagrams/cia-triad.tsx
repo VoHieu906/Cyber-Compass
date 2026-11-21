@@ -20,7 +20,7 @@ export function CiaTriad({ data }: { data: z.infer<typeof ciaSchema> }) {
   const property = data.properties[tabs.selected];
 
   return (
-    <div className="grid items-start gap-5 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+    <div className="grid items-start gap-5 @xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <svg viewBox="0 0 300 250" aria-hidden className="mx-auto w-full max-w-[18rem]">
         <polygon
           points={VERTICES.map((v) => `${v.x},${v.y}`).join(" ")}

@@ -20,7 +20,7 @@ import type { Calculator as CalculatorData } from "./schemas";
 /** Runs entirely in the browser: nothing typed here is stored or sent. */
 export function Calculator({ data }: { data: CalculatorData }) {
   return (
-    <div className="flex flex-col gap-4 rounded-control border border-rule bg-paper-2 p-4 sm:p-5">
+    <div className="flex flex-col gap-4 rounded-control border border-rule bg-paper-2 p-4 @xl:p-5">
       {data.tool === "cidr" ? <CidrTool initial={data.initial ?? "192.168.1.130/26"} /> : null}
       {data.tool === "chmod" ? <ChmodTool initial={data.initial ?? "754"} /> : null}
       {data.tool === "password-entropy" ? <EntropyTool initial={data.initial ?? ""} /> : null}
@@ -61,7 +61,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         aria-invalid={invalid}
         aria-describedby={`${id}-hint`}
-        className={controlClasses(invalid, "measured sm:max-w-[20rem]")}
+        className={controlClasses(invalid, "measured @xl:max-w-[20rem]")}
         {...extra}
       />
       <p id={`${id}-hint`} className={cn("text-sm", invalid ? "text-bad" : "text-muted")}>
@@ -73,7 +73,7 @@ function Field({
 
 function Results({ rows }: { rows: [string, React.ReactNode][] }) {
   return (
-    <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2" aria-live="polite">
+    <dl className="grid gap-x-6 gap-y-2 text-sm @xl:grid-cols-2" aria-live="polite">
       {rows.map(([label, value]) => (
         <div key={label} className="flex flex-col gap-0.5">
           <dt>{label}</dt>

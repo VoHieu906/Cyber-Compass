@@ -25,7 +25,7 @@ export const toneClass: Record<Tone, string> = {
 export function Comparison({ data }: { data: ComparisonData }) {
   return (
     <>
-      <div className="hidden overflow-hidden rounded-control border border-rule sm:block">
+      <div className="hidden overflow-hidden rounded-control border border-rule @xl:block">
         <table className="w-full border-collapse text-left text-sm">
           <thead className="bg-paper-3">
             <tr>
@@ -53,7 +53,7 @@ export function Comparison({ data }: { data: ComparisonData }) {
           </tbody>
         </table>
       </div>
-      <ul className="flex flex-col gap-3 sm:hidden">
+      <ul className="flex flex-col gap-3 @xl:hidden">
         {data.columns.map((c, ci) => (
           <li key={ci} className="rounded-control border border-rule bg-paper-2 p-4">
             <p className="font-medium text-ink">{c}</p>
@@ -160,7 +160,7 @@ export function StepThrough({ data }: { data: StepThroughData }) {
         ) : null}
         <p className="text-ink-2">{renderInline(step.text)}</p>
         {step.state?.length ? (
-          <dl className="grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-2">
+          <dl className="grid gap-x-6 gap-y-1.5 text-sm @xl:grid-cols-2">
             {step.state.map((s, i) => {
               const changed = previous !== null && previous.get(s.label) !== s.value;
               return (

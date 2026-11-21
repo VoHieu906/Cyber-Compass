@@ -17,7 +17,7 @@ type Question = KnowledgeCheckData["questions"][number];
 export function KnowledgeCheck({ data }: { data: KnowledgeCheckData }) {
   const t = useTranslations("learn.blocks");
   return (
-    <div className="flex flex-col gap-4 rounded-control border border-rule bg-paper-2 p-4 sm:p-5">
+    <div className="flex flex-col gap-4 rounded-control border border-rule bg-paper-2 p-4 @xl:p-5">
       <p className="text-sm text-muted">{t("checkIntro")}</p>
       {data.questions.map((q, i) => (
         <QuestionCard key={i} question={q} number={data.questions.length > 1 ? i + 1 : null} />

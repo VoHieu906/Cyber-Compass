@@ -38,6 +38,7 @@ export function LessonDrawer({ value, onClose }: { value: DrawerLesson | null; o
             </span>
             <span>{lesson.is_required ? t("drawer.required") : t("optional")}</span>
             <Duration minutes={lesson.estimated_minutes} />
+            {lesson.exercise ? <span>{lesson.exercise.passed ? t("drawer.exercisePassed") : t("drawer.exerciseTodo")}</span> : null}
           </p>
           {lesson.summary ? <p className="text-ink-2">{lesson.summary}</p> : null}
           <Link href={`/learn/${lesson.slug}`} className={buttonVariants({ className: "self-start" })}>

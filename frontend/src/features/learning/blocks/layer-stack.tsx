@@ -20,7 +20,7 @@ export function LayerStack({ data }: { data: LayerStackData }) {
   const note = layer.note ? noteStyle[layer.note.tone] : null;
 
   return (
-    <div className="grid gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+    <div className="grid gap-4 @xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div {...tabs.listProps} aria-label={t("layers")} className="flex flex-col gap-1">
         {data.layers.map((l, i) => {
           const active = i === tabs.selected;

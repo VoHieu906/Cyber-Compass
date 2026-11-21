@@ -5,8 +5,8 @@ Where the project stands and what the next phase needs to know. This page only p
 ## Current state (2026-11-21)
 
 - **Phases 1 to 4 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Parts A (roadmap graph, lesson drawer, knowledge map) and B (exercises backend and content) are done; next is Part C (the exercise UI).
-- **Tests at handoff:** 474 Pest and 288 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Parts A (roadmap graph, lesson drawer, knowledge map), B (exercises backend and content) and C (the exercise screen) are done; next is Part D (labs on server engines, D28 and ARCHITECTURE §7.1).
+- **Tests at handoff:** 474 Pest and 297 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -28,6 +28,7 @@ Where the project stands and what the next phase needs to know. This page only p
 
 - **Roadmap graph:** `GET /learning-path` already returns everything a graph needs: nodes with computed status, percent, reason and `requires`, plus `edges`, lessons per node and the next lesson. Render it as HTML nodes over static SVG edges (D27, no React Flow), with stage-based layout kept separate from rendering and `layoutGraph()` only for coordinates when needed. Keep the Phase 4 outline (`features/roadmap/components/roadmap-view.tsx`) as the phone view (D25), and reuse `RoadmapNodeCard`.
 - **Status lives in one place:** `Roadmap\Services\PathProgress` (ARCHITECTURE §6.3). When exercises change the completion rule, the change goes into lesson completion (`RecordLessonProgress`); node status follows automatically.
+- **Blocks size themselves by their container:** every lesson `Section` is a CSS container and block layouts use `@xl:`-style container queries, so the same renderer works in the reader, the exercise theory panel and the editor preview. Use container queries, not viewport breakpoints, in any new block.
 - **Exercises are not assessment:** exercise answer keys stay server-side until submission, like the assessment's. Lesson practice checks (`knowledge-check`) stay ungraded. Exercise theory references point at section UUIDs (D20).
 - **3D:** the packet-traversal visual is already delivered as a `scene-3d` lesson block. New 3D is lesson content on the D22 sandbox, not new runtime code.
 - **Labs** follow ARCHITECTURE §7: browser engines with server-side checkpoint validation.

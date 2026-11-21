@@ -417,7 +417,10 @@
       },
       "entropyCaveat": "Ước tính này giả định mọi ký tự được chọn ngẫu nhiên. Từ ngữ, tên riêng và các mẫu quen thuộc khiến mật khẩu thật yếu hơn nhiều so với con số này."
     },
-    "exerciseRequired": "Bài học này được hoàn thành khi bạn đạt bài tập của nó: {count, plural, other {# câu hỏi}}, điểm đạt {pass}%."
+    "exerciseRequired": "Bài học này được hoàn thành khi bạn đạt bài tập của nó: {count, plural, other {# câu hỏi}}, điểm đạt {pass}%.",
+    "takeExercise": "Làm bài tập",
+    "exercisePassed": "Đã đạt bài tập",
+    "practiseAgain": "Luyện tập lại"
   },
   "careers": {
     "title": "Nghề nghiệp",
@@ -1155,7 +1158,9 @@
       "required": "Bắt buộc",
       "start": "Bắt đầu bài học",
       "continue": "Tiếp tục bài học",
-      "review": "Ôn lại bài học"
+      "review": "Ôn lại bài học",
+      "exercisePassed": "Đã đạt bài tập",
+      "exerciseTodo": "Cần đạt bài tập"
     },
     "map": {
       "title": "Bản đồ kiến thức",
@@ -1173,6 +1178,86 @@
         "2": "Thành thạo",
         "3": "Chuyên sâu"
       }
+    }
+  },
+  "exercise": {
+    "notFound": "Bài học này không có bài tập.",
+    "loadError": "Không tải được bài tập. Hãy thử lại sau giây lát.",
+    "backToLesson": "Quay lại bài học",
+    "loading": "Đang tải bài tập",
+    "crumb": "Bài tập",
+    "title": "Bài tập: {lesson}",
+    "meta": "{count, plural, other {# câu hỏi}} · điểm đạt {pass}%",
+    "alreadyPassed": "Bạn đã đạt bài tập này",
+    "best": "Điểm cao nhất: {score}%",
+    "tabs": "Bài tập và lý thuyết",
+    "tabExercise": "Bài tập",
+    "progress": "Đã trả lời {answered}/{total}",
+    "current": "đang xem",
+    "answered": "đã trả lời",
+    "unanswered": "chưa trả lời",
+    "jumpTo": "Câu {number}, {state}",
+    "toReview": "Xem lại và nộp bài",
+    "previous": "Câu trước",
+    "next": "Câu tiếp",
+    "questionOf": "Câu {number}/{total}",
+    "questionNumber": "Câu {number}",
+    "types": {
+      "single_choice": "Chọn một đáp án",
+      "multi_choice": "Chọn nhiều đáp án",
+      "true_false": "Đúng hay sai",
+      "fill_blank": "Điền vào chỗ trống",
+      "matching": "Ghép cặp",
+      "ordering": "Sắp xếp thứ tự",
+      "scenario": "Tình huống"
+    },
+    "reviewHeading": "Xem lại và nộp bài",
+    "reviewUnanswered": "{count, plural, other {# câu chưa có câu trả lời và sẽ bị tính là sai.}}",
+    "reviewAll": "Bạn đã trả lời mọi câu. Câu trả lời chỉ được chấm khi bạn nộp bài.",
+    "submit": "Nộp bài",
+    "submitAnyway": "Vẫn nộp bài",
+    "submitError": "Không nộp được bài. Hãy thử lại sau giây lát.",
+    "backToQuestions": "Quay lại các câu hỏi",
+    "input": {
+      "chooseAll": "Chọn tất cả đáp án đúng.",
+      "true": "Đúng",
+      "false": "Sai",
+      "blank": "Chỗ trống {number}/{total}",
+      "choose": "Chọn…",
+      "moveUp": "Chuyển {item} lên",
+      "moveDown": "Chuyển {item} xuống",
+      "moved": "Đã chuyển {item} tới vị trí {position}/{total}."
+    },
+    "theory": {
+      "label": "Lý thuyết",
+      "forQuestion": "Lý thuyết cho câu này",
+      "inLesson": "Mở phần này trong bài học",
+      "noSection": "Câu hỏi này chưa gắn với phần nào của bài học.",
+      "concepts": "Khái niệm chính",
+      "objectives": "Mục tiêu học tập"
+    },
+    "result": {
+      "passed": "Đạt với {score}%",
+      "failed": "Chưa đạt: {score}%",
+      "summary": "Đúng {correct}/{total} câu. Điểm đạt là {pass}%.",
+      "lessonDone": "Bài học đã hoàn thành.",
+      "tryAgainHint": "Hãy đọc phần giải thích và lý thuyết, rồi làm lại.",
+      "nextLesson": "Tiếp theo: {title}",
+      "backToCourse": "Quay lại khóa học",
+      "retry": "Làm lại",
+      "backToLesson": "Quay lại bài học",
+      "retakeAnyway": "Làm lại lần nữa",
+      "answers": "Câu trả lời của bạn",
+      "correct": "Đúng",
+      "incorrect": "Sai",
+      "unanswered": "Chưa trả lời",
+      "yourAnswer": "Bạn trả lời",
+      "correctAnswer": "Đáp án đúng",
+      "noAnswer": "Không có câu trả lời",
+      "empty": "(để trống)",
+      "or": "hoặc",
+      "showTheory": "Đọc lý thuyết: {heading}",
+      "theSection": "phần bài học"
     }
   }
 }

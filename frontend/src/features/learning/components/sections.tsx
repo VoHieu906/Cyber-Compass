@@ -175,7 +175,9 @@ export function Section({ section }: { section: LessonSection }) {
   }
 
   return (
-    <section id={section.id} className="flex scroll-mt-[calc(var(--header-height)+1.5rem)] flex-col gap-4">
+    // A container, so blocks lay themselves out by the width they get: a full lesson column, the
+    // exercise theory panel or the editor preview (container queries, not viewport breakpoints).
+    <section id={section.id} className="@container flex scroll-mt-[calc(var(--header-height)+1.5rem)] flex-col gap-4">
       {heading}
       {body}
     </section>

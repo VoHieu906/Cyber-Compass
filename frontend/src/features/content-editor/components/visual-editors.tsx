@@ -51,7 +51,7 @@ export function VisualPreview({ type, payload, valid }: { type: string; payload:
     <div className="flex min-w-0 flex-col gap-2">
       <p className="text-sm font-medium text-ink">{t("livePreview")}</p>
       {shown ? (
-        <div className="rounded-control border border-dashed border-rule-2 p-3 sm:p-4">
+        <div className="@container rounded-control border border-dashed border-rule-2 p-3 sm:p-4">
           <VisualBlock type={type} payload={JSON.parse(shown)} />
         </div>
       ) : (

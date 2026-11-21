@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, CircleCheck, ExternalLink, Target } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleCheck, ExternalLink, PencilLine, Target } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
@@ -180,7 +180,13 @@ function LessonFooter({ lesson }: { lesson: Lesson }) {
           </p>
         ) : lesson.exercise && !lesson.exercise.passed ? (
           // A lesson with an exercise is completed by passing it (ARCHITECTURE D31).
-          <p className="text-sm text-ink">{t("exerciseRequired", { count: lesson.exercise.question_count, pass: lesson.exercise.pass_percent })}</p>
+          <div className="flex flex-col items-start gap-3">
+            <p className="text-sm text-ink">{t("exerciseRequired", { count: lesson.exercise.question_count, pass: lesson.exercise.pass_percent })}</p>
+            <Link href={`/learn/${lesson.slug}/exercise`} className={buttonVariants()}>
+              <PencilLine aria-hidden />
+              {t("takeExercise")}
+            </Link>
+          </div>
         ) : (
           <div>
             <Button onClick={() => complete.mutate(elapsedSeconds())} loading={complete.isPending}>
@@ -189,6 +195,19 @@ function LessonFooter({ lesson }: { lesson: Lesson }) {
             </Button>
           </div>
         )}
+        {done && lesson.exercise ? (
+          <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            {lesson.exercise.passed ? (
+              <span className="inline-flex items-center gap-1.5 text-ink">
+                <Check aria-hidden className="size-4 text-accent" />
+                {t("exercisePassed")}
+              </span>
+            ) : null}
+            <Link href={`/learn/${lesson.slug}/exercise`} className="text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent">
+              {t("practiseAgain")}
+            </Link>
+          </p>
+        ) : null}
         {course.data ? (
           <p className="measured text-sm">
             {t("courseProgress", {
