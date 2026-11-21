@@ -166,12 +166,32 @@ Every route acts on the signed-in learner, so there is no id to address someone 
               "stage": 1, "position": 3, "recommendation": "required", "status": "in_progress", "percent": 50,
               "reason": { "key": "gap", "params": { "domain": "Linux", "score": 22 } },
               "requires": [],
-              "lessons": [{ "slug": "linux-file-permissions", "title": "...", "estimated_minutes": 18, "is_required": true, "status": "completed" }] }],
+              "lessons": [{ "slug": "linux-file-permissions", "title": "...", "summary": "...", "estimated_minutes": 18, "is_required": true, "status": "completed" }] }],
   "edges": [{ "from": "linux-shell", "to": "linux-investigation" }]
 } }
 ```
 
 `status` is `locked`, `available`, `in_progress` or `completed`; lesson `status` is `not_started`, `started` or `completed`. `reason.key` is `career` {career}, `gap` {domain, score}, `strength` {domain, score} or `foundation` {topic, domain}; the UI renders it through i18n. `outdated` lists `career_changed` and `new_assessment`.
+
+### Knowledge map (✅ Phase 5 Part A)
+
+| | Method | Path |
+|---|---|---|
+| 🔒 | GET | `/knowledge-map`: every topic with a lesson I can see, by domain and level, with my status; needs no career goal |
+
+Topic status uses the same rule as the roadmap (`TopicStatus`, ARCHITECTURE §6.3), except that a topic is available once every prerequisite topic on the map is completed (there is no plan, so `review` opens nothing). Domain completion counts the required lessons of the domain's topics; Phase 6 `/progress/skills` reuses `KnowledgeMap::domains()`.
+
+```json
+{ "data": {
+  "domains": [{ "slug": "networking", "name": "Networking", "score": 82, "band": "strength", "completion": { "completed": 1, "total": 6, "percent": 17 } }],
+  "topics": [{ "slug": "addressing-and-services", "title": "...", "summary": "...", "level": 1, "domain": "networking",
+               "status": "locked", "percent": 0, "in_path": true, "requires": ["networking-basics"],
+               "lessons": [{ "slug": "ip-addressing", "title": "...", "summary": "...", "estimated_minutes": 15, "is_required": true, "status": "not_started" }] }],
+  "edges": [{ "from": "networking-basics", "to": "addressing-and-services" }]
+} }
+```
+
+`score` and `band` are null before the first submitted assessment.
 
 ### Labs
 

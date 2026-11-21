@@ -1,6 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { User } from "@/features/auth/types";
 import { renderWithProviders } from "@/test/render";
 import type { LearningPath } from "../types";
@@ -29,7 +29,7 @@ const user = (career: { slug: string; title: string } | null): User => ({
   learning_goal: career ? { career, self_level: null, weekly_minutes: 120, domains: [] } : null,
 });
 
-const lesson = (slug: string, status: "not_started" | "started" | "completed") => ({ slug, title: `Lesson ${slug}`, estimated_minutes: 20, is_required: true, status });
+const lesson = (slug: string, status: "not_started" | "started" | "completed") => ({ slug, title: `Lesson ${slug}`, summary: `About ${slug}.`, estimated_minutes: 20, is_required: true, status });
 
 const path: LearningPath = {
   id: 3,
@@ -124,4 +124,50 @@ describe("RoadmapView", () => {
     expect(mocks.generateLearningPath).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenCalledWith("/roadmap");
   });
+
+  describe("on wide screens", () => {
+    beforeEach(() => {
+      vi.stubGlobal("matchMedia", (query: string) => ({ matches: query.includes("min-width"), addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+      HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+        this.setAttribute("open", "");
+      };
+      HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+        this.removeAttribute("open");
+        this.dispatchEvent(new Event("close"));
+      };
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("draws the graph: topic nodes that expand into lessons, and a lesson drawer", async () => {
+      mocks.me.mockResolvedValue(user({ slug: "soc-analyst", title: "SOC Analyst" }));
+      mocks.fetchLearningPath.mockResolvedValue(path);
+      renderWithProviders(<RoadmapView />);
+
+      const graph = await screen.findByRole("group", { name: "SOC Analyst roadmap graph" });
+      expect(screen.queryByRole("heading", { name: "Stage 1" })).toBeNull();
+      expect(within(graph).getByText("Stage 2")).toBeInTheDocument();
+
+      // Topic nodes are buttons, described by their status, reason and prerequisites.
+      const nodes = within(graph).getAllByRole("button", { expanded: false }).concat(within(graph).getAllByRole("button", { expanded: true }));
+      expect(nodes).toHaveLength(3);
+      const locked = within(graph).getByRole("button", { name: /Investigating a Linux system/ });
+      expect(locked).toHaveAccessibleDescription(/Locked .*Needs: Linux shell essentials/);
+
+      // The topic with the next lesson starts open.
+      const shell = within(graph).getByRole("button", { name: /Linux shell essentials/ });
+      expect(shell).toHaveAttribute("aria-expanded", "true");
+      await userEvent.click(locked);
+      expect(locked).toHaveAttribute("aria-expanded", "true");
+      const lessons = within(graph).getByRole("list", { name: "Lessons in Investigating a Linux system" });
+
+      await userEvent.click(within(lessons).getByRole("button", { name: /Lesson d/ }));
+      const drawer = await screen.findByRole("dialog", { name: "Lesson d" });
+      expect(within(drawer).getByText("About d.")).toBeInTheDocument();
+      expect(within(drawer).getByRole("link", { name: /Start lesson/ })).toHaveAttribute("href", "/learn/d");
+
+      await userEvent.click(screen.getByRole("button", { name: "Collapse all" }));
+      expect(shell).toHaveAttribute("aria-expanded", "false");
+    });
+  });
 });
+

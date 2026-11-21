@@ -5,15 +5,15 @@ Where the project stands and what the next phase needs to know. This page only p
 ## Current state (2026-11-21)
 
 - **Phases 1 to 4 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Next: Phase 5**, interactive learning: roadmap graph, knowledge map, exercises and labs ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning)).
-- **Tests at handoff:** 407 Pest and 275 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Part A (roadmap graph, lesson drawer, knowledge map) is done; next is Part B (exercises backend and content).
+- **Tests at handoff:** 414 Pest and 288 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D27) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D31) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |

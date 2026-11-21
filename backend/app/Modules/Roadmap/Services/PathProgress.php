@@ -2,26 +2,21 @@
 
 namespace App\Modules\Roadmap\Services;
 
-use App\Enums\LessonProgressStatus;
 use App\Models\LearningPath;
 use App\Models\LearningPathNode;
-use App\Models\Lesson;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
  * A roadmap version with the learner's status, computed on read and never stored
- * (ARCHITECTURE §6.3, D4):
- *  - completed: every required lesson of the topic is completed
- *  - in_progress: at least one lesson started or completed
- *  - available: every prerequisite topic in the path is completed or marked review
- *  - locked: otherwise
- *
- * Only lessons a learner can see count. A topic whose lessons were all archived after the path
- * was generated has nothing left to do, so it counts as completed and never blocks the next.
+ * (ARCHITECTURE §6.3, D4). Status comes from `TopicStatus`; on the roadmap a topic is
+ * available when every prerequisite topic in the path is completed or marked review.
+ * Prerequisites outside the path are not part of the plan and are ignored.
  */
 final class PathProgress
 {
+    public function __construct(private readonly TopicStatus $topics) {}
+
     /** @return array<string, mixed> */
     public function present(LearningPath $path, User $user): array
     {
@@ -30,38 +25,12 @@ final class PathProgress
             'attempt:id,score_percent,submitted_at',
             'nodes.topic.domain:id,slug,name',
             'nodes.topic.prerequisites:id,slug',
-            'nodes.topic.lessons' => fn ($q) => $q->visibleToLearners()->select(['lessons.id', 'lessons.slug', 'lessons.title', 'lessons.estimated_minutes']),
+            'nodes.topic.lessons' => TopicStatus::lessonsConstraint(),
         ]);
-        $lessonIds = $path->nodes->flatMap(fn (LearningPathNode $n) => $n->topic->lessons->pluck('id'))->unique();
-        $progress = $user->lessonProgress()->whereIn('lesson_id', $lessonIds)->get()->keyBy('lesson_id');
-        $lessonStatus = fn (Lesson $l) => match ($progress[$l->id]->status ?? null) {
-            LessonProgressStatus::Completed => 'completed',
-            LessonProgressStatus::Started => 'started',
-            default => 'not_started',
-        };
 
         // First pass: completion per topic (independent of other topics).
-        $nodes = $path->nodes->map(function (LearningPathNode $node) use ($lessonStatus) {
-            $lessons = $node->topic->lessons->map(fn (Lesson $l) => [
-                'slug' => $l->slug,
-                'title' => $l->title,
-                'estimated_minutes' => $l->estimated_minutes,
-                'is_required' => (bool) $l->pivot->is_required,
-                'status' => $lessonStatus($l),
-            ]);
-            $required = $lessons->where('is_required', true);
-            $required = $required->isEmpty() ? $lessons : $required;
-            $done = $required->where('status', 'completed')->count();
-
-            return [
-                'node' => $node,
-                'lessons' => $lessons,
-                'required' => $required,
-                'completed' => $done === $required->count(),
-                'started' => $lessons->contains(fn ($l) => $l['status'] !== 'not_started'),
-                'percent' => $required->isEmpty() ? 100 : (int) round($done / $required->count() * 100),
-            ];
-        })->keyBy(fn ($n) => $n['node']->topic->slug);
+        $completion = $this->topics->progress($path->nodes->map(fn (LearningPathNode $n) => $n->topic), $user);
+        $nodes = $path->nodes->mapWithKeys(fn (LearningPathNode $node) => [$node->topic->slug => ['node' => $node] + $completion[$node->topic->slug]]);
 
         // Second pass: availability from the prerequisites that are part of this path.
         $rows = $nodes->map(function (array $n) use ($nodes) {
@@ -81,12 +50,7 @@ final class PathProgress
                 'position' => $node->position,
                 'recommendation' => $node->recommendation,
                 'reason' => ['key' => $node->reason_key, 'params' => $node->reason_params],
-                'status' => match (true) {
-                    $n['completed'] => 'completed',
-                    $n['started'] => 'in_progress',
-                    $open => 'available',
-                    default => 'locked',
-                },
+                'status' => TopicStatus::status($n, $open),
                 'percent' => $n['percent'],
                 'requires' => $prerequisites->all(),
                 'lessons' => $n['lessons']->values()->all(),

@@ -7,7 +7,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-/** My personal roadmap, as an outline (ARCHITECTURE D25). The graph view arrives in Phase 5. */
+/** My personal roadmap: a graph on wide screens (D27), an outline on phones (D25). */
 export default function RoadmapPage() {
   return <RoadmapView />;
 }

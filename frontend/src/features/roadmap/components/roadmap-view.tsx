@@ -1,22 +1,24 @@
 "use client";
 
-import { ArrowRight, Check, ChevronDown, Circle, CircleDot, RefreshCw } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
-import { useId, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { ProgressTrack } from "@/features/assessment/components/parts";
 import { useActiveAssessment } from "@/features/assessment/hooks";
 import { useCurrentUser } from "@/features/auth/hooks";
 import { Duration } from "@/features/catalog/components/labels";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { useLearningPath, usePathVersions } from "../hooks";
-import type { LearningPath, PathLesson, PathNode } from "../types";
+import type { LearningPath } from "../types";
 import { BuildRoadmapButton } from "./build-roadmap-button";
-import { RoadmapNodeCard } from "./node-status";
+import { linkClass, OutlineTopic, WIDE } from "./outline";
+import { RoadmapGraph } from "./roadmap-graph";
+import { RoadmapTabs } from "./roadmap-tabs";
+import { useExpandedTopics } from "./topic-graph";
 
-const linkClass = "text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent";
 
 export function RoadmapView() {
   const t = useTranslations("roadmap");
@@ -45,6 +47,7 @@ function EmptyRoadmap() {
   return (
     <div className="container-page flex max-w-[44rem] flex-col gap-6 py-[var(--space-2xl)]">
       <h1 className="text-[length:var(--text-display-s)]">{t("title")}</h1>
+      <RoadmapTabs />
       {career ? (
         <>
           <p className="text-[length:var(--text-lead)] text-ink-2">{t("empty.goal", { career: career.title })}</p>
@@ -86,11 +89,14 @@ function Roadmap({ path }: { path: LearningPath }) {
   const stages = [...new Set(path.nodes.map((n) => n.stage))].map((stage) => ({ stage, nodes: path.nodes.filter((n) => n.stage === stage) }));
   const titles = new Map(path.nodes.map((n) => [n.topic.slug, n.topic.title]));
   const nextTopic = path.nodes.find((n) => n.lessons.some((l) => l.slug === path.next_lesson?.slug))?.topic.slug;
+  const wide = useMediaQuery(WIDE);
+  const expanded = useExpandedTopics(nextTopic ? [nextTopic] : []);
 
   return (
     <div className="container-page flex flex-col gap-10 py-[var(--space-xl)]">
       <header className="flex flex-col gap-4">
         <h1 className="text-[length:var(--text-display-s)]">{t("title")}</h1>
+        <RoadmapTabs />
         <p className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm">
           <Link href={`/careers/${path.career.slug}`} className={cn(linkClass, "text-[length:var(--text-lg)]")}>
             {path.career.title}
@@ -154,80 +160,45 @@ function Roadmap({ path }: { path: LearningPath }) {
 
       <p className="max-w-[68ch] text-sm">{t("legend")}</p>
 
-      <ol className="flex flex-col gap-10">
-        {stages.map(({ stage, nodes }) => (
-          <li key={stage} className="flex flex-col gap-4">
-            <h2 className="text-[length:var(--text-title)]">{t("stage", { stage })}</h2>
-            <ol className="flex flex-col gap-3">
-              {nodes.map((node) => (
-                <TopicRow key={node.topic.slug} node={node} titles={titles} startOpen={node.topic.slug === nextTopic} />
-              ))}
-            </ol>
-          </li>
-        ))}
-      </ol>
+      {wide ? (
+        <RoadmapGraph path={path} nextTopic={nextTopic} expanded={expanded} />
+      ) : (
+        <ol className="flex flex-col gap-10">
+          {stages.map(({ stage, nodes }) => (
+            <li key={stage} className="flex flex-col gap-4">
+              <h2 className="text-[length:var(--text-title)]">{t("stage", { stage })}</h2>
+              <ol className="flex flex-col gap-3">
+                {nodes.map((node) => {
+                  const missing = node.requires.filter((slug) => titles.has(slug)).map((slug) => titles.get(slug));
+                  return (
+                    <OutlineTopic
+                      key={node.topic.slug}
+                      title={node.topic.title}
+                      status={node.status}
+                      percent={node.percent}
+                      review={node.recommendation === "review"}
+                      lessons={node.lessons}
+                      startOpen={node.topic.slug === nextTopic}
+                      details={
+                        <>
+                          <p className="text-sm text-ink">{t(`reason.${node.reason.key}`, node.reason.params)}</p>
+                          <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                            <span>{node.topic.domain.name}</span>
+                            {node.status === "locked" && missing.length ? <span>{t("needs", { topics: missing.join(", ") })}</span> : null}
+                          </p>
+                        </>
+                      }
+                    />
+                  );
+                })}
+              </ol>
+            </li>
+          ))}
+        </ol>
+      )}
 
       <Versions />
     </div>
-  );
-}
-
-function TopicRow({ node, titles, startOpen }: { node: PathNode; titles: Map<string, string>; startOpen: boolean }) {
-  const t = useTranslations("roadmap");
-  const [open, setOpen] = useState(startOpen);
-  const panelId = useId();
-  const review = node.recommendation === "review";
-  const missing = node.requires.filter((slug) => titles.has(slug)).map((slug) => titles.get(slug));
-
-  return (
-    <li className="grid gap-3 md:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] md:gap-6">
-      <RoadmapNodeCard
-        title={node.topic.title}
-        status={node.status}
-        statusLabel={t(`status.${node.status}`)}
-        percent={node.percent}
-        review={review ? { label: t("reviewChip") } : undefined}
-        className={cn("md:self-start", startOpen && "ring-2 ring-accent ring-offset-2 ring-offset-paper")}
-      />
-      <div className="flex min-w-0 flex-col gap-2">
-        <p className="text-sm text-ink">{t(`reason.${node.reason.key}`, node.reason.params)}</p>
-        <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-          <span>{node.topic.domain.name}</span>
-          {node.status === "locked" && missing.length ? <span>{t("needs", { topics: missing.join(", ") })}</span> : null}
-        </p>
-        <button
-          type="button"
-          aria-expanded={open}
-          aria-controls={panelId}
-          onClick={() => setOpen((v) => !v)}
-          className="inline-flex items-center gap-1.5 self-start rounded-control py-1 text-sm font-medium text-ink hover:text-accent"
-        >
-          <ChevronDown aria-hidden className={cn("size-4 transition-transform duration-[var(--dur-short)]", open && "rotate-180")} />
-          {t("lessons", { count: node.lessons.length })}
-        </button>
-        <ul id={panelId} hidden={!open} className="flex flex-col border-t border-rule">
-          {node.lessons.map((lesson) => (
-            <LessonRow key={lesson.slug} lesson={lesson} />
-          ))}
-        </ul>
-      </div>
-    </li>
-  );
-}
-
-function LessonRow({ lesson }: { lesson: PathLesson }) {
-  const t = useTranslations("roadmap");
-  const Icon = lesson.status === "completed" ? Check : lesson.status === "started" ? CircleDot : Circle;
-  return (
-    <li className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-rule py-2.5 text-sm">
-      <Icon aria-hidden className={cn("size-4 shrink-0", lesson.status === "completed" ? "text-accent" : "text-muted")} />
-      <Link href={`/learn/${lesson.slug}`} className={cn(linkClass, "min-w-0 flex-1")}>
-        {lesson.title}
-      </Link>
-      <span className="sr-only">{t(`lessonStatus.${lesson.status}`)}</span>
-      {lesson.is_required ? null : <span className="rounded-chip border border-rule px-1.5">{t("optional")}</span>}
-      <Duration minutes={lesson.estimated_minutes} />
-    </li>
   );
 }
 

@@ -7,6 +7,7 @@ export type ReasonKey = "career" | "gap" | "strength" | "foundation";
 export type PathLesson = {
   slug: string;
   title: string;
+  summary: string;
   estimated_minutes: number;
   is_required: boolean;
   status: "not_started" | "started" | "completed";
@@ -48,4 +49,32 @@ export type PathVersion = {
   career: { slug: string; title: string };
   assessment_score: number | null;
   topic_count: number;
+};
+
+export type KnowledgeMapDomain = {
+  slug: string;
+  name: string;
+  /** Latest submitted assessment; null before the first one. */
+  score: number | null;
+  band: "gap" | "developing" | "strength" | null;
+  completion: { completed: number; total: number; percent: number };
+};
+
+export type KnowledgeMapTopic = {
+  slug: string;
+  title: string;
+  summary: string;
+  level: 1 | 2 | 3;
+  domain: string;
+  status: NodeStatus;
+  percent: number;
+  in_path: boolean;
+  requires: string[];
+  lessons: PathLesson[];
+};
+
+export type KnowledgeMap = {
+  domains: KnowledgeMapDomain[];
+  topics: KnowledgeMapTopic[];
+  edges: { from: string; to: string }[];
 };

@@ -1131,6 +1131,43 @@
       "completed": "Completed"
     },
     "optional": "Optional",
-    "versions": "Earlier versions"
+    "versions": "Earlier versions",
+    "tabs": {
+      "label": "Roadmap views",
+      "roadmap": "My roadmap",
+      "map": "Knowledge map"
+    },
+    "graph": {
+      "title": "Topics by stage",
+      "label": "{career} roadmap graph",
+      "expandAll": "Show all lessons",
+      "collapseAll": "Collapse all"
+    },
+    "lessonsOf": "Lessons in {topic}",
+    "drawer": {
+      "topic": "Part of {topic}",
+      "close": "Close lesson details",
+      "required": "Required",
+      "start": "Start lesson",
+      "continue": "Continue lesson",
+      "review": "Review lesson"
+    },
+    "map": {
+      "title": "Knowledge map",
+      "intro": "Every topic you can study, by domain and depth, with where you stand in each. Your roadmap is one route through it.",
+      "legend": "Rows are domains and columns are depth. Arrows run from a topic to the topics that build on it. A topic opens once the topics it builds on are complete.",
+      "label": "Knowledge map graph",
+      "loadError": "The knowledge map couldn't be loaded. Try again in a moment.",
+      "onRoadmap": "On your roadmap",
+      "score": "{score}% in the assessment",
+      "notAssessed": "Not assessed yet",
+      "completion": "{completed} of {total} lessons completed",
+      "noLessons": "No lessons in this domain yet",
+      "level": {
+        "1": "Foundation",
+        "2": "Working knowledge",
+        "3": "Deep expertise"
+      }
+    }
   }
 }

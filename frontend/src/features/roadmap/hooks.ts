@@ -1,11 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchLearningPath, fetchPathVersions, generateLearningPath } from "./api";
+import { fetchKnowledgeMap, fetchLearningPath, fetchPathVersions, generateLearningPath } from "./api";
 
 export const roadmapKeys = {
   active: ["roadmap", "active"] as const,
   versions: ["roadmap", "versions"] as const,
+  map: ["roadmap", "map"] as const,
 };
 
 export function useLearningPath(enabled = true) {
@@ -23,6 +24,11 @@ export function useGenerateLearningPath() {
     onSuccess: (path) => {
       queryClient.setQueryData(roadmapKeys.active, path);
       void queryClient.invalidateQueries({ queryKey: roadmapKeys.versions });
+      void queryClient.invalidateQueries({ queryKey: roadmapKeys.map });
     },
   });
+}
+
+export function useKnowledgeMap() {
+  return useQuery({ queryKey: roadmapKeys.map, queryFn: ({ signal }) => fetchKnowledgeMap(signal) });
 }

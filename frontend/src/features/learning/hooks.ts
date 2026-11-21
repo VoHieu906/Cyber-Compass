@@ -14,12 +14,15 @@ export function useLesson(slug: string) {
 
 /** Records the lesson as started once per visit; failures are harmless and not shown. */
 export function useStartLesson(lesson: Lesson | undefined) {
+  const queryClient = useQueryClient();
   const started = useRef<string | null>(null);
   useEffect(() => {
     if (!lesson || lesson.progress.status !== "not_started" || started.current === lesson.slug) return;
     started.current = lesson.slug;
-    startLesson(lesson.slug).catch(() => undefined);
-  }, [lesson]);
+    startLesson(lesson.slug)
+      .then(() => queryClient.invalidateQueries({ queryKey: ["roadmap"] }))
+      .catch(() => undefined);
+  }, [lesson, queryClient]);
 }
 
 /** Time on the page since it opened, in whole seconds. Paused while the tab is hidden. */
@@ -54,6 +57,8 @@ export function useCompleteLesson(lesson: Lesson) {
         current ? { ...current, progress: { status: result.status, completed_at: result.completed_at } } : current,
       );
       queryClient.setQueryData(catalogKeys.progress(lesson.course.slug), result.course);
+      // Topic status on the roadmap and the knowledge map follows lesson progress.
+      void queryClient.invalidateQueries({ queryKey: ["roadmap"] });
     },
   });
 }

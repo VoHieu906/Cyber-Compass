@@ -1131,6 +1131,43 @@
       "completed": "Hoàn thành"
     },
     "optional": "Tùy chọn",
-    "versions": "Các phiên bản trước"
+    "versions": "Các phiên bản trước",
+    "tabs": {
+      "label": "Các chế độ xem lộ trình",
+      "roadmap": "Lộ trình của tôi",
+      "map": "Bản đồ kiến thức"
+    },
+    "graph": {
+      "title": "Chủ đề theo giai đoạn",
+      "label": "Sơ đồ lộ trình {career}",
+      "expandAll": "Hiện tất cả bài học",
+      "collapseAll": "Thu gọn tất cả"
+    },
+    "lessonsOf": "Các bài học trong {topic}",
+    "drawer": {
+      "topic": "Thuộc chủ đề {topic}",
+      "close": "Đóng chi tiết bài học",
+      "required": "Bắt buộc",
+      "start": "Bắt đầu bài học",
+      "continue": "Tiếp tục bài học",
+      "review": "Ôn lại bài học"
+    },
+    "map": {
+      "title": "Bản đồ kiến thức",
+      "intro": "Mọi chủ đề bạn có thể học, theo lĩnh vực và mức độ chuyên sâu, cùng vị trí hiện tại của bạn ở từng chủ đề. Lộ trình của bạn là một con đường đi qua bản đồ này.",
+      "legend": "Mỗi hàng là một lĩnh vực, mỗi cột là một mức độ chuyên sâu. Mũi tên đi từ một chủ đề đến các chủ đề xây dựng trên nó. Một chủ đề được mở khi các chủ đề nền tảng của nó đã hoàn thành.",
+      "label": "Sơ đồ bản đồ kiến thức",
+      "loadError": "Không tải được bản đồ kiến thức. Hãy thử lại sau giây lát.",
+      "onRoadmap": "Có trong lộ trình của bạn",
+      "score": "{score}% trong bài đánh giá",
+      "notAssessed": "Chưa làm bài đánh giá",
+      "completion": "Đã hoàn thành {completed}/{total} bài học",
+      "noLessons": "Lĩnh vực này chưa có bài học",
+      "level": {
+        "1": "Nền tảng",
+        "2": "Thành thạo",
+        "3": "Chuyên sâu"
+      }
+    }
   }
 }

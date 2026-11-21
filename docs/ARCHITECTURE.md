@@ -167,7 +167,7 @@ For each topic in the career template, in order:
 - **Out of date:** the path reports `career_changed` when the goal's career differs from the path's, and `new_assessment` when a newer attempt was submitted. The learner decides when to update.
 - **Other goal fields:** areas of interest order the assessment's next steps within a band; the weekly study time gives the estimate (remaining required minutes ÷ weekly minutes, rounded up to weeks); the self-rated level is shown beside the result and never affects scoring or generation.
 
-### 6.3 Node status (computed on read, never stored; `Roadmap\Services\PathProgress`)
+### 6.3 Node status (computed on read, never stored; `Roadmap\Services\TopicStatus`, used by `PathProgress` and `KnowledgeMap`)
 
 - **completed:** every required lesson in the topic is completed (all its lessons, if none is marked required). A topic whose lessons were all archived after generation counts as completed, so it never blocks the next one.
 - **in_progress:** at least one lesson started or completed.

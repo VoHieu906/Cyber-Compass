@@ -37,13 +37,17 @@ type RoadmapNodeProps = {
   percent?: number;
   /** Recommended as review (the learner already scored well in this domain). */
   review?: { label: string };
+  /** A short extra line, such as "On your roadmap". */
+  meta?: string;
+  /** Render as a span (inside a button, where a div is not allowed). */
+  as?: "div" | "span";
   className?: string;
 };
 
 /** The visual of one roadmap topic node (docs/DESIGN_SYSTEM.md §6). Status is icon plus text, never colour alone. */
-export function RoadmapNodeCard({ title, status, statusLabel, percent = 0, review, className }: RoadmapNodeProps) {
+export function RoadmapNodeCard({ title, status, statusLabel, percent = 0, review, meta, as: Tag = "div", className }: RoadmapNodeProps) {
   return (
-    <div
+    <Tag
       className={cn(
         "flex min-w-0 flex-col gap-2 rounded-card border px-4 py-3",
         styles[status],
@@ -51,8 +55,8 @@ export function RoadmapNodeCard({ title, status, statusLabel, percent = 0, revie
         className,
       )}
     >
-      <span className="font-medium leading-snug">{title}</span>
-      <span className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+      <span className="line-clamp-2 shrink-0 font-medium leading-snug">{title}</span>
+      <span className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 text-sm">
         <span className="inline-flex items-center gap-1.5">
           {status === "locked" && <Lock aria-hidden className="size-4" />}
           {status === "available" && <Circle aria-hidden className="size-4" />}
@@ -68,6 +72,7 @@ export function RoadmapNodeCard({ title, status, statusLabel, percent = 0, revie
           </span>
         ) : null}
       </span>
-    </div>
+      {meta ? <span className="shrink-0 text-sm">{meta}</span> : null}
+    </Tag>
   );
 }
