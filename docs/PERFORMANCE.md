@@ -71,17 +71,19 @@ About 205 KB of every route is Next.js and React. The rest: TanStack Query 13 KB
 
 | Route | JS (KB) | API requests on load | Budget (JS, API) | LCP (CI) |
 |---|---|---|---|---|
-| `/` | 219 | 1 | 250, 2 | 264 ms |
-| `/courses` | 219 | 3 | 250, 4 | 156 ms |
-| `/courses/networking-fundamentals` | 218 | 1 | 250, 2 | 164 ms |
-| `/careers/soc-analyst` | 218 | 1 | 250, 2 | 168 ms |
-| `/dashboard` | 224 | 9 | 260, 10 | 428 ms |
-| `/roadmap` | 224 | 4 | 260, 5 | 360 ms |
-| `/learn/osi-model` | 255 | 5 | 300, 6 | 432 ms |
-| `/learn/osi-model/exercise` | 260 | 4 | 300, 5 | 428 ms |
-| `/labs/investigate-a-suspicious-login` | 229 | 3 | 265, 4 | 380 ms |
+| `/` | 188 | 1 | 250, 2 | 208 ms |
+| `/courses` | 188 | 3 | 250, 4 | 140 ms |
+| `/courses/networking-fundamentals` | 188 | 1 | 250, 2 | 128 ms |
+| `/careers/soc-analyst` | 187 | 1 | 250, 2 | 168 ms |
+| `/dashboard` | 193 | 9 | 260, 10 | 300 ms |
+| `/roadmap` | 193 | 4 | 260, 5 | 304 ms |
+| `/learn/osi-model` | 255 | 5 | 300, 6 | 368 ms |
+| `/learn/osi-model/exercise` | 260 | 4 | 300, 5 | 364 ms |
+| `/labs/investigate-a-suspicious-login` | 229 | 3 | 265, 4 | 304 ms |
 
-These figures were measured before the change in §5, which takes zod off the public pages and the dashboard. CI enforces the budgets with `E2E_PERF=1`; locally (`next dev`, unminified) the spec only writes its report.
+Measured on CI after the change in §5, which took zod off the public pages and the dashboard (219 and 224 KB before). The budgets were set before that change and now leave more room. CI enforces them with `E2E_PERF=1`; locally (`next dev`, unminified) the spec only writes its report.
+
+**Development doubles API traffic.** Under `next dev` every page mounts twice, so each full page load fetches `/me` and its data twice. A test that loads many pages in a row from one account therefore meets the `api` limit locally sooner than it would in production; the sweep pauses between its passes when it runs against the dev server.
 
 **The `api` limit (120 a minute per learner).** A dashboard load makes 9 API requests (8 panels and the unread count), and the bell then polls once a minute. A learner can reload the dashboard about 13 times a minute before reaching the limit, far beyond normal use; the performance spec asserts the dashboard stays at 14 requests or fewer.
 

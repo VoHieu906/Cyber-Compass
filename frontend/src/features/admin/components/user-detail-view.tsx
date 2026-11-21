@@ -84,10 +84,10 @@ function Profile({ user }: { user: AdminUserDetail }) {
       <div className="flex flex-wrap items-center gap-4">
         <Avatar name={user.name} src={user.avatar_url} size={56} />
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 className="text-[length:var(--text-xl)]">
+          <h1 className="text-[length:var(--text-xl)]">
             {user.name}
             {user.is_self ? <span className="ml-2 align-middle text-sm font-normal text-muted">{t("you")}</span> : null}
-          </h2>
+          </h1>
           <p className="truncate">{user.email}</p>
         </div>
         <div className="flex items-center gap-3 sm:ml-auto">

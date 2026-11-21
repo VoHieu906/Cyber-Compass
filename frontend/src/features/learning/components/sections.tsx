@@ -114,7 +114,8 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
           <span aria-live="polite">{copied ? t("copied") : t("copy")}</span>
         </button>
       </div>
-      <pre className="overflow-x-auto p-4 text-sm leading-relaxed">
+      {/* Focusable so a keyboard can scroll a long line sideways (WCAG 2.1.1). */}
+      <pre tabIndex={0} className="overflow-x-auto p-4 text-sm leading-relaxed">
         <code className="measured text-ink">{code}</code>
       </pre>
     </div>

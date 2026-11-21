@@ -107,7 +107,8 @@ export function ProgressTrack({ value, className }: { value: number; className?:
 /** A code snippet under a question prompt. */
 export function QuestionCode({ code }: { code: string }) {
   return (
-    <pre className="overflow-x-auto rounded-control border border-rule bg-paper-3 p-3 text-sm leading-relaxed">
+    // Focusable so a keyboard can scroll a long line sideways (WCAG 2.1.1).
+    <pre tabIndex={0} className="overflow-x-auto rounded-control border border-rule bg-paper-3 p-3 text-sm leading-relaxed">
       <code className="measured text-ink">{code}</code>
     </pre>
   );

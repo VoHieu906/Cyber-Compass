@@ -149,8 +149,9 @@ function Workspace({ lesson, exercise }: { lesson: Lesson; exercise: Exercise })
               </button>
             ))}
           </div>
-          <div {...tabs.panelProps} id="theory-panel" className="min-w-0 outline-none">
-            {tabs.selected === 0 ? work : panel}
+          {/* The tab panel keeps the id its tabs point to (aria-controls); the theory id goes inside. */}
+          <div {...tabs.panelProps} className="min-w-0 outline-none">
+            <div id="theory-panel">{tabs.selected === 0 ? work : panel}</div>
           </div>
         </div>
       )}

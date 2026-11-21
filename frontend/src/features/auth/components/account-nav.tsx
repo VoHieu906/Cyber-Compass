@@ -72,11 +72,12 @@ function AccountMenu({ user }: { user: User }) {
         type="button"
         aria-expanded={open}
         aria-controls={menuId}
-        aria-label={`${t("account")}: ${user.name}`}
         onClick={() => setOpen((v) => !v)}
         className="flex items-center rounded-full"
       >
         <Avatar name={user.name} src={user.profile.avatar_url} size={34} />
+        {/* The name as text, not aria-label: the visible initials then never contradict it (WCAG 2.5.3). */}
+        <span className="sr-only">{`${t("account")}: ${user.name}`}</span>
       </button>
       <div
         id={menuId}
