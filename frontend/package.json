@@ -15,7 +15,8 @@
     "predev": "node scripts/build-sandbox.mjs",
     "prebuild": "node scripts/build-sandbox.mjs",
     "e2e": "playwright test",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "lock:linux": "bash scripts/lock-linux.sh"
   },
   "dependencies": {
     "@dagrejs/dagre": "3.1.3",
