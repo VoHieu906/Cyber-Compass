@@ -23,6 +23,7 @@ function safeProductionConfig(): void
         'logging.channels.stderr.level' => 'info',
         'cybercompass.demo_user_password' => null,
         'cybercompass.demo_admin_password' => null,
+        'cybercompass.internal_api_token' => str_repeat('k', 40),
     ]);
 }
 
@@ -57,6 +58,7 @@ it('fails the deployment on an unsafe setting', function (array $override, strin
     'local uploads' => [['cybercompass.uploads_disk' => 'public'], 'Uploads go to the private S3 bucket'],
     'debug logs' => [['logging.channels.stderr.level' => 'debug'], 'Logs are not at debug level'],
     'debug logs through a stack' => [['logging.default' => 'stack', 'logging.channels.stack' => ['driver' => 'stack', 'channels' => ['stderr', 'single']], 'logging.channels.single.level' => 'debug'], 'Logs are not at debug level'],
+    'no web server token' => [['cybercompass.internal_api_token' => 'short'], 'The web server has its own API token'],
     'demo password' => [['cybercompass.demo_admin_password' => 'demo-pass-1'], 'No demo account passwords'],
 ]);
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\RejectSuspendedUsers;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetRequestLocale;
 use App\Modules\Admin\Http\Middleware\EnsureAdmin;
 use App\Support\Http\ApiExceptionRenderer;
@@ -27,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum SPA authentication: session cookies + CSRF for requests from the frontend origin.
+        // Security headers on every response, including errors for unknown routes (D42).
+        $middleware->append(SecurityHeaders::class);
         $middleware->statefulApi();
         $middleware->throttleApi('api');
         $middleware->appendToGroup('api', [SetRequestLocale::class, RejectSuspendedUsers::class]);
@@ -39,8 +42,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $contentApi = fn (Request $request) => $request->is('api/v1/admin/content/*');
         $middleware->trimStrings(except: [$contentApi]);
         $middleware->convertEmptyStringsToNull(except: [$contentApi]);
-        // Behind the AWS ALB, trust X-Forwarded-* so URLs and secure cookies are correct.
-        $middleware->trustProxies(at: '*');
+        // Behind the AWS ALB, trust only the immediate peer (the load balancer: D40 lets nothing else
+        // reach the tasks) and only the headers the ALB sets. '*' would trust every address, so a
+        // client could pick its own X-Forwarded-For and escape the per-address limits, and
+        // X-Forwarded-Host is never trusted (docs/SECURITY_REVIEW.md S9).
+        $middleware->trustProxies(at: 'REMOTE_ADDR', headers: Request::HEADER_X_FORWARDED_AWS_ELB);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -1,17 +1,21 @@
 # Security review
 
-Phase 7 review of every phase, not only recent work. Part B (this version) covers the API; Part C adds the web app, headers, the 3D sandbox and the client-IP handling of the deployment layout (D41, D42).
+Phase 7 review of every phase, not only recent work: the API (Part B) and the web app, response headers, the Content Security Policy, the 3D sandbox and the client-address handling of the deployment layout (Part C, D41, D42).
 
 **Method.** Every route was read from the router; each area was checked against the code and against an existing or new automated test, which is cited as evidence. The checklist follows the OWASP Top 10 (2021). Findings are fixed in the same part and pinned by a test, or recorded as accepted residual risks with a reason.
 
-**Re-run.** `docker compose exec api php artisan test` (all evidence below is in the suite), `docker compose exec api composer audit`, `npm audit` in `frontend/`, and `php artisan cybercompass:preflight` against a production configuration.
+**Re-run.** `docker compose exec api php artisan test` and `npm run e2e` in `frontend/` (all evidence below is in the suites; browser-side checks are in `e2e/security.spec.ts`), `docker compose exec api composer audit`, `npm audit` in `frontend/`, and `php artisan cybercompass:preflight` against a production configuration.
 
 ## 1. Findings
 
 | ID | Severity | Area | Finding | Status | Evidence |
 |---|---|---|---|---|---|
+| S9 | **High** | Deployment layout (Phase 1) | `trustProxies(at: '*')` trusts every address in Laravel 13 (`0.0.0.0/0`), so `$request->ip()` was the left-most `X-Forwarded-For` entry, which the client writes. Any client could choose its own address and escape every per-address limit (login, register, password reset, search, guest API), and `X-Forwarded-Host` was trusted too | **Fixed:** trust only the immediate peer (`REMOTE_ADDR`: the ALB, the only way in under D40) and only the headers the ALB sets (`For`, `Proto`, `Port`) | `Security/ClientAddressTest` (forged prefixes still limited, clients kept apart, forged host ignored, HTTPS detected) |
+| S10 | Medium | Web app (all phases) | No Content Security Policy, and no framing, sniffing or referrer headers outside `/sandbox`; the API sent no policy of its own | **Fixed (D42):** a nonce-based CSP per request in `proxy.ts` (scripts only with the nonce, `object-src 'none'`, `frame-ancestors 'none'`), with `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy` and HSTS on every page; the API adds a deny-all CSP and `Cross-Origin-Resource-Policy` to the image's nginx headers | `csp.test.ts`, `SecurityHeadersTest`, E2E `security.spec.ts` |
+| S8 | Medium | Deployment layout (D41) | On AWS every server-side read by the Next.js server (public pages) comes from the web task's one address, so requests for random course or career addresses could use up that address's 120-a-minute `api` limit and break public pages for everyone | **Fixed:** the web server sends a server-only shared secret (`X-Internal-Token`, `INTERNAL_API_TOKEN`); guest reads carrying it skip the per-address limit. Abuse of public pages is limited at the edge (CloudFront, the D50 rate rule). Preflight requires the token in production | `Security/InternalTokenTest`, `PreflightCommandTest` |
+| S11 | Low | Auth (Phase 2) | The reset token is in the address of `/reset-password`, and the page had no referrer policy | **Fixed:** `Referrer-Policy: no-referrer` on that page; every other page sends only its origin to other sites | E2E `security.spec.ts` |
 | S1 | Medium | Auth (Phase 2) | Login was limited per email and address (5 failures, then a minute's lockout), but one address could try a common password against about 120 accounts a minute (password spraying) | **Fixed:** `throttle:login`, 20 attempts a minute per address, on top of the per-account lockout | `SessionTest`: "limits one address trying many accounts" |
-| S2 | Medium | Deployment config | Nothing stopped an unsafe production configuration: session cookies are Secure only when `SESSION_SECURE_COOKIE` is set, and debug mode, a wildcard CORS list, mail sent to the log or uploads on the container disk would all start without complaint | **Fixed:** `php artisan cybercompass:preflight` checks 16 settings and fails on any unsafe one; the migration task runs it before every deployment (Part F, Part G) | `PreflightCommandTest` (a safe configuration, 16 unsafe ones, outside production) |
+| S2 | Medium | Deployment config | Nothing stopped an unsafe production configuration: session cookies are Secure only when `SESSION_SECURE_COOKIE` is set, and debug mode, a wildcard CORS list, mail sent to the log or uploads on the container disk would all start without complaint | **Fixed:** `php artisan cybercompass:preflight` checks 17 settings and fails on any unsafe one; the migration task runs it before every deployment (Part F, Part G) | `PreflightCommandTest` (a safe configuration, 16 unsafe ones, outside production) |
 | S3 | Low | Auth | bcrypt reads only the first 72 bytes of a password, and the rule allowed 128 characters (up to 512 bytes), so two long passwords sharing their first 72 bytes would both be accepted | **Fixed:** `MaxBytes(72)` added to `Password::defaults()` (register, reset, change), with messages in English and Vietnamese | `RegistrationTest`: "over 72 bytes" |
 | S4 | Low | All routes | No check stopped a future route from shipping without authentication or its limiter | **Fixed:** a router-driven inventory test: every API route is either on an explicit public list or behind `auth:sanctum`, every admin route has `EnsureAdmin` and `throttle:admin`, eleven routes keep their own limiter, and a guest gets 401 on every protected route | `Security/RouteInventoryTest` (346 assertions over 85 routes) |
 | S5 | Low | Auth, notifications | Email addresses are not verified (O4). Someone could register with another person's address and opt in to email notifications | **Accepted** for the MVP: email is opt-in per type (D34), reminders are at most one a day, registration is limited to 10 an hour per address, and every email says how to turn it off. Follow-up: verify the address before any opt-in email is sent | D34, `NotificationsTest` |
@@ -88,6 +92,22 @@ Phase 7 review of every phase, not only recent work. Part B (this version) cover
 | Email only for types the learner opted into; nothing for suspended accounts | Pass | `NotificationsTest` (and S5) |
 | Search open to guests with its own limiter; drafts, archived lessons and unpublished courses or careers never appear | Pass | `SearchTest` |
 
+### Web app, headers and the 3D sandbox (Part C)
+
+| Check | Result | Evidence |
+|---|---|---|
+| Content Security Policy on every page: a fresh nonce per response, scripts only with it (`'strict-dynamic'`, no `'unsafe-inline'`, `'unsafe-eval'` only for `next dev`), `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`, network only to the app and the API, images also from the media origin; `upgrade-insecure-requests` when the API is on HTTPS | Pass | `csp.test.ts`; E2E: "pages carry a nonce CSP" |
+| Inline style attributes stay allowed (`style-src 'unsafe-inline'`): graphs, charts and the editor position elements with them, and a nonce cannot cover an attribute. Script injection stays blocked | Accepted | `lib/security/csp.ts` |
+| The policy blocks nothing the app needs: public pages, dashboard, roadmap and a 3D lesson in both themes, and the admin editor's live 3D preview; the whole suite passes under it (its console guard fails on any violation) | Pass | E2E `security.spec.ts`, every spec |
+| Rollback without a new image: `CSP_REPORT_ONLY=true` sends the same policy as report-only | Pass | `proxy.ts` |
+| Framing, sniffing, referrer, permissions, opener isolation and HSTS headers on every page except `/sandbox` | Pass | E2E `security.spec.ts` |
+| API responses: deny-all CSP and `Cross-Origin-Resource-Policy` from Laravel (errors and unknown routes included); `X-Frame-Options`, `nosniff`, `Referrer-Policy` and HSTS from the image's nginx (`server-opts.d/security.conf`), each sent once | Pass | `SecurityHeadersTest`; response headers checked live |
+| 3D sandbox (D22): `<iframe sandbox="allow-scripts">`, an opaque origin and its own CSP (`connect-src 'none'`); scene code cannot fetch, open a WebSocket, read storage or cookies, or reach the page | Pass | E2E: "scene code has no network, storage, cookies or access to the page" |
+| No raw HTML rendering anywhere (`dangerouslySetInnerHTML` is not used); lesson links render only for https and open with `noopener noreferrer nofollow` | Pass | Code search; `prose.tsx` |
+| Login's `next` accepts only same-site paths (no open redirect) | Pass | `redirect.test.ts`; E2E: "an open redirect through next is ignored" |
+| Session tokens never reach JavaScript: the Sanctum session cookie is HttpOnly; `XSRF-TOKEN` is the only readable cookie, by design | Pass | ARCHITECTURE §4, D1 |
+| Server-only secrets (`INTERNAL_API_TOKEN`, `CSP_*`) are never `NEXT_PUBLIC_`, so they are not built into the browser bundle | Pass | `lib/api/server.ts` (`server-only`), `proxy.ts` |
+
 ### Rate limits
 
 | Limiter | Limit | Key |
@@ -102,7 +122,7 @@ Phase 7 review of every phase, not only recent work. Part B (this version) cover
 | `exercise-attempts` | 20 a minute | user |
 | `search` | 60 a minute | user, else address |
 
-One dashboard load makes 8 requests and the bell polls once a minute, so normal use stays far below the `api` limit; Part D measures it. Per-address limits rely on the client address the load balancer reports (D41: the API is not behind CloudFront).
+One dashboard load makes 8 requests and the bell polls once a minute, so normal use stays far below the `api` limit; Part D measures it. Per-address limits use the address the load balancer adds (S9; D41 keeps the API off CloudFront, so that is the real client). The Next.js server's own reads skip the per-address limit with its shared secret (S8).
 
 ## 3. OWASP Top 10 (2021) summary
 
@@ -110,9 +130,9 @@ One dashboard load makes 8 requests and the bell polls once a minute, so normal 
 |---|---|
 | A01 Broken access control | §2 authorization; `RouteInventoryTest` |
 | A02 Cryptographic failures | bcrypt with the 72-byte rule; Secure cookies and HTTPS checked by preflight; TLS at the ALB and CloudFront (D41) |
-| A03 Injection | Query builder and bindings, schema-validated content, literal search, the lab engines' refusals |
+| A03 Injection | Query builder and bindings, schema-validated content, literal search, the lab engines' refusals; the CSP against script injection (S10) |
 | A04 Insecure design | Server-side scoring and labs (D28, D31), keys never sent early, explicit roadmap updates (D26) |
-| A05 Security misconfiguration | `cybercompass:preflight` (S2); API docs closed; headers in Part C |
+| A05 Security misconfiguration | `cybercompass:preflight` (S2); API docs closed; trusted proxies (S9); headers and CSP (S10) |
 | A06 Vulnerable components | `composer audit`, `npm audit` clean; CI runs on every push (D46) |
 | A07 Identification and authentication failures | Lockout, per-address limit (S1), timebox, session regeneration, reset rules |
 | A08 Software and data integrity | Lockfiles committed and installed with `npm ci` and `composer install`; CI on every change; images built from them (Part F) |

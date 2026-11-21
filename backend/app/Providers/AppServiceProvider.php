@@ -93,8 +93,16 @@ class AppServiceProvider extends ServiceProvider
 
     private function configureRateLimits(): void
     {
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)
-            ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+        RateLimiter::for('api', function (Request $request) {
+            // Public reads by the Next.js server (no session) all come from its own address; abuse
+            // of public pages is limited at the edge instead (SECURITY_REVIEW.md S8, D50).
+            $token = (string) config('cybercompass.internal_api_token');
+            if ($token !== '' && ! $request->user() && hash_equals($token, (string) $request->header('X-Internal-Token'))) {
+                return Limit::none();
+            }
+
+            return Limit::perMinute(120)->by($request->user()?->getAuthIdentifier() ?: $request->ip());
+        });
 
         // Login has its own per-email lockout in AttemptLogin; these cover the other auth endpoints.
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(20)->by('login:'.$request->ip()));

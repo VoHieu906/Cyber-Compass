@@ -26,7 +26,7 @@ async function answerTask(page: Page, task: string, value: string, correct = tru
 
 test.describe("labs", () => {
   // A second tab's stale action is answered with 409 on purpose.
-  test.use({ allowedConsole: [/status of 409/] });
+  test.use({ allowedConsole: /status of 409/ });
 
   test("the shell lab runs safely on the server and completes", async ({ page, context }) => {
     await login(page, account("labs"));

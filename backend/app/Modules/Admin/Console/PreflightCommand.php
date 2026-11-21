@@ -85,6 +85,11 @@ final class PreflightCommand extends Command
                 'set LOG_LEVEL=info or warning',
             ],
             [
+                strlen((string) config('cybercompass.internal_api_token')) >= 32,
+                'The web server has its own API token',
+                'set INTERNAL_API_TOKEN (32+ random characters) on the api and web services',
+            ],
+            [
                 blank(config('cybercompass.demo_user_password')) && blank(config('cybercompass.demo_admin_password')),
                 'No demo account passwords are configured',
                 'leave DEMO_USER_PASSWORD and DEMO_ADMIN_PASSWORD empty',

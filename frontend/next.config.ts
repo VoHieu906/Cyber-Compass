@@ -13,6 +13,25 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // Every page except the 3D sandbox, which must be framable by the app and sets its own
+        // headers below. The CSP itself is set per request with a nonce (src/proxy.ts, D42).
+        source: "/((?!sandbox/).*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Browsers ignore HSTS over plain HTTP, so this is harmless locally and binding on AWS.
+          { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+        ],
+      },
+      {
+        // The reset token is in this page's address: never send it to another site as a referrer.
+        source: "/reset-password",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
+      {
         // Sandboxed 3D scenes (docs/SANDBOXED_3D.md). These documents only ever load inside
         // <iframe sandbox="allow-scripts">, so they run with an opaque origin. The CSP keeps all
         // network access out, including from the worker that runs scene code (blob workers inherit it).

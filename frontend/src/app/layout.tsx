@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { headers } from "next/headers";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
@@ -30,6 +31,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
   const t = await getTranslations("common");
+  // Set by proxy.ts for the Content Security Policy.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang={locale} className={`${display.variable} ${measured.variable}`} suppressHydrationWarning>
       <body className="flex flex-col">
@@ -40,7 +43,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {t("skipToContent")}
         </a>
         <NextIntlClientProvider>
-          <Providers>{children}</Providers>
+          <Providers nonce={nonce}>{children}</Providers>
         </NextIntlClientProvider>
       </body>
     </html>

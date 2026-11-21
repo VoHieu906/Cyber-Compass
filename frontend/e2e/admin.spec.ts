@@ -28,7 +28,7 @@ test.describe("admin console", () => {
 
   test.describe("as a learner", () => {
     // The admin API answers a learner with 403, which the browser logs.
-    test.use({ allowedConsole: [/status of 403/] });
+    test.use({ allowedConsole: /status of 403/ });
 
     test("the console says it is for admins only", async ({ page }) => {
       await login(page, account("search"));

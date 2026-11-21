@@ -12,7 +12,7 @@ test.describe("sign in and out", () => {
 
   test.describe("refusals", () => {
     // The API answers a wrong password with 422, which the browser logs.
-    test.use({ allowedConsole: [/status of 422/] });
+    test.use({ allowedConsole: /status of 422/ });
 
     test("a wrong password is refused without saying which part was wrong", async ({ page }) => {
       const { email } = account("auth");

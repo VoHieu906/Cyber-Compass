@@ -24,6 +24,11 @@ return [
         'scripted_3d' => (bool) env('CONTENT_SCRIPTED_3D', true),
     ],
 
+    // Shared secret the Next.js server sends with its public, server-side reads (X-Internal-Token).
+    // On AWS every such read comes from the web task's one address, so it must not count against
+    // the per-address `api` limit (docs/SECURITY_REVIEW.md S8). Empty locally.
+    'internal_api_token' => env('INTERNAL_API_TOKEN'),
+
     // Demo admin created by DemoUserSeeder (admin@cybercompass.test). Skipped when empty.
     'demo_admin_password' => env('DEMO_ADMIN_PASSWORD'),
 

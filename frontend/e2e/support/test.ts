@@ -3,15 +3,16 @@ import type { Account } from "./accounts";
 
 /**
  * The suite's `test`: every page fails its test on a console error or an uncaught exception.
- * Signed-out `/me` checks log a 401 by design; a spec that expects another status (for example a
- * lab's 409) lists it in `allowedConsole`.
+ * Signed-out `/me` checks log a 401 by design; a spec that expects other messages (for example a
+ * lab's 409) matches them with `allowedConsole`: one RegExp, since Playwright would read an array
+ * of RegExps as its own [value, options] pair.
  */
-export const test = base.extend<{ allowedConsole: RegExp[]; consoleGuard: void }>({
-  allowedConsole: [[], { option: true }],
+export const test = base.extend<{ allowedConsole: RegExp | null; consoleGuard: void }>({
+  allowedConsole: [null, { option: true }],
   consoleGuard: [
     async ({ page, allowedConsole }, use) => {
       const errors: string[] = [];
-      const allowed = [/status of 401/, ...allowedConsole];
+      const allowed = [/status of 401/, ...(allowedConsole ? [allowedConsole] : [])];
       page.on("console", (m) => {
         if (m.type() === "error" && !allowed.some((r) => r.test(m.text()))) errors.push(`${page.url()}: ${m.text()}`);
       });
