@@ -99,6 +99,8 @@ export function MediaPicker({
                   <img
                     src={m.url}
                     alt=""
+                    loading="lazy"
+                    decoding="async"
                     className="aspect-[4/3] w-full rounded-[calc(var(--radius-control)-2px)] bg-paper-3 object-cover"
                   />
                   <span className="line-clamp-2 text-xs">{m.alt}</span>
