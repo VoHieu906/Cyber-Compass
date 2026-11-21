@@ -95,6 +95,24 @@ describe("search", () => {
     await waitFor(() => expect(screen.queryByRole("searchbox")).not.toBeInTheDocument());
   });
 
+  it("returns focus to where it was when Escape closes a search opened by shortcut", async () => {
+    mocks.search.mockResolvedValue(results);
+    const user = userEvent.setup();
+    renderWithProviders(
+      <>
+        <button type="button">Courses</button>
+        <SearchDialog />
+      </>,
+    );
+
+    const link = screen.getByRole("button", { name: "Courses" });
+    link.focus();
+    await user.keyboard("{Control>}k{/Control}");
+    await user.type(await screen.findByRole("searchbox"), "net{Escape}");
+    await waitFor(() => expect(screen.queryByRole("searchbox")).not.toBeInTheDocument());
+    expect(link).toHaveFocus();
+  });
+
   it("closes when a result is chosen", async () => {
     mocks.search.mockResolvedValue(results);
     const user = userEvent.setup();

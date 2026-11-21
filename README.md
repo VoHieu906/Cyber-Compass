@@ -38,7 +38,7 @@ _Screenshots are added as features ship._
 |---|---|
 | Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, TanStack Query, next-intl, next-themes, Motion, Lucide. Graphs (lesson diagrams, roadmap, knowledge map) are static SVG laid out with dagre; Recharts arrives with the dashboard. |
 | Backend | Laravel 13, PHP 8.5, Sanctum (SPA cookie auth), MySQL 8.4, Scramble (OpenAPI) |
-| Testing | Vitest + Testing Library (frontend), Pest on MySQL (backend), Playwright (E2E, Phase 7) |
+| Testing | Vitest + Testing Library (frontend), Pest on MySQL (backend), Playwright end-to-end suite (`frontend/e2e`) |
 | Infrastructure | Docker, AWS ECS Fargate, ECR, RDS MySQL, S3, CloudFront, ALB, Secrets Manager, CloudWatch |
 
 ## Architecture
@@ -122,6 +122,7 @@ To run the frontend in Docker as well, for example to test the container, use `d
 | Artisan / Composer | `docker compose exec -u root api php artisan …` / `… composer …` |
 | Frontend tests | `cd frontend && npm test` |
 | Frontend checks | `npm run typecheck` and `npm run lint` |
+| End-to-end tests (Playwright, Edge) | `cd frontend && npm run e2e` with the Docker stack up; it reuses a running dev server on port 3000 or builds and starts the app |
 | Logs | `docker compose logs -f api worker scheduler web` |
 
 **Windows note:** inside the container, the bind-mounted `backend/` folder appears owned by root. Commands that write source files therefore use `-u root`, and `storage/` and `bootstrap/cache` are made writable once with the `chmod` above. The setting persists on disk.

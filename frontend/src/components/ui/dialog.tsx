@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useId, useLayoutEffect, useRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -22,12 +22,27 @@ export function Dialog({ open, onClose, title, description, closeLabel, children
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+  const opener = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
+  // A layout effect runs before the content's own effects, so the opener is recorded before
+  // the content moves focus into the dialog.
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
+    if (open && !dialog.open) {
+      opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      dialog.showModal();
+    }
+    if (!open) {
+      if (dialog.open) dialog.close();
+      // When the content closes the dialog itself (a search pick, its own Escape), the content
+      // unmounts before close() runs, focus falls to <body> and the browser no longer restores it.
+      // Put it back where the dialog was opened from.
+      const back = opener.current;
+      opener.current = null;
+      if (back?.isConnected && (document.activeElement === document.body || dialog.contains(document.activeElement)))
+        back.focus();
+    }
   }, [open]);
 
   return (
