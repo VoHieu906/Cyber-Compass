@@ -134,6 +134,17 @@ docker compose exec -u root api php artisan content:export networking-fundamenta
 - **Export** writes a course's *published* lessons back to its file so the admin's work can be reviewed and committed. Drafts are not exported. Review the diff before committing; payload keys may be reordered, but the content is identical, and importing the export changes nothing.
 - **Section identity.** Each block has a stable UUID that future exercises will link to. In files, it is derived from the lesson slug and the block's heading, so **renaming a heading in a file gives the block a new identity**. Blocks created in the admin console keep theirs through an explicit `'uuid'` that export adds. Don't edit or copy those values.
 
+## 4a. Exercises (graded, Phase 5)
+
+Exercises are graded practice at the end of a lesson; passing one completes the lesson (ARCHITECTURE D29 to D31). They live in `backend/database/seeders/content/exercises/<course>.php`, keyed by lesson slug, and are loaded by `ExerciseSeeder` after the lessons (it runs inside `db:seed` and `content:import`'s seeder; on its own: `php artisan db:seed --class=ExerciseSeeder`).
+
+- **Format.** Each question has a stable `key`, a `type`, a `prompt`, an `explanation` and the fields of its type (see the header of `networking-fundamentals.php` and `Learning\Services\QuestionTypes`). Write them in the order learners should meet them.
+- **Theory reference, required.** `'section' => 'encapsulation'` names the block that teaches the question by its key (the heading as a slug). Admin-made blocks are named by `'section_uuid'`. The seed fails if the block does not exist in that lesson.
+- **Never reuse knowledge checks.** Ungraded `knowledge-check` blocks ship their answers with the lesson; exercise questions are new questions whose keys stay on the server.
+- **Matching and ordering** are shuffled for display automatically and never shown already in the right order; write the items in the correct order or pairing.
+- **Removing a question** archives it; past attempts keep it. Changing a question's type after someone answered it is refused: give the changed question a new key.
+- **Blocks that questions use cannot be deleted.** Publishing a draft or importing a file that drops such a block is refused with a message naming the questions (D30), and the editor marks those blocks and warns before removing one. Renaming a block's heading in a file counts as removing it (its identity is derived from the heading), so update the exercise file first.
+
 ## 5. Before you publish
 
 - [ ] The lesson reads well with every visual skipped.

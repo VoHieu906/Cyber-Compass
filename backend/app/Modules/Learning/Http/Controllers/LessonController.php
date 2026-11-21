@@ -3,6 +3,7 @@
 namespace App\Modules\Learning\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Exercise;
 use App\Models\Lesson;
 use App\Modules\Catalog\Services\CourseProgress;
 use App\Modules\Learning\Actions\RecordLessonProgress;
@@ -16,7 +17,8 @@ final class LessonController extends Controller
      * Read a lesson.
      *
      * Sections, objectives, takeaways, resources, the previous and next lesson in the
-     * course, and my progress. Any signed-in learner can read any published lesson.
+     * course, my progress, and the lesson's exercise (question count, pass mark, whether I
+     * passed) or null. Any signed-in learner can read any published lesson.
      */
     public function show(Request $request, string $slug, CourseProgress $courseProgress): LessonResource
     {
@@ -33,6 +35,12 @@ final class LessonController extends Controller
             'next' => $link($ordered->get($index + 1)),
         ]);
         $lesson->setRelation('viewerProgress', $request->user()->lessonProgress()->where('lesson_id', $lesson->id)->first());
+        $exercise = Exercise::query()->where('lesson_id', $lesson->id)->withCount('questions')->first();
+        $lesson->setRelation('exerciseSummary', $exercise && $exercise->questions_count > 0 ? [
+            'question_count' => $exercise->questions_count,
+            'pass_percent' => $exercise->pass_percent,
+            'passed' => $request->user()->exerciseAttempts()->where('exercise_id', $exercise->id)->where('passed', true)->exists(),
+        ] : null);
 
         return new LessonResource($lesson);
     }
@@ -50,6 +58,9 @@ final class LessonController extends Controller
 
     /**
      * Mark a lesson as read to the end.
+     *
+     * A lesson with an exercise is completed by passing the exercise instead; until then this
+     * returns 422 (`exercise`).
      *
      * `time_spent_seconds` is added to the lesson's study time (capped at 4 hours per call).
      * Returns the lesson status and my updated progress in the course.

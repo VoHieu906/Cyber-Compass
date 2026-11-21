@@ -3,6 +3,7 @@
 namespace App\Modules\Roadmap\Services;
 
 use App\Enums\LessonProgressStatus;
+use App\Models\Exercise;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Models\User;
@@ -37,13 +38,16 @@ final class TopicStatus
     {
         $lessonIds = $topics->flatMap(fn (Topic $t) => $t->lessons->pluck('id'))->unique();
         $progress = $user->lessonProgress()->whereIn('lesson_id', $lessonIds)->get()->keyBy('lesson_id');
+        // Lessons with an exercise (D29), and which of those exercises the learner has passed.
+        $exercises = Exercise::query()->whereIn('lesson_id', $lessonIds)->whereHas('questions')->pluck('id', 'lesson_id');
+        $passed = $user->exerciseAttempts()->whereIn('exercise_id', $exercises->values())->where('passed', true)->distinct()->pluck('exercise_id')->flip();
         $lessonStatus = fn (Lesson $l) => match ($progress[$l->id]->status ?? null) {
             LessonProgressStatus::Completed => 'completed',
             LessonProgressStatus::Started => 'started',
             default => 'not_started',
         };
 
-        return $topics->mapWithKeys(function (Topic $topic) use ($lessonStatus) {
+        return $topics->mapWithKeys(function (Topic $topic) use ($lessonStatus, $exercises, $passed) {
             $lessons = $topic->lessons->map(fn (Lesson $l) => [
                 'slug' => $l->slug,
                 'title' => $l->title,
@@ -51,6 +55,7 @@ final class TopicStatus
                 'estimated_minutes' => $l->estimated_minutes,
                 'is_required' => (bool) $l->pivot->is_required,
                 'status' => $lessonStatus($l),
+                'exercise' => isset($exercises[$l->id]) ? ['passed' => isset($passed[$exercises[$l->id]])] : null,
             ])->values();
             $required = $lessons->where('is_required', true);
             $required = $required->isEmpty() ? $lessons : $required;

@@ -416,7 +416,8 @@
         "sequence": "Chuỗi liên tiếp như 1234 hoặc abcd rất dễ đoán."
       },
       "entropyCaveat": "Ước tính này giả định mọi ký tự được chọn ngẫu nhiên. Từ ngữ, tên riêng và các mẫu quen thuộc khiến mật khẩu thật yếu hơn nhiều so với con số này."
-    }
+    },
+    "exerciseRequired": "Bài học này được hoàn thành khi bạn đạt bài tập của nó: {count, plural, other {# câu hỏi}}, điểm đạt {pass}%."
   },
   "careers": {
     "title": "Nghề nghiệp",
@@ -846,7 +847,11 @@
         "practice": "Luyện tập",
         "threeD": "3D",
         "other": "Khác"
-      }
+      },
+      "usedByExercise": "{count, plural, other {# câu hỏi bài tập dùng khối này làm phần lý thuyết}}: {questions}.",
+      "removeReferencedTitle": "Xóa khối mà bài tập đang dùng?",
+      "removeReferencedBody": "Các câu hỏi bài tập đang trỏ tới khối này để lấy phần lý thuyết ({questions}). Bạn có thể xóa nó khỏi bản nháp, nhưng việc xuất bản sẽ bị từ chối cho đến khi bài tập không còn dùng nó.",
+      "removeReferenced": "Xóa khỏi bản nháp"
     },
     "media": {
       "image": "Hình ảnh",

@@ -26,6 +26,16 @@ class Lesson extends Model
         return $this->belongsTo(CourseChapter::class, 'course_chapter_id');
     }
 
+    /**
+     * The lesson's exercise, if it has one (ARCHITECTURE D29).
+     *
+     * @return HasOne<Exercise, $this>
+     */
+    public function exercise(): HasOne
+    {
+        return $this->hasOne(Exercise::class);
+    }
+
     /** @return HasMany<LessonSection, $this> */
     public function sections(): HasMany
     {

@@ -2,6 +2,7 @@
 
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Exercise;
 use App\Models\LessonProgress;
 use App\Models\User;
 
@@ -52,6 +53,9 @@ it('starts a lesson once', function () {
 });
 
 it('completes a lesson, accumulates capped study time and keeps the first completion date', function () {
+    // The read-to-the-end rule on its own: this lesson's exercise is removed here (D31 is covered in ExerciseTest).
+    Exercise::query()->whereHas('lesson', fn ($q) => $q->where('slug', 'osi-model'))->delete();
+
     $this->actingAs($this->user, 'web')
         ->postJson('/api/v1/lessons/osi-model/complete', ['time_spent_seconds' => 300])
         ->assertOk()

@@ -77,5 +77,9 @@
     "This attempt has already been submitted.": "Lượt làm bài này đã được nộp.",
     "Choose one of the options for this question.": "Hãy chọn một trong các đáp án của câu hỏi này.",
     "Submit this attempt to see its result.": "Hãy nộp bài để xem kết quả.",
-    "Choose a career goal before building your roadmap.": "Hãy chọn mục tiêu nghề nghiệp trước khi tạo lộ trình học."
+    "Choose a career goal before building your roadmap.": "Hãy chọn mục tiêu nghề nghiệp trước khi tạo lộ trình học.",
+    "This question is not part of the exercise.": "Câu hỏi này không thuộc bài tập.",
+    "Each question can be answered once.": "Mỗi câu hỏi chỉ được trả lời một lần.",
+    "Pass the lesson exercise to complete this lesson.": "Hãy đạt bài tập của bài học để hoàn thành bài học này.",
+    "These sections teach exercise questions and cannot be removed: :sections. Change the exercise first.": "Các phần này đang được câu hỏi bài tập tham chiếu nên không thể xóa: :sections. Hãy sửa bài tập trước."
 }

@@ -26,8 +26,8 @@ function mapTopicWithPrerequisite(): array
 
 function mapCompleteTopic(User $user, Topic $topic): void
 {
-    foreach ($topic->lessons()->visibleToLearners()->with('chapter.course')->get() as $lesson) {
-        app(RecordLessonProgress::class)->complete($user, $lesson, 300);
+    foreach ($topic->lessons()->visibleToLearners()->get() as $lesson) {
+        passLesson($user, $lesson, 300);
     }
 }
 

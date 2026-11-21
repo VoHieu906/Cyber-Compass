@@ -11,6 +11,8 @@ export type PathLesson = {
   estimated_minutes: number;
   is_required: boolean;
   status: "not_started" | "started" | "completed";
+  /** Null when the lesson has no exercise. */
+  exercise: { passed: boolean } | null;
 };
 
 export type PathNode = {

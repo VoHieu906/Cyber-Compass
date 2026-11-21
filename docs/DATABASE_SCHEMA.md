@@ -120,10 +120,10 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Exercises
 
-**exercises**: `lesson_id` (unique FK, cascade), `pass_percent` tinyint default 70.
-**exercise_questions**: `exercise_id` FK cascade, `position`, `type` enum(`single_choice`,`multi_choice`,`true_false`,`fill_blank`,`matching`,`ordering`,`scenario`), `prompt` text, `payload` JSON (options, pairs, items: what the learner sees), `answer` JSON (**never serialized before submission**), `explanation` text, `lesson_section_id` FK null (the theory reference).
-**exercise_attempts**: `user_id`, `exercise_id`, `score_percent`, `passed` bool, `submitted_at`. Index (`user_id`,`exercise_id`,`passed`).
-**exercise_attempt_answers**: `exercise_attempt_id` FK cascade, `exercise_question_id`, `response` JSON, `is_correct` bool.
+**exercises** (✅ Phase 5, D29): `lesson_id` (unique FK, cascade), `pass_percent` tinyint default 70. A lesson "has an exercise" when it has at least one active question.
+**exercise_questions**: `exercise_id` FK cascade, `key` (stable identity in the content file; unique with `exercise_id`), `position`, `type` varchar (`single_choice`, `multi_choice`, `true_false`, `fill_blank`, `matching`, `ordering`, `scenario`; enum `ExerciseQuestionType`), `prompt` text, `payload` JSON (what the learner sees), `answer` JSON (hidden on the model, **never serialized before submission**), `explanation` text, `lesson_section_id` FK null, null on delete (the theory reference; a section an active question uses cannot be deleted, D30), `is_archived` bool (removed from the file; never deleted). Index (`exercise_id`,`is_archived`,`position`).
+**exercise_attempts**: `user_id`, `exercise_id`, `score_percent`, `passed` bool, `time_spent_seconds` (capped at 4 hours), `submitted_at`. Index (`user_id`,`exercise_id`,`passed`). Scored on submission; there is no open attempt on the server.
+**exercise_attempt_answers**: `exercise_attempt_id` FK cascade, `exercise_question_id` FK, `response` JSON null (null: unanswered), `is_correct` bool. Unique (`attempt`,`question`), named explicitly.
 
 ### Assessment (✅ Phase 4 Part A, D24)
 
@@ -162,7 +162,7 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 | Register | users, user_profiles, notification_preferences defaults |
 | Submit assessment | answers scored, attempt score + submitted_at (the activity row is added by a Phase 6 listener on `AssessmentSubmitted`) |
 | Generate roadmap | archive old path, insert path + nodes |
-| Submit exercise | attempt, attempt answers, lesson_progress completion when passed, activity |
+| Submit exercise | attempt, attempt answers, lesson_progress completion when passed (the activity row is added by a Phase 6 listener on `ExerciseSubmitted`) |
 | Complete lesson | lesson_progress, enrollment.completed_at when the course is done, activity |
 
 Notifications are dispatched **after commit** (`afterCommit` listeners).

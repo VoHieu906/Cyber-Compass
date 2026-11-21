@@ -176,7 +176,7 @@ For each topic in the career template, in order:
 
 Completion counts the required lessons of `required` topics only. The next lesson is the first unfinished lesson of the first open `required` topic, else of the first open `review` topic.
 
-Lesson completion rule: the learner marks the lesson complete at its end (the client reports time on page, capped at 4 hours per visit) **and**, from Phase 5, has a passing attempt if the lesson has an exercise (score at or above the exercise's `pass_percent`). Completing the last lesson of an enrolled course stamps `enrollments.completed_at` once.
+Lesson completion rule (D31, `Learning\Actions\RecordLessonProgress`): the learner marks the lesson complete at its end (the client reports time on page, capped at 4 hours per visit); a lesson with an exercise is completed instead by a passing attempt (score at or above `pass_percent`), in the same transaction as the attempt, and `POST /complete` returns 422 until then. Completions recorded before the exercise existed stay. Completing the last lesson of an enrolled course stamps `enrollments.completed_at` once.
 
 ## 7. Labs architecture (D28)
 

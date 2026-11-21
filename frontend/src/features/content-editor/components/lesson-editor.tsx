@@ -33,7 +33,7 @@ import { RevisionHistory } from "./revision-history";
 import { SectionCard } from "./section-card";
 
 type Tab = "edit" | "preview" | "history";
-type Confirm = "publish" | "discard" | "archive" | "delete" | null;
+type Confirm = "publish" | "discard" | "archive" | "delete" | "remove-referenced" | null;
 
 export function LessonEditor({ id }: { id: number }) {
   const t = useTranslations("content.editor");
@@ -93,6 +93,8 @@ function EditorForm({
   const [badJson, setBadJson] = useState<Set<string>>(new Set());
   const [tab, setTab] = useState<Tab>("edit");
   const [confirm, setConfirm] = useState<Confirm>(null);
+  // The block waiting for confirmation because exercise questions use it (D30).
+  const [removing, setRemoving] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -230,6 +232,14 @@ function EditorForm({
       else next.delete(key);
       return next;
     });
+  const removeSection = (i: number) => {
+    clearSectionErrors();
+    setJsonValidity(keys[i], false);
+    setSections(
+      copy.sections.filter((_, j) => j !== i),
+      keys.filter((_, j) => j !== i),
+    );
+  };
 
   const errorCount = countErrors(errors);
   const learnerUrl = lesson.status === "published" ? `/learn/${lesson.slug}` : null;
@@ -369,13 +379,14 @@ function EditorForm({
                     clearSectionErrors();
                     setSections(moveItem(copy.sections, i, to), moveItem(keys, i, to));
                   }}
+                  usedBy={section.id ? lesson.exercise_references[section.id] : undefined}
                   onRemove={() => {
-                    clearSectionErrors();
-                    setJsonValidity(keys[i], false);
-                    setSections(
-                      copy.sections.filter((_, j) => j !== i),
-                      keys.filter((_, j) => j !== i),
-                    );
+                    if (section.id && lesson.exercise_references[section.id]?.length) {
+                      setRemoving(i);
+                      setConfirm("remove-referenced");
+                    } else {
+                      removeSection(i);
+                    }
                   }}
                   onJsonValidity={(invalid) => setJsonValidity(keys[i], invalid)}
                 />
@@ -477,6 +488,22 @@ function EditorForm({
               },
             },
           );
+        }}
+      />
+      <ConfirmDialog
+        open={confirm === "remove-referenced"}
+        onClose={() => setConfirm(null)}
+        title={t("removeReferencedTitle")}
+        body={t("removeReferencedBody", {
+          questions: removing !== null ? (lesson.exercise_references[copy.sections[removing]?.id ?? ""] ?? []).join(", ") : "",
+        })}
+        action={t("removeReferenced")}
+        danger
+        pending={false}
+        onConfirm={() => {
+          if (removing !== null) removeSection(removing);
+          setRemoving(null);
+          setConfirm(null);
         }}
       />
       <ConfirmDialog

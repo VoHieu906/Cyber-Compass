@@ -16,6 +16,7 @@ const lesson = (slug: string, status: "not_started" | "started" | "completed") =
   estimated_minutes: 15,
   is_required: true,
   status,
+  exercise: null,
 });
 
 const map: KnowledgeMap = {

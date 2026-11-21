@@ -178,6 +178,9 @@ function LessonFooter({ lesson }: { lesson: Lesson }) {
               </span>
             ) : null}
           </p>
+        ) : lesson.exercise && !lesson.exercise.passed ? (
+          // A lesson with an exercise is completed by passing it (ARCHITECTURE D31).
+          <p className="text-sm text-ink">{t("exerciseRequired", { count: lesson.exercise.question_count, pass: lesson.exercise.pass_percent })}</p>
         ) : (
           <div>
             <Button onClick={() => complete.mutate(elapsedSeconds())} loading={complete.isPending}>

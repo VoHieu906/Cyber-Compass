@@ -107,12 +107,39 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/lessons/{slug}` (typed sections, objectives, takeaways, resources, course prerequisites, previous and next lesson across chapters, my progress). ✅ Phase 3 |
+| 🔒 | GET | `/lessons/{slug}` (typed sections, objectives, takeaways, resources, course prerequisites, previous and next lesson across chapters, my progress, and `exercise` from Phase 5). ✅ Phase 3 |
 | 🔒 | POST | `/lessons/{slug}/start` (idempotent). ✅ Phase 3 |
 | 🔒 | POST | `/lessons/{slug}/complete` (time_spent_seconds, capped at 4 h per call; returns the course progress). ✅ Phase 3 |
-| 🔒 | GET | `/lessons/{slug}/exercise` (questions **without answers**) |
-| 🔒 | POST | `/lessons/{slug}/exercise/attempts` (answers[]), which returns per-question correctness, the correct answer, the explanation and the section reference |
-| 🔒 | GET | `/exercise-attempts/{id}` |
+| 🔒 | GET | `/lessons/{slug}/exercise`: questions **without answers**, each with its theory section `{id (UUID), heading}`; `pass_percent`, `question_count`, `passed`, `best_score`, `attempt_count`. 404 when the lesson has no exercise or learners cannot see it. ✅ Phase 5 Part B |
+| 🔒 | POST | `/lessons/{slug}/exercise/attempts` `{answers: [{question_id, response}], time_spent_seconds?}` (rate limit `exercise-attempts`, 20 per minute): 201 with the result. A question left out is unanswered and wrong; a response of the wrong shape, a question of another exercise or the same question twice is 422 and nothing is written. A passing attempt completes the lesson (D31). ✅ Phase 5 Part B |
+| 🔒 | GET | `/exercise-attempts/{id}`: one of my attempts with its result; anyone else's is 404. ✅ Phase 5 Part B |
+
+The lesson (`GET /lessons/{slug}`) carries `exercise: {question_count, pass_percent, passed}` or null, and `POST /lessons/{slug}/complete` returns 422 (`errors.exercise`) for a lesson whose exercise is not passed yet; completions recorded before the exercise existed stay. Roadmap and knowledge map lessons carry `exercise: {passed}` or null.
+
+Question payloads and responses by type (`Learning\Services\QuestionTypes`; option, item and right-item ids are display positions, so an id never reveals an answer):
+
+| Type | `payload` | `response` |
+|---|---|---|
+| `single_choice` | `{options: [{id, label}]}` | `{option: id}` |
+| `scenario` | `{scenario, options}` | `{option: id}` |
+| `multi_choice` | `{options}` | `{options: [id]}` (exact set) |
+| `true_false` | `{}` | `{value: bool}` |
+| `fill_blank` | `{text (one ___ per blank), blanks: n}` | `{blanks: [text]}` (case and spacing ignored) |
+| `matching` | `{left: [{id, label}], right: [{id, label}]}` (right shuffled) | `{matches: [right id or null per left item]}` |
+| `ordering` | `{items: [{id, label}]}` (shuffled, never already in order) | `{order: [id]}` |
+
+Result shape (D31: `correct_answer` is null when the answer was right; it has the response's shape, except blanks, which list every accepted text):
+
+```json
+{ "data": {
+  "id": 4, "lesson": { "slug": "osi-model", "title": "The OSI model" }, "score": 80, "passed": true, "pass_percent": 70,
+  "correct": 4, "total": 5, "submitted_at": "...", "lesson_status": "completed",
+  "questions": [{ "id": 17, "position": 3, "type": "fill_blank", "prompt": "...", "payload": { "text": "...", "blanks": 3 },
+                  "section": { "id": "7c1e...", "heading": "Encapsulation" },
+                  "response": { "blanks": ["segment", "packet", "cell"] }, "is_correct": false,
+                  "correct_answer": { "blanks": [["segment"], ["packet"], ["frame"]] }, "explanation": "..." }]
+} }
+```
 
 ### Assessment (✅ Phase 4 Part A)
 

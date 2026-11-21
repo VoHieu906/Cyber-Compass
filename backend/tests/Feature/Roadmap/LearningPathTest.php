@@ -3,13 +3,11 @@
 use App\Models\Assessment;
 use App\Models\AssessmentOption;
 use App\Models\LearningPath;
-use App\Models\Lesson;
 use App\Models\Topic;
 use App\Models\User;
 use App\Modules\Assessment\Actions\SaveAnswer;
 use App\Modules\Assessment\Actions\StartAttempt;
 use App\Modules\Assessment\Actions\SubmitAttempt;
-use App\Modules\Learning\Actions\RecordLessonProgress;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,7 +34,7 @@ function submitAssessment(User $user, array $rightDomains): void
 
 function completeLesson(User $user, string $slug): void
 {
-    app(RecordLessonProgress::class)->complete($user, Lesson::query()->where('slug', $slug)->firstOrFail(), 600);
+    passLesson($user, $slug);
 }
 
 function topicLessons(string $topic): array

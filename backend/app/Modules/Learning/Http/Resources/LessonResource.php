@@ -37,6 +37,7 @@ class LessonResource extends JsonResource
             'prerequisites' => $course->prerequisites->map(fn (Course $c) => ['slug' => $c->slug, 'title' => $c->title])->values(),
             'sections' => app(LessonSerializer::class)->sections($this->sections),
             'navigation' => $navigation,
+            'exercise' => $this->getRelation('exerciseSummary'),
             'progress' => [
                 'status' => $progress?->status->value ?? 'not_started',
                 'completed_at' => $progress?->completed_at?->toIso8601String(),

@@ -7,6 +7,7 @@ use App\Models\Topic;
 use App\Modules\Content\Actions\LessonLifecycle;
 use App\Modules\Content\Services\LessonSerializer;
 use App\Modules\Content\Services\LessonWorkingCopy;
+use App\Modules\Learning\Services\ExerciseReferences;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -42,6 +43,8 @@ class AdminLessonResource extends JsonResource
             'chapter' => ['id' => $chapter->id, 'title' => $chapter->title],
             'topics' => $this->topics->map(fn (Topic $t) => ['slug' => $t->slug, 'title' => $t->title])->values(),
             'can_delete' => app(LessonLifecycle::class)->canDelete($this->resource),
+            // Sections exercise questions point at (D30): removing one is refused on publish, so the editor warns.
+            'exercise_references' => (object) app(ExerciseReferences::class)->forLesson($this->id),
             'working_copy' => [
                 ...collect($working)->except('sections')->all(),
                 'sections' => array_map(fn (array $s) => [

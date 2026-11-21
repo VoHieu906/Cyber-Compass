@@ -61,5 +61,8 @@ class AppServiceProvider extends ServiceProvider
             ->by('admin:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
         RateLimiter::for('uploads', fn (Request $request) => Limit::perMinute(10)
             ->by($request->user()?->getAuthIdentifier() ?: $request->ip()));
+        // Exercise attempts are scored and stored on every submit; retries are fine, a loop is not.
+        RateLimiter::for('exercise-attempts', fn (Request $request) => Limit::perMinute(20)
+            ->by('exercise:'.($request->user()?->getAuthIdentifier() ?: $request->ip())));
     }
 }

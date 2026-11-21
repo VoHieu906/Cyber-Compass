@@ -41,6 +41,8 @@ export type AdminLesson = {
   chapter: { id: number; title: string };
   topics: { slug: string; title: string }[];
   can_delete: boolean;
+  /** Section id => exercise questions ("lesson/key") that point at it (D30): removing one is refused on publish. */
+  exercise_references: Record<string, string[]>;
   working_copy: WorkingCopy;
   /** The last saved working copy, serialized exactly as learners receive it. */
   preview_sections: LessonSection[];

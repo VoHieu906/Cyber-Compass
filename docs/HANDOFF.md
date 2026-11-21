@@ -5,8 +5,8 @@ Where the project stands and what the next phase needs to know. This page only p
 ## Current state (2026-11-21)
 
 - **Phases 1 to 4 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Part A (roadmap graph, lesson drawer, knowledge map) is done; next is Part B (exercises backend and content).
-- **Tests at handoff:** 414 Pest and 288 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 5 in progress** ([plan and part reports](IMPLEMENTATION_ROADMAP.md#phase-5-interactive-learning), decisions D27 to D31). Parts A (roadmap graph, lesson drawer, knowledge map) and B (exercises backend and content) are done; next is Part C (the exercise UI).
+- **Tests at handoff:** 474 Pest and 288 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 

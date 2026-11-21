@@ -6,12 +6,16 @@ use App\Enums\Locale;
 use App\Enums\ThemePreference;
 use App\Enums\UserRole;
 use App\Models\Assessment;
+use App\Models\Exercise;
+use App\Models\ExerciseQuestion;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Modules\Assessment\Actions\SaveAnswer;
 use App\Modules\Assessment\Actions\StartAttempt;
 use App\Modules\Assessment\Actions\SubmitAttempt;
 use App\Modules\Learning\Actions\RecordLessonProgress;
+use App\Modules\Learning\Actions\SubmitExercise;
+use App\Modules\Learning\Services\QuestionTypes;
 use App\Modules\Profile\Actions\SaveLearningGoal;
 use App\Modules\Roadmap\Actions\GenerateLearningPath;
 use Illuminate\Database\Seeder;
@@ -94,9 +98,19 @@ class DemoUserSeeder extends Seeder
             app(SubmitAttempt::class)($attempt);
         }
 
-        $lesson = Lesson::query()->where('slug', 'cia-triad')->visibleToLearners()->first();
+        // One finished lesson, completed the way a learner does it: by passing its exercise (D31).
+        $lesson = Lesson::query()->where('slug', 'cia-triad')->visibleToLearners()->with('chapter.course')->first();
         if ($lesson) {
-            app(RecordLessonProgress::class)->complete($user, $lesson, 25 * 60);
+            $exercise = Exercise::query()->where('lesson_id', $lesson->id)->whereHas('questions')->first();
+            if ($exercise) {
+                $types = app(QuestionTypes::class);
+                $answers = $exercise->questions()->get()
+                    ->map(fn (ExerciseQuestion $q) => ['question_id' => $q->id, 'response' => $types->correctResponse($q->type, $q->answer)])
+                    ->all();
+                app(SubmitExercise::class)($user, $lesson, $exercise, $answers, 25 * 60);
+            } else {
+                app(RecordLessonProgress::class)->complete($user, $lesson, 25 * 60);
+            }
         }
 
         app(GenerateLearningPath::class)->handle($user);

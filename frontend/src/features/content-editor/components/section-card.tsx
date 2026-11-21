@@ -1,5 +1,6 @@
 "use client";
 
+import { Link2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { controlClasses } from "@/components/ui/input";
@@ -22,6 +23,8 @@ type Props = {
   onChange: (section: EditorSection) => void;
   onMove: (to: number) => void;
   onRemove: () => void;
+  /** Exercise questions that point at this block for their theory (D30). */
+  usedBy?: string[];
   /** Reports whether this block's JSON text currently fails to parse (saving is blocked meanwhile). */
   onJsonValidity: (invalid: boolean) => void;
 };
@@ -41,6 +44,7 @@ export function SectionCard({
   onChange,
   onMove,
   onRemove,
+  usedBy = [],
   onJsonValidity,
 }: Props) {
   const t = useTranslations("content.editor");
@@ -75,6 +79,13 @@ export function SectionCard({
           onRemove={onRemove}
         />
       </div>
+
+      {usedBy.length ? (
+        <p className="flex items-start gap-2 text-sm text-ink">
+          <Link2 aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />
+          <span>{t("usedByExercise", { count: usedBy.length, questions: usedBy.join(", ") })}</span>
+        </p>
+      ) : null}
 
       {errorAt(errors, `${at}.type`) ? <p className="text-sm text-bad">{errorAt(errors, `${at}.type`)}</p> : null}
 

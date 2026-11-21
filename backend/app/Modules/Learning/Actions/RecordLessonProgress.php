@@ -4,17 +4,20 @@ namespace App\Modules\Learning\Actions;
 
 use App\Enums\LessonProgressStatus;
 use App\Models\Enrollment;
+use App\Models\Exercise;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\User;
 use App\Modules\Catalog\Services\CourseProgress;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Starting and completing lessons.
  *
- * Completion rule (Phase 3): the learner reached the end of the lesson.
- * Phase 5 adds: and has a passing attempt when the lesson has an exercise.
+ * Completion rule (ARCHITECTURE §6.3, D31): the learner reached the end of the lesson and, when
+ * the lesson has an exercise, has a passing attempt. A passing attempt completes the lesson
+ * through this class (`SubmitExercise`). Completions recorded before an exercise existed stay.
  */
 final class RecordLessonProgress
 {
@@ -39,6 +42,10 @@ final class RecordLessonProgress
                 ['started_at' => now(), 'time_spent_seconds' => 0],
             );
 
+            if ($progress->status !== LessonProgressStatus::Completed && $this->exerciseBlocks($user, $lesson)) {
+                throw ValidationException::withMessages(['exercise' => [__('Pass the lesson exercise to complete this lesson.')]]);
+            }
+
             $progress->time_spent_seconds += min(max($secondsSpent, 0), self::MAX_SECONDS_PER_VISIT);
             if ($progress->status !== LessonProgressStatus::Completed) {
                 $progress->status = LessonProgressStatus::Completed;
@@ -50,6 +57,14 @@ final class RecordLessonProgress
 
             return $progress;
         });
+    }
+
+    /** The lesson has an exercise with questions, and the learner has not passed it. */
+    private function exerciseBlocks(User $user, Lesson $lesson): bool
+    {
+        $exercise = Exercise::query()->where('lesson_id', $lesson->id)->whereHas('questions')->first();
+
+        return $exercise !== null && ! $user->exerciseAttempts()->where('exercise_id', $exercise->id)->where('passed', true)->exists();
     }
 
     /** Stamps the enrollment once, the first time every lesson in the course is complete. */

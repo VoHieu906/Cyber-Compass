@@ -416,7 +416,8 @@
         "sequence": "Sequences like 1234 or abcd are easy to guess."
       },
       "entropyCaveat": "This estimate assumes every character was picked at random. Words, names and patterns make real passwords much weaker than this number."
-    }
+    },
+    "exerciseRequired": "This lesson is completed by passing its exercise: {count, plural, =1 {# question} other {# questions}}, pass mark {pass}%."
   },
   "careers": {
     "title": "Careers",
@@ -846,7 +847,11 @@
         "practice": "Practice",
         "threeD": "3D",
         "other": "Other"
-      }
+      },
+      "usedByExercise": "{count, plural, =1 {An exercise question uses this block as its theory} other {# exercise questions use this block as their theory}}: {questions}.",
+      "removeReferencedTitle": "Remove a block that exercises use?",
+      "removeReferencedBody": "Exercise questions point at this block for their theory ({questions}). You can remove it from the draft, but publishing will be refused until the exercise no longer uses it.",
+      "removeReferenced": "Remove from draft"
     },
     "media": {
       "image": "Image",

@@ -29,7 +29,7 @@ const user = (career: { slug: string; title: string } | null): User => ({
   learning_goal: career ? { career, self_level: null, weekly_minutes: 120, domains: [] } : null,
 });
 
-const lesson = (slug: string, status: "not_started" | "started" | "completed") => ({ slug, title: `Lesson ${slug}`, summary: `About ${slug}.`, estimated_minutes: 20, is_required: true, status });
+const lesson = (slug: string, status: "not_started" | "started" | "completed") => ({ slug, title: `Lesson ${slug}`, summary: `About ${slug}.`, estimated_minutes: 20, is_required: true, status, exercise: null });
 
 const path: LearningPath = {
   id: 3,
