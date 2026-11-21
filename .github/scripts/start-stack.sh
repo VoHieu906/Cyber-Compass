@@ -33,4 +33,6 @@ wait_for() {
 
 wait_for "Composer dependencies" docker compose exec -T api php artisan --version
 docker compose exec -T api php artisan migrate --force $seed
+# Local uploads are served from public/storage, a link the checkout does not include.
+docker compose exec -T -u root api php artisan storage:link
 wait_for "API health" curl -fsS http://localhost:8000/api/v1/health
