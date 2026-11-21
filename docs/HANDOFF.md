@@ -5,8 +5,8 @@ Where the project stands and what the next phase needs to know. This page only p
 ## Current state (2026-11-21)
 
 - **Phases 1 to 5 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
-- **Phase 6 in progress** ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)): Parts A (activity recording, streaks, `/progress/*`) and B (the dashboard at `/dashboard`, charts in `lib/charts`) are done; next is Part C, the notifications backend.
-- **Tests at handoff:** 595 Pest and 319 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 6 in progress** ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-6-progress-and-engagement)): Parts A (activity recording, streaks, `/progress/*`) B (the dashboard at `/dashboard`, charts in `lib/charts`) and C (the notifications backend, reminders, scheduler service) are done; next is Part D, notifications in the app.
+- **Tests at handoff:** 627 Pest and 319 Vitest. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 

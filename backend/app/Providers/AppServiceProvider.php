@@ -11,12 +11,16 @@ use App\Modules\Admin\Policies\UserAdminPolicy;
 use App\Modules\Assessment\Events\AssessmentSubmitted;
 use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
+use App\Modules\Content\Events\LessonPublished;
 use App\Modules\Content\Policies\LessonPolicy;
 use App\Modules\Labs\Engines\LabLimits;
 use App\Modules\Labs\Events\LabCompleted;
 use App\Modules\Learning\Events\ExerciseSubmitted;
 use App\Modules\Learning\Events\LessonCompleted;
 use App\Modules\Learning\Events\LessonStarted;
+use App\Modules\Notifications\Listeners\NotifyLearner;
+use App\Modules\Progress\Events\MilestoneReached;
+use App\Modules\Progress\Listeners\CheckMilestones;
 use App\Modules\Progress\Listeners\RecordLearningActivity;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -59,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureLearningEvents();
     }
 
-    /** Activity recording (D33): listeners on the learning events, and short morph names for activity subjects. */
+    /** Activity recording (D33), milestones and notifications (D34): listeners on the learning events, and short morph names for activity subjects. */
     private function configureLearningEvents(): void
     {
         Relation::morphMap([
@@ -74,6 +78,15 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(ExerciseSubmitted::class, [RecordLearningActivity::class, 'exerciseSubmitted']);
         Event::listen(AssessmentSubmitted::class, [RecordLearningActivity::class, 'assessmentSubmitted']);
         Event::listen(LabCompleted::class, [RecordLearningActivity::class, 'labCompleted']);
+
+        // Milestones once the activity is stored, then notifications (D34).
+        foreach ([LessonStarted::class, LessonCompleted::class, ExerciseSubmitted::class, AssessmentSubmitted::class, LabCompleted::class] as $event) {
+            Event::listen($event, CheckMilestones::class);
+        }
+        Event::listen(LessonCompleted::class, [NotifyLearner::class, 'lessonCompleted']);
+        Event::listen(AssessmentSubmitted::class, [NotifyLearner::class, 'assessmentSubmitted']);
+        Event::listen(MilestoneReached::class, [NotifyLearner::class, 'milestoneReached']);
+        Event::listen(LessonPublished::class, [NotifyLearner::class, 'lessonPublished']);
     }
 
     private function configureRateLimits(): void

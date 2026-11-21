@@ -60,7 +60,7 @@ CyberCompass/
 ├── backend/             Laravel API (own composer.json, Dockerfile)
 ├── infrastructure/      Docker support files; AWS configuration arrives in Phase 7
 ├── docs/                Architecture, schema, API, design system, roadmap
-├── docker-compose.yml   Local environment: mysql, mailpit, api, worker, web
+├── docker-compose.yml   Local environment: mysql, mailpit, api, worker, scheduler, web
 └── .env.example         Compose variables
 ```
 
@@ -78,7 +78,7 @@ cp .env.example .env                       # compose variables: DB credentials, 
 cp backend/.env.example backend/.env       # Laravel settings (DB_PASSWORD must match .env)
 cp frontend/.env.example frontend/.env.local
 
-docker compose up -d --build               # mysql, mailpit, api, worker
+docker compose up -d --build               # mysql, mailpit, api, worker, scheduler
 docker compose exec -u root api chmod -R a+rwX storage bootstrap/cache   # once; see note below
 docker compose exec api php artisan key:generate
 docker compose exec api php artisan migrate --seed
@@ -109,7 +109,7 @@ To run the frontend in Docker as well, for example to test the container, use `d
 | http://localhost:3000 | Web app (run `npm run dev` in `frontend/`, see below). `/status` shows live API and database status. |
 | http://localhost:8000/api/v1/health | API health |
 | http://localhost:8000/docs/api | OpenAPI documentation (local only) |
-| http://localhost:8025 | Mailpit, which catches outgoing email such as password resets |
+| http://localhost:8025 | Mailpit, which catches outgoing email such as password resets and notification emails |
 
 ### Everyday commands
 
@@ -120,7 +120,7 @@ To run the frontend in Docker as well, for example to test the container, use `d
 | Artisan / Composer | `docker compose exec -u root api php artisan …` / `… composer …` |
 | Frontend tests | `cd frontend && npm test` |
 | Frontend checks | `npm run typecheck` and `npm run lint` |
-| Logs | `docker compose logs -f api worker web` |
+| Logs | `docker compose logs -f api worker scheduler web` |
 
 **Windows note:** inside the container, the bind-mounted `backend/` folder appears owned by root. Commands that write source files therefore use `-u root`, and `storage/` and `bootstrap/cache` are made writable once with the `chmod` above. The setting persists on disk.
 
@@ -131,7 +131,7 @@ docker build --target production -t cybercompass-api backend
 docker build --target production --build-arg NEXT_PUBLIC_API_URL=https://api.example.com -t cybercompass-web frontend
 ```
 
-The API image caches Laravel's configuration at boot. Database migrations run as a separate one-off task, never on container start. The queue worker uses the same API image with `php artisan queue:work` as its command.
+The API image caches Laravel's configuration at boot. Database migrations run as a separate one-off task, never on container start. The queue worker and the scheduler use the same API image, with `php artisan queue:work` and `php artisan schedule:work` as their commands (on AWS an EventBridge rule runs `schedule:run` every minute instead of a scheduler service).
 
 ## Documentation
 

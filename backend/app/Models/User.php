@@ -114,6 +114,12 @@ class User extends Authenticatable implements HasLocalePreference
         $query->where('role', UserRole::Admin)->whereNull('suspended_at');
     }
 
+    /** Database notifications are polymorphic (no foreign key), so they go with the account here. */
+    protected static function booted(): void
+    {
+        static::deleting(fn (User $user) => $user->notifications()->delete());
+    }
+
     protected function casts(): array
     {
         return [

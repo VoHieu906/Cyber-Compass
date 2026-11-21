@@ -7,6 +7,7 @@ use App\Models\Lesson;
 use App\Models\LessonRevision;
 use App\Models\User;
 use App\Modules\Admin\Services\AuditLogger;
+use App\Modules\Content\Events\LessonPublished;
 use App\Modules\Content\Services\LessonWorkingCopy;
 use App\Modules\Content\Services\SectionWriter;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ final class PublishLesson
             $this->copy->assertPublishable($snapshot);
 
             $moved = $snapshot['chapter_id'] !== $lesson->course_chapter_id;
+            $firstPublish = $lesson->published_at === null;
             $lesson->fill([
                 'course_chapter_id' => $snapshot['chapter_id'],
                 'slug' => $snapshot['slug'],
@@ -71,6 +73,10 @@ final class PublishLesson
                 'version' => $version,
                 'note' => $note,
             ], fn ($v) => $v !== null));
+
+            if ($firstPublish) {
+                LessonPublished::dispatch($lesson);
+            }
 
             return $revision;
         });

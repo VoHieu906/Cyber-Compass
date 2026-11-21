@@ -65,6 +65,14 @@ services:
       test: ["CMD", "healthcheck-queue"]
       start_period: 10s
 
+  # Runs scheduled tasks (hourly learning reminders, D34). On AWS an EventBridge rule runs
+  # `schedule:run` every minute instead (docs/ARCHITECTURE.md §8).
+  scheduler:
+    <<: *api-common
+    command: ["php", "/var/www/html/artisan", "schedule:work"]
+    healthcheck:
+      disable: true
+
   # Opt-in: `docker compose --profile web up`. For day-to-day frontend work run `npm run dev`
   # in frontend/ on the host instead: Docker Desktop's file sharing on Windows/macOS delays or
   # drops file events, so hot reload in this container is unreliable (docs/ARCHITECTURE.md D13).

@@ -152,8 +152,9 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 
 ### Notifications
 
-**notifications**: Laravel standard (uuid `id`, `type`, `notifiable_*`, `data` JSON, `read_at`).
+**notifications** (✅ Phase 6, D34): Laravel standard (uuid `id`, `type`, `notifiable_*`, `data` JSON, `read_at`), with `type` holding the notification type (`recommendation`, …) and `data` `{params, url}`. Index (`notifiable_type`,`notifiable_id`,`read_at`). No foreign key (polymorphic), so `User` deletes its notifications when deleted.
 **notification_preferences**: `user_id`, `type` enum(`recommendation`,`lesson_completed`,`milestone`,`reminder`,`assessment_result`), `in_app` bool, `email` bool. Unique (`user_id`,`type`). A row exists only once a learner changes a type; the defaults live in code (in app on, email off; D34).
+**notification_sends**: `user_id` (cascade), `key` varchar(120), `created_at`. Unique (`user_id`,`key`). The one-off sends already decided (`course:{id}`, `roadmap:{career_id}:{25|50|75|100}`, `streak:{days}:{first day}`, `reminder:{local date}`, `recommendation:lesson:{id}`); claiming a key is atomic, and deleting a notification never brings it back.
 
 ## Transactions
 

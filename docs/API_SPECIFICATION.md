@@ -83,7 +83,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | PATCH | `/me/preferences` (locale, theme, `timezone` (an IANA name, legacy aliases such as Asia/Saigon accepted, Phase 6); any of them) | ✅ Phase 2, timezone Phase 6 |
 | 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
 | 🔒 | PUT | `/me/learning-goal` (`career` slug, `self_level` beginner/intermediate/advanced, `weekly_minutes` 30 to 2400, `domains[]` slugs). Every field is optional and only the ones sent change; null clears. Returns me, whose `learning_goal` is `{career {slug, title} \| null, self_level, weekly_minutes, domains[]}` or null. Changing the career never rebuilds the roadmap. | ✅ Phase 4 |
-| 🔒 | GET/PUT | `/me/notification-preferences` | Phase 6 |
+| 🔒 | GET/PUT | `/me/notification-preferences`: GET lists every type `[{type, in_app, email}]` (defaults in app on, email off); PUT `{preferences: [{type, in_app, email}]}` changes the types sent (distinct, all three fields required) and returns the full list | ✅ Phase 6 |
 
 ### Taxonomy and careers
 
@@ -259,11 +259,23 @@ Streaks and weeks use the learner's local date (`user_profiles.timezone`, D33; U
 
 | | Method | Path |
 |---|---|---|
-| 🔒 | GET | `/notifications?filter[unread]=1` |
-| 🔒 | GET | `/notifications/unread-count` |
-| 🔒 | POST | `/notifications/{id}/read` |
-| 🔒 | POST | `/notifications/read-all` |
-| 🔒 | DELETE | `/notifications/{id}` |
+| 🔒 | GET | `/notifications?filter[unread]=1&per_page=20` (1 to 50), newest first: `{data: [{id, type, params, url, read_at, created_at}], meta {current_page, last_page, per_page, total}}` ✅ |
+| 🔒 | GET | `/notifications/unread-count`: `{count}` (the header polls it) ✅ |
+| 🔒 | POST | `/notifications/{id}/read`: the notification ✅ |
+| 🔒 | POST | `/notifications/read-all` ✅ |
+| 🔒 | DELETE | `/notifications/{id}`: 204 ✅ |
+
+✅ Phase 6 Part C (D34). `type` is `recommendation`, `lesson_completed`, `milestone`, `reminder` or `assessment_result`. A notification holds parameters and a path in the web app, never text, so the app words it in the current language:
+
+| type | params | url |
+|---|---|---|
+| recommendation | `lesson`, `slug`, `context` (roadmap topic or course title), `via` (`roadmap` or `course`) | `/learn/{slug}` |
+| lesson_completed | `lesson`, `slug` | `/dashboard` |
+| milestone | `kind` `course` (`title`, `slug`), `roadmap` (`percent`, `title`) or `streak` (`days`) | the course, `/roadmap` or `/dashboard` |
+| reminder | `streak` (current days) | `/dashboard` |
+| assessment_result | `score`, `band`, `attempt` | the attempt's result |
+
+Another learner's notification id answers 404. Ids are UUIDs.
 
 ### Admin (✅ Phase 3.5 Part A)
 
