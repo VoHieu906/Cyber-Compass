@@ -8,7 +8,7 @@ use App\Modules\Content\Blocks\JsonSchemaBlock;
  * Three.js code written by an admin (docs/SANDBOXED_3D.md, ARCHITECTURE D22). The server never
  * runs or inspects it; it is only ever executed in the sandboxed worker on the client, which has
  * no origin, storage or network. Operators can switch the type off (CONTENT_SCRIPTED_3D=false):
- * saves are then refused and learners get the text description instead (LessonSerializer).
+ * saves are then refused and learners get the text description instead (BlockSerializer).
  */
 final class Script3dBlock extends JsonSchemaBlock
 {

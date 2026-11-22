@@ -5,7 +5,7 @@ namespace App\Modules\Content\Http\Resources;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Modules\Content\Actions\LessonLifecycle;
-use App\Modules\Content\Services\LessonSerializer;
+use App\Modules\Content\Services\BlockSerializer;
 use App\Modules\Content\Services\LessonWorkingCopy;
 use App\Modules\Learning\Services\ExerciseReferences;
 use Illuminate\Http\Request;
@@ -51,7 +51,7 @@ class AdminLessonResource extends JsonResource
                     'id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'], 'payload' => $s['payload'],
                 ], $working['sections']),
             ],
-            'preview_sections' => app(LessonSerializer::class)->sections($working['sections']),
+            'preview_sections' => app(BlockSerializer::class)->sections($working['sections']),
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LessonStatus;
+use App\Modules\Content\Documents\BlockDocument;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -15,8 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'course_chapter_id', 'slug', 'title', 'summary', 'objectives', 'key_takeaways', 'resources',
     'estimated_minutes', 'position', 'status', 'published_at', 'created_by', 'updated_by',
 ])]
-class Lesson extends Model
+class Lesson extends Model implements BlockDocument
 {
+    public const MAX_SECTIONS = 60;
+
     /** Mirrors the column defaults, so a model created in memory has them without a reload (strict mode). */
     protected $attributes = ['status' => 'published', 'published_at' => null, 'created_by' => null, 'updated_by' => null];
 
@@ -107,6 +110,16 @@ class Lesson extends Model
     public function isVisibleToLearners(): bool
     {
         return $this->status === LessonStatus::Published && $this->chapter->course->is_published;
+    }
+
+    public function documentType(): string
+    {
+        return 'lesson';
+    }
+
+    public function maxSections(): int
+    {
+        return self::MAX_SECTIONS;
     }
 
     public function getRouteKeyName(): string

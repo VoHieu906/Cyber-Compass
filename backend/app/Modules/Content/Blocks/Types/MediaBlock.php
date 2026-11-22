@@ -6,7 +6,7 @@ use App\Modules\Content\Blocks\JsonSchemaBlock;
 
 /**
  * An uploaded image with an optional caption. The payload holds only the media uuid:
- * the URL is resolved when the lesson is read (LessonSerializer), so content never
+ * the URL is resolved when the lesson is read (BlockSerializer), so content never
  * stores a URL that could point elsewhere. That the uuid exists is checked by the
  * admin save action, not here, so the registry stays free of database access.
  */

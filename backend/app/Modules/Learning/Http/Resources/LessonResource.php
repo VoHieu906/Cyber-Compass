@@ -5,7 +5,7 @@ namespace App\Modules\Learning\Http\Resources;
 use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\LessonProgress;
-use App\Modules\Content\Services\LessonSerializer;
+use App\Modules\Content\Services\BlockSerializer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -35,7 +35,7 @@ class LessonResource extends JsonResource
             'course' => ['slug' => $course->slug, 'title' => $course->title, 'domain' => $course->domain->name],
             'chapter' => ['title' => $this->chapter->title, 'position' => $this->chapter->position],
             'prerequisites' => $course->prerequisites->map(fn (Course $c) => ['slug' => $c->slug, 'title' => $c->title])->values(),
-            'sections' => app(LessonSerializer::class)->sections($this->sections),
+            'sections' => app(BlockSerializer::class)->sections($this->sections),
             'navigation' => $navigation,
             'exercise' => $this->getRelation('exerciseSummary'),
             'labs' => $this->getRelation('practiceLabs')->map(fn ($lab) => ['slug' => $lab->slug, 'title' => $lab->title])->values(),

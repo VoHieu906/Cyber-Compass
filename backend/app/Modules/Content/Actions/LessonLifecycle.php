@@ -8,6 +8,8 @@ use App\Models\Lesson;
 use App\Models\LessonRevision;
 use App\Models\User;
 use App\Modules\Admin\Services\AuditLogger;
+use App\Modules\Content\Documents\DocumentDrafts;
+use App\Modules\Content\Documents\DocumentPublisher;
 use App\Modules\Content\Services\LessonWorkingCopy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -22,6 +24,7 @@ final class LessonLifecycle
     public function __construct(
         private readonly LessonWorkingCopy $copy,
         private readonly AuditLogger $audit,
+        private readonly DocumentPublisher $publisher,
     ) {}
 
     /** A new lesson: an invisible `draft` row at the end of the chapter, plus its draft. */
@@ -43,7 +46,7 @@ final class LessonLifecycle
                 'updated_by' => $actor->id,
             ]);
 
-            SaveDraft::store($lesson, null, $this->copy->fromLive($lesson), $actor);
+            DocumentDrafts::store($lesson, null, $this->copy->fromLive($lesson), $actor);
             $this->audit->record($actor, 'lesson.created', 'lesson', $lesson->id, ['slug' => $slug, 'chapter_id' => $chapter->id]);
 
             return $lesson;
@@ -57,15 +60,7 @@ final class LessonLifecycle
             throw ValidationException::withMessages(['lesson' => __('This lesson was never published, so there is nothing to go back to. Delete the lesson instead.')]);
         }
 
-        DB::transaction(function () use ($actor, $lesson) {
-            $draft = SaveDraft::lockedDraft($lesson);
-            if (! $draft) {
-                return;
-            }
-            $draft->delete();
-            $lesson->setRelation('draft', null);
-            $this->audit->record($actor, 'lesson.draft_discarded', 'lesson', $lesson->id);
-        });
+        $this->publisher->discardDraft($actor, $lesson);
     }
 
     /** Hides a published lesson from learners. Progress and roadmap links are kept; publishing brings it back. */
@@ -107,14 +102,6 @@ final class LessonLifecycle
     /** Copies a revision into the draft. Learners see nothing until it is published. */
     public function restore(User $actor, Lesson $lesson, LessonRevision $revision, int $lockVersion): void
     {
-        DB::transaction(function () use ($actor, $lesson, $revision, $lockVersion) {
-            $draft = SaveDraft::lockedDraft($lesson);
-            SaveDraft::assertVersion($draft, $lockVersion);
-
-            $snapshot = $this->copy->validate($lesson, LessonWorkingCopy::toInput($revision->snapshot));
-            SaveDraft::store($lesson, $draft, $snapshot, $actor);
-
-            $this->audit->record($actor, 'lesson.revision_restored', 'lesson', $lesson->id, ['version' => $revision->version]);
-        });
+        $this->publisher->restore($actor, $lesson, $this->copy, $revision, $lockVersion);
     }
 }

@@ -3,29 +3,29 @@
 namespace App\Modules\Content\Services;
 
 use App\Models\LessonMedia;
-use App\Models\LessonSection;
 use App\Modules\Content\Blocks\Types\Script3dBlock;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 /**
- * Turns lesson sections into their API shape. Shared by the learner reader
- * (Learning\LessonResource) and the admin editor preview, so both render exactly
- * the same thing. `id` is the section's stable UUID (ARCHITECTURE D20).
+ * Turns the sections of any block document (lesson or post, D55) into their API shape.
+ * Shared by the readers (Learning\LessonResource, Blog\PostResource) and the editor
+ * previews, so all render exactly the same thing. `id` is the section's stable UUID (ARCHITECTURE D20).
  *
  * `media` blocks store only an image uuid; here it is resolved to {url, alt, width, height}
- * with one query for the whole lesson. A missing image yields url null, and the reader
+ * with one query for the whole document. A missing image yields url null, and the reader
  * shows nothing rather than a broken image.
  */
-final class LessonSerializer
+final class BlockSerializer
 {
     /**
-     * @param  iterable<LessonSection|array{uuid: string, type: string, heading: ?string, payload: array}>  $sections
+     * @param  iterable<Model|array{uuid: string, type: string, heading: ?string, payload: array}>  $sections
      * @return list<array{id: string, type: string, heading: ?string, payload: array}>
      */
     public function sections(iterable $sections): array
     {
         $rows = Collection::make($sections)
-            ->map(fn ($s) => $s instanceof LessonSection
+            ->map(fn ($s) => $s instanceof Model
                 ? ['id' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload]
                 : ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'] ?? null, 'payload' => $s['payload']])
             ->values();

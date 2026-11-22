@@ -332,9 +332,22 @@ Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployme
 - Docs: not applicable (nothing changes for the owner's deployment).
 - Owner action when deploying: nothing.
 
-### F2: Blog (planned)
+### F2: Blog (in progress, started 2026-11-22)
 
-To be filled in by the feature task.
+A public blog beside Courses, Assessment and Labs. Posts are built from the same 19 lesson blocks with the same editor (draft, preview, publish with a note, revisions and restore, optimistic locking, media), can be very long (up to 150 blocks), and are never part of courses, roadmaps, progress, streaks or notifications. Guests can read them. Decisions D55 and D56.
+
+**Impact check (CLAUDE.md §5, 2026-11-22), answered by the owner:**
+- **Architecture, decided (D55):** a shared block-document core with posts in twin tables beside lessons (option B). Rejected: posts as a `kind` of lesson (a filter in every learner query: visibility, course progress, `PathProgress`, `KnowledgeMap`, learning events, `NotifyLearner` on `LessonPublished`, search, `/learn/[slug]`, exercise and lab loaders, one slug space, the 60-block cap) and polymorphic sections (loses the `exercise_questions` foreign key; a multi-release migration of live data).
+- **Reused, not rebuilt:** `lesson_media` (not tied to a lesson), `StoreLessonMedia` and the media route for covers and `media` blocks; `BlockRegistry`, schemas, zod mirrors, renderers and the editor; `Like` and `GlobalSearch`; `lib/navigation.ts` (header, mobile menu and compass); `useCompassPageItems`; the reader's "On this page".
+- **Conflicts, resolved by design:** the 60-section cap becomes per document type (posts 150); reading time is computed for posts only (lessons keep the typed value); the D30 delete check stays lesson-only inside the shared `SectionWriter`; posts get their own section UUID namespace; the reader is split into a shared body and a lesson shell so `/blog` can be public and server-rendered under `(marketing)`.
+- **Edge, decided:** the admin API is `/api/v1/admin/content/posts`, already covered by the D50 WAF exclusion; no WAF template change.
+- **Lessons unchanged, decided:** lazy mounting of heavy blocks, the reading progress bar and heading anchors are for posts only for now.
+- **Shift, decided (D56):** images in content files (needed by Part B) are built in Part A.
+- **Not built:** a sitemap (none exists).
+
+**Parts (each gated and reported):**
+- **Part A:** the blog feature, in four committed checkpoints: (1) the shared backend core with no lesson behaviour change; (2) the Blog module (API, visibility scope, policies, audit, search, import and export with content-file images, query budgets); (3) owner-agnostic editor and reader, `/blog`, `/blog/[slug]`, `/admin/posts`, navigation; (4) Vitest, Playwright, budgets, docs and the deploy-ready gate.
+- **Part B:** the post "Docker & Containers 101" as a content file using all 19 block types.
 
 ## Follow-ups (not scheduled in a phase)
 

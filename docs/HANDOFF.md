@@ -16,7 +16,7 @@ Where the project stands and what the next phase needs to know. This page only p
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D54) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D56) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
