@@ -163,6 +163,7 @@ test.describe("responsive and accessibility sweep", () => {
         "/settings/security",
         "/settings/preferences",
         "/settings/notifications",
+        "/settings/shortcuts",
       ],
       findings,
     );

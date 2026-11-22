@@ -270,7 +270,7 @@ export default function CompassMenu({ id, triggerRef, onClose }: { id: string; t
         {[0, 90, 180, 270].map((deg) => (
           <line key={deg} x1={0} y1={-(HUB_R - 2)} x2={0} y2={-(HUB_R - 8)} transform={`rotate(${deg})`} className="stroke-rule-2" strokeWidth={1.5} />
         ))}
-        <g className="transition-transform duration-[var(--dur-short)] ease-[var(--ease-out)]" style={{ transform: `rotate(${needle}deg)` }}>
+        <g className="transition-transform duration-[var(--dur-short)] ease-[var(--ease-out)] motion-reduce:transition-none" style={{ transform: `rotate(${needle}deg)` }}>
           {/* A needle on the hub's rim, clear of the label in the middle. */}
           <path d={`M0 ${-(HUB_R - 3)} L5 ${-(HUB_R - 13)} L0 ${-(HUB_R - 19)} L-5 ${-(HUB_R - 13)} Z`} className="fill-accent" />
         </g>

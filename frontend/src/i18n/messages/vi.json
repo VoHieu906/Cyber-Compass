@@ -141,7 +141,8 @@
       "security": "Bảo mật",
       "preferences": "Tùy chọn",
       "goals": "Mục tiêu học tập",
-      "notifications": "Thông báo"
+      "notifications": "Thông báo",
+      "shortcuts": "Phím tắt"
     },
     "profile": {
       "avatar": "Ảnh đại diện",
@@ -189,7 +190,10 @@
       "time": "Múi giờ",
       "timeHint": "Quyết định khi nào ngày và tuần của bạn bắt đầu, cho chuỗi ngày học và lời nhắc.",
       "timezone": "Múi giờ",
-      "timezoneDetected": "Thiết bị này đang dùng {timezone}."
+      "timezoneDetected": "Thiết bị này đang dùng {timezone}.",
+      "compass": "Menu la bàn",
+      "compassHint": "Một menu tròn ở góc mỗi trang để di chuyển bằng chuột hoặc bàn phím. Menu đầu trang luôn được giữ lại.",
+      "compassToggle": "Hiện menu la bàn"
     },
     "goals": {
       "title": "Mục tiêu học tập",
@@ -1571,5 +1575,52 @@
     "pageNextTask": "Nhiệm vụ chưa xong tiếp theo",
     "pageTheory": "Lý thuyết",
     "pageQuestions": "Câu hỏi"
+  },
+  "shortcuts": {
+    "lede": "Đổi, tắt hoặc đặt lại bất kỳ phím tắt nào. Tổ hợp có Ctrl, Alt hoặc ⌘ vẫn dùng được khi bạn đang gõ trong ô nhập.",
+    "groups": {
+      "general": "Chung",
+      "search": "Tìm kiếm",
+      "editor": "Trình soạn bài học",
+      "compass": "Trong menu la bàn"
+    },
+    "actions": {
+      "compass": {
+        "toggle": "Mở hoặc đóng la bàn",
+        "next": "Mục tiếp theo",
+        "previous": "Mục trước",
+        "enter": "Mở menu con hoặc chọn",
+        "back": "Lùi một vòng",
+        "first": "Mục đầu tiên",
+        "last": "Mục cuối cùng",
+        "close": "Đóng một vòng, rồi đóng menu"
+      },
+      "search": {
+        "open": "Mở tìm kiếm",
+        "openCombo": "Mở tìm kiếm (từ bất kỳ đâu)"
+      },
+      "editor": {
+        "save": "Lưu bản nháp"
+      }
+    },
+    "digits": "Đến mục 1 đến 9",
+    "typeahead": "Đến mục tiếp theo bắt đầu bằng một chữ cái",
+    "fixedNote": "Các phím trong menu theo mẫu menu chuẩn, nên giữ nguyên cho trình đọc màn hình.",
+    "change": "Đổi",
+    "changeFor": "Đổi phím tắt cho {action}",
+    "recording": "Nhấn tổ hợp phím mới… (Esc để hủy)",
+    "recordingFor": "Nhấn tổ hợp phím mới cho {action}, hoặc Escape để hủy",
+    "disable": "Tắt",
+    "disableFor": "Tắt phím tắt cho {action}",
+    "reset": "Đặt lại",
+    "resetFor": "Đặt lại phím tắt cho {action}",
+    "resetAll": "Đặt lại tất cả phím tắt",
+    "off": "Đã tắt",
+    "or": "hoặc",
+    "reserved": "{keys} thuộc về trình duyệt hoặc hệ điều hành. Hãy chọn tổ hợp khác.",
+    "needsModifier": "Chỉ {keys} sẽ cản trở thao tác trên trang. Hãy thêm Ctrl, Alt hoặc ⌘.",
+    "conflict": "{keys} đã được dùng cho “{action}”.",
+    "saved": "Đã lưu phím tắt.",
+    "saveFailed": "Không lưu được phím tắt. Hãy thử lại."
   }
 }

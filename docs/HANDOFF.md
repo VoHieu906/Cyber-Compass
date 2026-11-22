@@ -7,14 +7,15 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Phases 1 to 6 are complete** and pushed to `main`. Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Next: Phase 7**, quality and deployment: Playwright E2E, the security review, performance, the responsive and accessibility audit, the Hallmark sweep and the AWS deployment ([roadmap](IMPLEMENTATION_ROADMAP.md#phase-7-quality-and-deployment), including the items carried from Phase 6).
 - **Phase 7 in progress:** Parts A (E2E suite), A2 (CI), B and C (the security review, [SECURITY_REVIEW.md](SECURITY_REVIEW.md)) D (performance, [PERFORMANCE.md](PERFORMANCE.md)), E (the responsive, accessibility and Hallmark sweep) and F (the production build) and G (the AWS guide and templates, [DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md)) are done. **Next is Part H, the real deployment, which waits for the owner's go:** it creates billed AWS resources (start with the budget, step 1). Nothing has been run against AWS yet. Parts A2 to G run locally at no cost; Part H waits for the owner. Decisions D37 to D50.
-- **Tests:** 687 Pest, 340 Vitest and 24 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Phase 7.5 (compass menu and keyboard shortcuts) is complete**, inserted before Part H (D51 to D53).
+- **Tests:** 699 Pest, 386 Vitest and 28 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D50) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D53) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
@@ -40,6 +41,13 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Performance guards:** `QueryBudgetTest` (a new hot endpoint gets a budget there) and `performance.spec.ts` (budgets per route, enforced in CI). A module that uses zod at runtime imports `@/lib/zod-config` (the CSP forbids zod's eval probe); never re-export `z` from another module, which defeats tree-shaking.
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
+
+## Phase 7.5: compass menu and keyboard shortcuts (2026-11-22)
+
+- **Compass** (D51, DESIGN_SYSTEM "Compass menu"): `features/compass`, mounted by `PageShell`. Routes come only from `lib/navigation.ts`, `SETTINGS_TABS` and `ADMIN_AREAS`; a new header link, settings tab or admin area shows up in the compass with no compass change. A page adds sections with `useCompassPageItems()`.
+- **Shortcuts** (D52): every shortcut is an action in `lib/shortcuts/registry.ts` used through `useShortcut()`; it then appears in Settings → Keyboard shortcuts. A new action id needs its `shortcuts.actions.*` messages in en and vi.
+- **Preferences** (D53): `user_profiles.compass_enabled` and `shortcuts`, through `PATCH /me/preferences`; the server checks shape only.
+- **E2E:** `e2e/compass.spec.ts` uses learner accounts 9 and 10 (`compass`, `compass2`); global setup now makes 11 learners.
 
 ## UI change after Part G (2026-11-22)
 

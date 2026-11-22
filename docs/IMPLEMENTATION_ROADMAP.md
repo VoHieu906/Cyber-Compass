@@ -282,6 +282,16 @@ Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployme
 - **Part B:** `lib/radial` geometry; the compass trigger and rings; keyboard and screen reader behaviour; page items for the lesson reader, labs, exercises and the assessment attempt.
 - **Part C:** the Preferences switch and the Keyboard shortcuts tab; the Playwright spec; docs.
 
+**Part A exit, verified (2026-11-22), commit dfcc838:** one navigation source, the shortcut registry with search and the editor moved onto it (Ctrl+Shift+K no longer opens search, so Firefox keeps its console), `compass_enabled` and `shortcuts` on `user_profiles`. 699 Pest (12 new), 351 Vitest (11 new).
+
+**Part B exit, verified (2026-11-22), commit c0f0cb4:** `lib/radial` geometry, the compass (trigger in the content gutter, lazy rings, hub and needle, keyboard model, hover intent, touch), page items in the lesson reader (which now marks the section being read), lab, exercise and assessment attempt. Found in the browser and fixed: the compass unmounted when `/me` kept failing (a query that never succeeded returns to pending on every retry); focus that arrived from assistive technology did not move the keyboard position, so Enter chose the wrong item; a click right after hover closed the menu hover had opened. Weight on the production build: public pages 190 KB (188 before), the menu 8 KB more on first open. 382 Vitest (31 new), 24 Playwright.
+
+**Part C exit, verified (2026-11-22):** Preferences → "Show the compass menu" (it moves at once and saves to the account; off unmounts the trigger and its shortcut); Settings → Keyboard shortcuts (`/settings/shortcuts`, grouped, change with conflict and reserved-key checks, turn off, reset one or all; the editor group only for admins; menu keys listed as fixed). `e2e/compass.spec.ts` (two accounts: one account's passes would exceed the API's 120 a minute): keyboard-only route to a settings tab with the active marks, a rebound shortcut, switching it off and back on, and the menu inside the screen below the header at 390, 1280, 1920 and 3840×1080 in both themes. Contrast computed from the tokens in both themes: text 10:1 or better, segment edges at least 3.5:1. `/settings/shortcuts` joined the accessibility sweep (green). Hallmark sloplint on the new code: 0 FAIL; waived reflexes: no `:disabled` style (compass items are never disabled) and the existing neutral tokens; the render tier was not run. Totals: 699 Pest, 386 Vitest, 28 Playwright. tsc, ESLint and Pint clean.
+
+**Phase 7.5 complete (2026-11-22).** Next is Phase 7 Part H, still waiting for the owner.
+
+**Known limits:** a signed-in top ring has 11 to 13 items, so it shows icons only (the hub names each); long submenu names are shortened with an ellipsis (full name in the hub and tooltip); on phones the trigger overlaps the content edge; guests cannot open Settings, so their localStorage preferences only take effect if a later page lets them change one.
+
 ## Follow-ups (not scheduled in a phase)
 
 - **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.

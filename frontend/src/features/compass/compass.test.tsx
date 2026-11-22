@@ -129,11 +129,11 @@ describe("compass keyboard", () => {
     await user.keyboard("{ArrowLeft}{Enter}");
     expect(screen.getByRole("menuitem", { name: /^Settings/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByRole("menu", { name: /^Settings/ })).toBeInTheDocument();
-    await waitFor(() => expect(focused()).toMatch(/^Personal information, 1 of 5/));
+    await waitFor(() => expect(focused()).toMatch(/^Personal information, 1 of 6/));
     expect(screen.getByRole("menuitem", { name: /^Security/ })).toHaveAttribute("aria-current", "page");
 
     await user.keyboard("{End}");
-    expect(focused()).toMatch(/^Notifications, 5 of 5/);
+    expect(focused()).toMatch(/^Keyboard shortcuts, 6 of 6/);
     await user.keyboard("3");
     expect(focused()).toMatch(/^Security/);
     await user.keyboard("p");

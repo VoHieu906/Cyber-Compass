@@ -141,7 +141,8 @@
       "security": "Security",
       "preferences": "Preferences",
       "goals": "Learning goals",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "shortcuts": "Keyboard shortcuts"
     },
     "profile": {
       "avatar": "Photo",
@@ -189,7 +190,10 @@
       "time": "Time zone",
       "timeHint": "Decides when your day and week start, for streaks and reminders.",
       "timezone": "Time zone",
-      "timezoneDetected": "This device is set to {timezone}."
+      "timezoneDetected": "This device is set to {timezone}.",
+      "compass": "Compass menu",
+      "compassHint": "A round menu in the corner of every page for moving around with the mouse or the keyboard. The header menu always stays.",
+      "compassToggle": "Show the compass menu"
     },
     "goals": {
       "title": "Learning goals",
@@ -1571,5 +1575,52 @@
     "pageNextTask": "Next unfinished task",
     "pageTheory": "Theory",
     "pageQuestions": "Questions"
+  },
+  "shortcuts": {
+    "lede": "Change, turn off or reset any shortcut. Combinations with Ctrl, Alt or ⌘ also work while you type in a field.",
+    "groups": {
+      "general": "General",
+      "search": "Search",
+      "editor": "Lesson editor",
+      "compass": "Inside the compass menu"
+    },
+    "actions": {
+      "compass": {
+        "toggle": "Open or close the compass",
+        "next": "Next item",
+        "previous": "Previous item",
+        "enter": "Open a submenu or choose",
+        "back": "Back one ring",
+        "first": "First item",
+        "last": "Last item",
+        "close": "Close one ring, then the menu"
+      },
+      "search": {
+        "open": "Open search",
+        "openCombo": "Open search (from anywhere)"
+      },
+      "editor": {
+        "save": "Save the draft"
+      }
+    },
+    "digits": "Go to item 1 to 9",
+    "typeahead": "Go to the next item starting with a letter",
+    "fixedNote": "The keys inside the menu follow the standard menu pattern, so they stay the same for screen readers.",
+    "change": "Change",
+    "changeFor": "Change the shortcut for {action}",
+    "recording": "Press the new keys… (Esc cancels)",
+    "recordingFor": "Press the new keys for {action}, or Escape to cancel",
+    "disable": "Turn off",
+    "disableFor": "Turn off the shortcut for {action}",
+    "reset": "Reset",
+    "resetFor": "Reset the shortcut for {action}",
+    "resetAll": "Reset all shortcuts",
+    "off": "Off",
+    "or": "or",
+    "reserved": "{keys} belongs to the browser or the system. Choose another combination.",
+    "needsModifier": "{keys} alone would get in the way of the page. Add Ctrl, Alt or ⌘.",
+    "conflict": "{keys} is already used for “{action}”.",
+    "saved": "Shortcuts saved.",
+    "saveFailed": "The shortcuts could not be saved. Try again."
   }
 }

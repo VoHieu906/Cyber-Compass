@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Lock, SlidersHorizontal, Target, UserRound } from "lucide-react";
+import { Bell, Keyboard, Lock, SlidersHorizontal, Target, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ export const SETTINGS_TABS = [
   { href: "/settings/security", key: "security", Icon: Lock },
   { href: "/settings/preferences", key: "preferences", Icon: SlidersHorizontal },
   { href: "/settings/notifications", key: "notifications", Icon: Bell },
+  { href: "/settings/shortcuts", key: "shortcuts", Icon: Keyboard },
 ] as const;
 
 /**

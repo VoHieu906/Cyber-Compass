@@ -169,7 +169,7 @@
   transform-box: view-box;
   transform-origin: 50% 50%;
 }
-/* Three distinct states: hover or open (paper-3), current page (accent-soft fill, accent edge), keyboard focus (ink edge, 3px). */
+/* Three distinct states (plus pressed, rule): hover or open (paper-3), current page (accent-soft fill, accent edge), keyboard focus (ink edge, 3px). */
 .compass-seg { fill: var(--color-paper-2); stroke: var(--color-field-edge); stroke-width: 1; transition: fill var(--dur-micro), stroke var(--dur-micro); }
 .compass-icon { color: var(--color-ink-2); }
 .compass-text { fill: var(--color-ink-2); font-size: 11px; font-weight: 500; }
@@ -178,6 +178,7 @@
 .compass-item[aria-current] .compass-icon { color: var(--color-accent); }
 .compass-item[aria-current] .compass-text { fill: var(--color-ink); font-weight: 600; }
 .compass-item:focus-visible .compass-seg { stroke: var(--color-ink); stroke-width: 3; }
+.compass-item:active .compass-seg { fill: var(--color-rule); }
 
 @media (prefers-reduced-motion: reduce) {
   *,
