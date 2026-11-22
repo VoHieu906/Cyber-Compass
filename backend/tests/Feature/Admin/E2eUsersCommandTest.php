@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
@@ -38,12 +39,18 @@ it('purges only e2e accounts on example.test', function () {
         User::factory()->create(['email' => 'not-e2e-@example.test']),
     ];
 
+    $e2ePost = Post::query()->create(['slug' => 'e2e-post', 'title' => 'E2E', 'tags' => [], 'created_by' => User::query()->where('email', 'e2e-learner-from-the-ui@example.test')->value('id')]);
+    $realPost = Post::query()->create(['slug' => 'real-post', 'title' => 'Real', 'tags' => [], 'created_by' => $keep[0]->id]);
+
     expect(runE2eUsers(['--purge' => true]))->toBe(['deleted' => 2]);
 
     expect(User::query()->where('email', 'like', 'e2e-%@example.test')->count())->toBe(0);
     foreach ($keep as $user) {
         expect(User::query()->whereKey($user->id)->exists())->toBeTrue();
     }
+    // Blog posts the suite made go too; everyone else's stay.
+    expect(Post::query()->whereKey($e2ePost->id)->exists())->toBeFalse()
+        ->and(Post::query()->whereKey($realPost->id)->exists())->toBeTrue();
 });
 
 it('refuses outside local and testing', function () {

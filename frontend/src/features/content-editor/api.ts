@@ -5,11 +5,14 @@ import type {
   AdminCourse,
   AdminLesson,
   AdminLessonListItem,
+  AdminPost,
+  AdminPostListItem,
   BlockTypeInfo,
+  EditorDoc,
   LessonQuery,
   Media,
+  PostQuery,
   Revision,
-  WorkingCopy,
 } from "./types";
 
 const base = "/api/v1/admin/content";
@@ -17,29 +20,47 @@ const base = "/api/v1/admin/content";
 export const fetchLessons = (query: LessonQuery, signal?: AbortSignal) =>
   request<Paginated<AdminLessonListItem>>("GET", `${base}/lessons`, { query: lessonQueryToApi(query), signal });
 
-export const fetchLesson = (id: number, signal?: AbortSignal) =>
-  api.get<AdminLesson>(`${base}/lessons/${id}`, { signal });
+/**
+ * The editing calls of one block-document type (D55): lessons and posts share them, at
+ * `/admin/content/lessons` and `/admin/content/posts`.
+ */
+export function documentApi<D extends EditorDoc>(collection: "lessons" | "posts") {
+  const at = (id: number, rest = "") => `${base}/${collection}/${id}${rest}`;
+  return {
+    fetch: (id: number, signal?: AbortSignal) => api.get<D>(at(id), { signal }),
+    saveDraft: (id: number, copy: D["working_copy"], lockVersion: number) =>
+      api.put<D>(at(id, "/draft"), { ...copy, lock_version: lockVersion }),
+    discardDraft: (id: number) => api.delete<D>(at(id, "/draft")),
+    publish: (id: number, lockVersion: number, note: string) =>
+      api.post<D>(at(id, "/publish"), { lock_version: lockVersion, note: note.trim() || undefined }),
+    archive: (id: number) => api.post<D>(at(id, "/archive")),
+    unarchive: (id: number) => api.post<D>(at(id, "/unarchive")),
+    remove: (id: number) => api.delete<void>(at(id)),
+    fetchRevisions: (id: number, signal?: AbortSignal) => api.get<Revision[]>(at(id, "/revisions"), { signal }),
+    restoreRevision: (id: number, version: number, lockVersion: number) =>
+      api.post<D>(at(id, `/revisions/${version}/restore`), { lock_version: lockVersion }),
+  };
+}
+
+export type DocumentApi<D extends EditorDoc> = ReturnType<typeof documentApi<D>>;
+
+export const lessonApi = documentApi<AdminLesson>("lessons");
+export const postApi = documentApi<AdminPost>("posts");
 
 export const createLesson = (input: { chapter_id: number; title: string; slug: string }) =>
   api.post<AdminLesson>(`${base}/lessons`, input);
 
-export const saveDraft = (id: number, copy: WorkingCopy, lockVersion: number) =>
-  api.put<AdminLesson>(`${base}/lessons/${id}/draft`, { ...copy, lock_version: lockVersion });
+export const fetchPosts = (query: PostQuery, signal?: AbortSignal) =>
+  request<Paginated<AdminPostListItem>>("GET", `${base}/posts`, {
+    query: {
+      q: query.q || undefined,
+      "filter[status]": query.status || undefined,
+      page: query.page > 1 ? query.page : undefined,
+    },
+    signal,
+  });
 
-export const discardDraft = (id: number) => api.delete<AdminLesson>(`${base}/lessons/${id}/draft`);
-
-export const publishLesson = (id: number, lockVersion: number, note: string) =>
-  api.post<AdminLesson>(`${base}/lessons/${id}/publish`, { lock_version: lockVersion, note: note.trim() || undefined });
-
-export const archiveLesson = (id: number) => api.post<AdminLesson>(`${base}/lessons/${id}/archive`);
-
-export const deleteLesson = (id: number) => api.delete<void>(`${base}/lessons/${id}`);
-
-export const fetchRevisions = (id: number, signal?: AbortSignal) =>
-  api.get<Revision[]>(`${base}/lessons/${id}/revisions`, { signal });
-
-export const restoreRevision = (id: number, version: number, lockVersion: number) =>
-  api.post<AdminLesson>(`${base}/lessons/${id}/revisions/${version}/restore`, { lock_version: lockVersion });
+export const createPost = (input: { title: string; slug: string }) => api.post<AdminPost>(`${base}/posts`, input);
 
 export const fetchBlockTypes = (signal?: AbortSignal) => api.get<BlockTypeInfo[]>(`${base}/block-types`, { signal });
 

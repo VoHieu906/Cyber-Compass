@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpenText, FolderTree, Gauge, ScrollText, Users } from "lucide-react";
+import { BookOpenText, FolderTree, Gauge, Newspaper, ScrollText, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,6 +14,7 @@ export const ADMIN_AREAS = [
   { href: "/admin", key: "overview", Icon: Gauge, exact: true },
   { href: "/admin/lessons", key: "lessons", Icon: BookOpenText, exact: false },
   { href: "/admin/courses", key: "courses", Icon: FolderTree, exact: false },
+  { href: "/admin/posts", key: "posts", Icon: Newspaper, exact: false },
   { href: "/admin/users", key: "users", Icon: Users, exact: false },
   { href: "/admin/audit", key: "audit", Icon: ScrollText, exact: false },
 ] as const;

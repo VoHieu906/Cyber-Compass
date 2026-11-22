@@ -6,25 +6,31 @@ import { useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
-import { useRevisions } from "../hooks";
-import type { AdminLesson, Revision } from "../types";
+import { useRevisions, type DocKind } from "../hooks";
+import type { EditorDoc, Revision } from "../types";
+import { useDocText, type DocText } from "../doc-text";
 
 /** Published versions, newest first. Restoring copies a version into the draft; learners see nothing until it is published. */
 export function RevisionHistory({
+  kind,
+  messages,
   lesson,
   dirty,
   busy,
   onRestore,
 }: {
-  lesson: AdminLesson;
+  kind: DocKind;
+  /** This document type's wording for the history; missing keys come from content.history. */
+  messages: string;
+  lesson: EditorDoc;
   dirty: boolean;
   busy: boolean;
   onRestore: (version: number) => void;
 }) {
-  const t = useTranslations("content.history");
+  const t = useDocText(messages, "content.history");
   const tCommon = useTranslations("common");
   const format = useFormatter();
-  const revisions = useRevisions(lesson.id, true);
+  const revisions = useRevisions(kind, lesson.id, true);
   const [pick, setPick] = useState<Revision | null>(null);
 
   if (revisions.isError) return <Alert tone="error">{t("loadError")}</Alert>;
@@ -103,7 +109,7 @@ export function RevisionHistory({
   );
 }
 
-function describe(r: Revision, t: ReturnType<typeof useTranslations<"content.history">>): string {
+function describe(r: Revision, t: DocText): string {
   if (!r.changes) return "";
   if (r.changes.initial) return t("initial", { count: r.section_count });
   const parts: string[] = [];

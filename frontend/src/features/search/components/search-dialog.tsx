@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { BookOpen, Briefcase, GraduationCap, Search } from "lucide-react";
+import { BookOpen, Briefcase, GraduationCap, Newspaper, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
@@ -29,7 +29,7 @@ function useDebounced<T>(value: T, ms: number): T {
 }
 
 /**
- * Header search (D36): courses, lessons and careers, grouped. Opens from the button, its
+ * Header search (D36): courses, lessons, careers and blog posts, grouped. Opens from the button, its
  * shortcuts ("/" and Ctrl/⌘+K by default, D52) or the compass (`openSearch`). The native dialog traps focus, closes on Escape and returns focus to the button.
  */
 export function SearchDialog() {
@@ -82,7 +82,7 @@ function SearchPanel({ onPick }: { onPick: () => void }) {
     placeholderData: keepPreviousData,
   });
   const data = ready ? results.data : undefined;
-  const total = data ? data.courses.length + data.lessons.length + data.careers.length : 0;
+  const total = data ? data.courses.length + data.lessons.length + data.careers.length + data.posts.length : 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -119,6 +119,7 @@ function SearchPanel({ onPick }: { onPick: () => void }) {
           <Group title={t("courses")} icon={<GraduationCap aria-hidden />} term={term} items={data.courses.map((c) => ({ key: c.slug, href: `/courses/${c.slug}`, title: c.title, meta: c.domain }))} onPick={onPick} />
           <Group title={t("lessons")} icon={<BookOpen aria-hidden />} term={term} items={data.lessons.map((l) => ({ key: l.slug, href: `/learn/${l.slug}`, title: l.title, meta: l.course }))} onPick={onPick} />
           <Group title={t("careers")} icon={<Briefcase aria-hidden />} term={term} items={data.careers.map((c) => ({ key: c.slug, href: `/careers/${c.slug}`, title: c.title, meta: c.summary }))} onPick={onPick} />
+          <Group title={t("posts")} icon={<Newspaper aria-hidden />} term={term} items={data.posts.map((p) => ({ key: p.slug, href: `/blog/${p.slug}`, title: p.title, meta: p.summary }))} onPick={onPick} />
         </div>
       ) : null}
     </div>

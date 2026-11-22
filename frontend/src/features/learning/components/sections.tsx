@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, Copy, Info, Lightbulb } from "lucide-react";
+import { AlertTriangle, Check, Copy, Info, Lightbulb, Link2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import { SceneFrame } from "../blocks/scene-frame";
 import { isVisualBlock, VisualBlock } from "../blocks/visual-block";
 import { Diagram } from "../diagrams/registry";
 import type { CalloutTone, LessonSection } from "../types";
+import { LazyMount } from "./lazy-mount";
 import { Prose, renderInline } from "./prose";
 
 const calloutStyle: Record<CalloutTone, { box: string; icon: typeof Info; iconClass: string }> = {
@@ -122,11 +123,57 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
   );
 }
 
-export function Section({ section }: { section: LessonSection }) {
+/** Blocks that lay out a graph or run a calculator: in a long post they mount near the viewport. */
+const HEAVY: Record<string, string> = {
+  flow: "aspect-[16/10]",
+  tree: "aspect-[16/10]",
+  topology: "aspect-[16/10]",
+  calculator: "min-h-[24rem]",
+};
+
+/** Copies the section's address (the page URL with its #id) and puts it in the address bar. */
+function CopyLink({ id, heading }: { id: string; heading: string }) {
+  const t = useTranslations("learn");
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    const url = `${window.location.origin}${window.location.pathname}${window.location.search}#${id}`;
+    window.history.replaceState(null, "", `#${id}`);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked: the address bar now holds the link.
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      aria-label={t("copySectionLink", { heading })}
+      className="ml-2 inline-flex size-7 translate-y-[-0.1em] items-center justify-center rounded-chip align-middle text-muted transition-[color,opacity] duration-[var(--dur-micro)] group-hover:opacity-100 hover:text-ink focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
+    >
+      {copied ? <Check aria-hidden className="size-4" /> : <Link2 aria-hidden className="size-4" />}
+      <span className="sr-only" aria-live="polite">
+        {copied ? t("linkCopied") : ""}
+      </span>
+    </button>
+  );
+}
+
+export function Section({ section, enhanced = false }: { section: LessonSection; enhanced?: boolean }) {
   const heading =
     section.heading && section.type !== "callout" ? (
-      <h2 className="scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]">
+      <h2
+        className={cn(
+          "scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]",
+          enhanced && "group",
+        )}
+      >
         {section.heading}
+        {enhanced ? <CopyLink id={section.id} heading={section.heading} /> : null}
       </h2>
     ) : null;
 
@@ -173,6 +220,7 @@ export function Section({ section }: { section: LessonSection }) {
       // nothing rather than break the lesson.
       if (!isVisualBlock(section.type)) return null;
       body = <VisualBlock type={section.type} payload={section.payload} />;
+      if (enhanced && HEAVY[section.type]) body = <LazyMount className={HEAVY[section.type]}>{body}</LazyMount>;
   }
 
   return (

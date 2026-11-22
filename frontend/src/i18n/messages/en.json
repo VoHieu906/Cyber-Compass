@@ -87,6 +87,7 @@
     "assessment": "Assessment",
     "roadmap": "Roadmap",
     "labs": "Labs",
+    "blog": "Blog",
     "dashboard": "Dashboard"
   },
   "validation": {
@@ -329,6 +330,8 @@
   "learn": {
     "lessonOf": "Lesson {position} of {total}",
     "onThisPage": "On this page",
+    "copySectionLink": "Copy a link to “{heading}”",
+    "linkCopied": "Link copied",
     "objectives": "Learning objectives",
     "prerequisites": "Builds on",
     "takeaways": "Key takeaways",
@@ -533,6 +536,7 @@
       "overview": "Overview",
       "users": "Users",
       "audit": "Audit log",
+      "posts": "Blog posts",
       "lessons": "Lessons",
       "courses": "Courses"
     },
@@ -921,7 +925,8 @@
       "tooLarge": "That file is larger than 5 MB.",
       "library": "Or use an earlier upload",
       "emptyLibrary": "No images uploaded yet.",
-      "loadError": "The image library could not be loaded."
+      "loadError": "The image library could not be loaded.",
+      "remove": "Remove image"
     },
     "history": {
       "intro": "Every publish is saved as a version. Restoring one puts it in the draft; learners see nothing until you publish again.",
@@ -1307,6 +1312,107 @@
       "theSection": "the lesson section"
     }
   },
+  "blog": {
+    "title": "Blog",
+    "lede": "Longer reads on security and the systems it protects: how things work underneath, with diagrams, demos and practice.",
+    "taggedTitle": "Blog posts tagged #{tag}",
+    "filterByTag": "Filter by tag",
+    "allPosts": "All posts",
+    "noPosts": "No posts yet.",
+    "noTaggedPosts": "No posts are tagged #{tag}.",
+    "pagination": "Blog pages",
+    "newer": "Newer posts",
+    "older": "Older posts",
+    "pageOf": "Page {page} of {total}",
+    "readingTime": "Reading time",
+    "read": "read",
+    "tags": "Tags",
+    "byline": "By {name}",
+    "backToBlog": "All blog posts",
+    "editor": {
+      "pageTitle": "Edit post",
+      "lessons": "Blog posts",
+      "untitled": "Untitled post",
+      "notFound": "This post does not exist.",
+      "loadError": "The post could not be loaded.",
+      "backToLessons": "Back to blog posts",
+      "upToDate": "Matches what readers see",
+      "saved": "Draft saved. Readers still see the published post until you publish.",
+      "published": "Published. Readers now see this version.",
+      "conflict": "Someone else saved this post after you opened it, so your save was refused to protect their work. Load the latest version, then make your changes again.",
+      "details": "Post details",
+      "slugLocked": "Locked: readers and links already use this address.",
+      "summaryHint": "One or two sentences shown under the title, on the blog card, in search and as the page description. Required to publish.",
+      "minutes": "Reading time",
+      "readingTimeValue": "{minutes, plural, one {# minute} other {# minutes}}",
+      "readingTimeHint": "Worked out from the blocks each time you save.",
+      "cover": "Cover image",
+      "coverHint": "Optional. Shown on the blog card, above the post and when the link is shared.",
+      "tags": "Tags",
+      "addTag": "Add tag",
+      "tagsHint": "Up to 8 tags, lowercase words joined by hyphens (docker, linux-basics). Readers filter the blog by them.",
+      "noBlocks": "This post has no blocks yet. Add one below.",
+      "viewLive": "View as a reader",
+      "discardBody": "The draft is deleted and the editor goes back to the published post. This can't be undone.",
+      "archiveTitle": "Archive this post?",
+      "archiveBody": "Readers stop seeing it at once, and it leaves the blog and search. You can bring it back as it was.",
+      "archived": "Archived. Readers no longer see this post.",
+      "unarchive": "Bring back",
+      "unarchiveTitle": "Bring this post back?",
+      "unarchiveBody": "Readers see the last published version again, at its old address.",
+      "unarchived": "Back on the blog.",
+      "delete": "Delete post",
+      "deleteTitle": "Delete this post?",
+      "deleteBody": "It was never published, so nobody has seen it. It is removed for good.",
+      "whyNoDelete": "A post that was published can only be archived, so its links keep working when it comes back.",
+      "publishTitle": "Publish this post?",
+      "republishTitle": "Publish this post again?",
+      "publishBody": "Readers see this version straight away, and it is saved in the history.",
+      "notePlaceholder": "What changed, e.g. Added a section on rootless mode",
+      "previewFrame": "Preview: what readers will see after you publish"
+    },
+    "history": {
+      "intro": "Every publish is saved as a version. Restoring one puts it in the draft; readers see nothing until you publish again.",
+      "live": "What readers see",
+      "confirmBody": "The draft becomes this version. The published post doesn't change until you publish.",
+      "field": {
+        "cover": "cover",
+        "tags": "tags"
+      }
+    },
+    "admin": {
+      "title": "Blog posts",
+      "new": "New post",
+      "search": "Search posts",
+      "searchPlaceholder": "Search by title or address",
+      "status": "Status",
+      "anyStatus": "Any status",
+      "results": "{count, plural, =0 {No posts} one {# post} other {# posts}}",
+      "loadError": "The posts could not be loaded.",
+      "retry": "Try again",
+      "empty": "No posts match. Write the first one with New post.",
+      "columns": {
+        "post": "Post",
+        "status": "Status",
+        "blocks": "Blocks",
+        "edited": "Last edited"
+      },
+      "blockCount": "{count, plural, one {# block} other {# blocks}}",
+      "seeded": "From the content files",
+      "pagination": "Post pages",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}",
+      "create": {
+        "title": "New post",
+        "body": "It starts as a draft. Readers see nothing until you publish it.",
+        "postTitle": "Title",
+        "slug": "Address",
+        "slugHint": "The post will live at /blog/{slug}. Lowercase words joined by hyphens.",
+        "create": "Create and edit"
+      }
+    }
+  },
   "labs": {
     "title": "Labs",
     "intro": "Practise what the lessons teach on systems built for it: investigate a server from its shell, write a firewall, and pick apart a web app's traffic.",
@@ -1542,8 +1648,8 @@
     "open": "Search",
     "title": "Search CyberCompass",
     "close": "Close search",
-    "label": "Search courses, lessons and careers",
-    "placeholder": "Courses, lessons, careers…",
+    "label": "Search courses, lessons, careers and posts",
+    "placeholder": "Courses, lessons, careers, posts…",
     "hint": "Type at least 2 characters.",
     "searching": "Searching…",
     "count": "{count, plural, =1 {# result} other {# results}}",
@@ -1552,6 +1658,7 @@
     "courses": "Courses",
     "lessons": "Lessons",
     "careers": "Careers",
+    "posts": "Blog posts",
     "shortcut": "Search (press / or Ctrl+K)"
   },
   "compass": {

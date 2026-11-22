@@ -1,5 +1,6 @@
 import type { Browser, BrowserContextOptions } from "@playwright/test";
 import { account } from "./support/accounts";
+import { longPostSections, publishPost } from "./support/blog";
 import { expect, login, test } from "./support/test";
 
 /**
@@ -10,6 +11,7 @@ import { expect, login, test } from "./support/test";
  */
 const ENFORCE = process.env.E2E_PERF === "1";
 const API_URL = process.env.E2E_API_URL ?? "http://localhost:8000";
+const LONG_POST = "/blog/(long post)";
 
 /**
  * Route => budgets: JavaScript transferred in KB (gzip from `next start`) and API requests the page
@@ -25,6 +27,9 @@ const BUDGETS: Record<string, { jsKb: number; api: number; signedIn?: boolean }>
   "/learn/osi-model": { jsKb: 300, api: 6, signedIn: true },
   "/learn/osi-model/exercise": { jsKb: 300, api: 5, signedIn: true },
   "/labs/investigate-a-suspicious-login": { jsKb: 265, api: 4, signedIn: true },
+  "/blog": { jsKb: 250, api: 2 },
+  // A 120-block post published for this run (F2); measured as a guest, like search engines see it.
+  [LONG_POST]: { jsKb: 300, api: 2 },
 };
 
 type Row = { route: string; jsKb: number; cssKb: number; requests: number; api: number; ttfbMs: number; lcpMs: number };
@@ -79,9 +84,26 @@ test("pages stay within their weight and API budgets", async ({ browser, page },
   await login(page, account("perf"));
   const signedIn = await page.context().storageState();
 
+  const admin = await browser.newPage();
+  await login(admin, account("admin"));
+  const slug = `e2e-perf-post-${Date.now()}`;
+  await publishPost(admin, {
+    slug,
+    title: "E2E performance post",
+    summary: "A long post.",
+    tags: [],
+    sections: longPostSections(120),
+  });
+  await admin.close();
+
   const rows: Row[] = [];
   for (const [route, budget] of Object.entries(BUDGETS)) {
-    rows.push(await measure(browser, route, budget.signedIn ? signedIn : undefined));
+    const row = await measure(
+      browser,
+      route === LONG_POST ? `/blog/${slug}` : route,
+      budget.signedIn ? signedIn : undefined,
+    );
+    rows.push({ ...row, route });
   }
 
   const table = rows.map(

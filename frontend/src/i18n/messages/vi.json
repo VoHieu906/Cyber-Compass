@@ -87,6 +87,7 @@
     "assessment": "Đánh giá",
     "roadmap": "Lộ trình",
     "labs": "Thực hành",
+    "blog": "Blog",
     "dashboard": "Bảng điều khiển"
   },
   "validation": {
@@ -329,6 +330,8 @@
   "learn": {
     "lessonOf": "Bài {position} / {total}",
     "onThisPage": "Trong bài này",
+    "copySectionLink": "Sao chép liên kết tới “{heading}”",
+    "linkCopied": "Đã sao chép liên kết",
     "objectives": "Mục tiêu bài học",
     "prerequisites": "Dựa trên",
     "takeaways": "Ghi nhớ chính",
@@ -534,7 +537,8 @@
       "users": "Người dùng",
       "audit": "Nhật ký quản trị",
       "lessons": "Bài học",
-      "courses": "Khóa học"
+      "courses": "Khóa học",
+      "posts": "Bài viết blog"
     },
     "denied": {
       "title": "Chỉ dành cho quản trị viên",
@@ -921,7 +925,8 @@
       "tooLarge": "Tệp lớn hơn 5 MB.",
       "library": "Hoặc dùng ảnh đã tải lên trước đó",
       "emptyLibrary": "Chưa có ảnh nào được tải lên.",
-      "loadError": "Không tải được thư viện ảnh."
+      "loadError": "Không tải được thư viện ảnh.",
+      "remove": "Bỏ ảnh"
     },
     "history": {
       "intro": "Mỗi lần xuất bản được lưu thành một phiên bản. Khôi phục sẽ đưa phiên bản vào bản nháp; học viên chưa thấy gì cho đến khi bạn xuất bản lại.",
@@ -1307,6 +1312,107 @@
       "theSection": "phần bài học"
     }
   },
+  "blog": {
+    "title": "Blog",
+    "lede": "Những bài đọc dài về bảo mật và các hệ thống cần bảo vệ: cách mọi thứ vận hành bên dưới, kèm sơ đồ, minh họa và bài tập.",
+    "taggedTitle": "Bài viết gắn thẻ #{tag}",
+    "filterByTag": "Lọc theo thẻ",
+    "allPosts": "Tất cả bài viết",
+    "noPosts": "Chưa có bài viết nào.",
+    "noTaggedPosts": "Chưa có bài viết nào gắn thẻ #{tag}.",
+    "pagination": "Các trang blog",
+    "newer": "Bài mới hơn",
+    "older": "Bài cũ hơn",
+    "pageOf": "Trang {page} / {total}",
+    "readingTime": "Thời gian đọc",
+    "read": "đọc",
+    "tags": "Thẻ",
+    "byline": "Tác giả: {name}",
+    "backToBlog": "Tất cả bài viết",
+    "editor": {
+      "pageTitle": "Sửa bài viết",
+      "lessons": "Bài viết blog",
+      "untitled": "Bài viết chưa có tên",
+      "notFound": "Bài viết này không tồn tại.",
+      "loadError": "Không tải được bài viết.",
+      "backToLessons": "Về danh sách bài viết",
+      "upToDate": "Giống với những gì người đọc thấy",
+      "saved": "Đã lưu bản nháp. Người đọc vẫn thấy bản đã xuất bản cho đến khi bạn xuất bản.",
+      "published": "Đã xuất bản. Người đọc giờ thấy phiên bản này.",
+      "conflict": "Một người khác đã lưu bài viết này sau khi bạn mở nó, nên lần lưu của bạn bị từ chối để bảo vệ thay đổi của họ. Hãy tải phiên bản mới nhất rồi sửa lại.",
+      "details": "Thông tin bài viết",
+      "slugLocked": "Đã khóa: người đọc và các liên kết đang dùng địa chỉ này.",
+      "summaryHint": "Một hai câu hiện dưới tiêu đề, trên thẻ blog, trong tìm kiếm và làm mô tả trang. Bắt buộc khi xuất bản.",
+      "minutes": "Thời gian đọc",
+      "readingTimeValue": "{minutes} phút",
+      "readingTimeHint": "Được tính từ các khối mỗi lần bạn lưu.",
+      "cover": "Ảnh bìa",
+      "coverHint": "Không bắt buộc. Hiện trên thẻ blog, phía trên bài viết và khi chia sẻ liên kết.",
+      "tags": "Thẻ",
+      "addTag": "Thêm thẻ",
+      "tagsHint": "Tối đa 8 thẻ, chữ thường nối bằng dấu gạch ngang (docker, linux-basics). Người đọc lọc blog theo thẻ.",
+      "noBlocks": "Bài viết chưa có khối nào. Thêm khối ở bên dưới.",
+      "viewLive": "Xem như người đọc",
+      "discardBody": "Bản nháp bị xóa và trình soạn thảo quay về bản đã xuất bản. Không thể hoàn tác.",
+      "archiveTitle": "Lưu trữ bài viết này?",
+      "archiveBody": "Người đọc không còn thấy bài ngay lập tức, và bài rời khỏi blog và tìm kiếm. Bạn có thể đưa bài trở lại như cũ.",
+      "archived": "Đã lưu trữ. Người đọc không còn thấy bài viết này.",
+      "unarchive": "Đưa trở lại",
+      "unarchiveTitle": "Đưa bài viết này trở lại?",
+      "unarchiveBody": "Người đọc lại thấy phiên bản đã xuất bản gần nhất, ở địa chỉ cũ.",
+      "unarchived": "Bài viết đã trở lại blog.",
+      "delete": "Xóa bài viết",
+      "deleteTitle": "Xóa bài viết này?",
+      "deleteBody": "Bài chưa từng được xuất bản nên chưa ai thấy. Bài sẽ bị xóa vĩnh viễn.",
+      "whyNoDelete": "Bài đã xuất bản chỉ có thể lưu trữ, để các liên kết vẫn dùng được khi bài trở lại.",
+      "publishTitle": "Xuất bản bài viết này?",
+      "republishTitle": "Xuất bản lại bài viết này?",
+      "publishBody": "Người đọc thấy phiên bản này ngay, và nó được lưu vào lịch sử.",
+      "notePlaceholder": "Đã thay đổi gì, ví dụ: Thêm phần về chế độ rootless",
+      "previewFrame": "Xem trước: những gì người đọc sẽ thấy sau khi xuất bản"
+    },
+    "history": {
+      "intro": "Mỗi lần xuất bản được lưu thành một phiên bản. Khôi phục một phiên bản sẽ đưa nó vào bản nháp; người đọc không thấy gì cho đến khi bạn xuất bản lại.",
+      "live": "Những gì người đọc thấy",
+      "confirmBody": "Bản nháp trở thành phiên bản này. Bài đã xuất bản không đổi cho đến khi bạn xuất bản.",
+      "field": {
+        "cover": "ảnh bìa",
+        "tags": "thẻ"
+      }
+    },
+    "admin": {
+      "title": "Bài viết blog",
+      "new": "Bài viết mới",
+      "search": "Tìm bài viết",
+      "searchPlaceholder": "Tìm theo tiêu đề hoặc địa chỉ",
+      "status": "Trạng thái",
+      "anyStatus": "Mọi trạng thái",
+      "results": "{count, plural, =0 {Không có bài viết} other {# bài viết}}",
+      "loadError": "Không tải được danh sách bài viết.",
+      "retry": "Thử lại",
+      "empty": "Không có bài viết phù hợp. Hãy viết bài đầu tiên bằng nút Bài viết mới.",
+      "columns": {
+        "post": "Bài viết",
+        "status": "Trạng thái",
+        "blocks": "Khối",
+        "edited": "Sửa lần cuối"
+      },
+      "blockCount": "{count} khối",
+      "seeded": "Từ tệp nội dung",
+      "pagination": "Các trang bài viết",
+      "previous": "Trước",
+      "next": "Sau",
+      "page": "Trang {page} / {total}",
+      "create": {
+        "title": "Bài viết mới",
+        "body": "Bài bắt đầu là bản nháp. Người đọc không thấy gì cho đến khi bạn xuất bản.",
+        "postTitle": "Tiêu đề",
+        "slug": "Địa chỉ",
+        "slugHint": "Bài viết sẽ ở /blog/{slug}. Chữ thường nối bằng dấu gạch ngang.",
+        "create": "Tạo và soạn"
+      }
+    }
+  },
   "labs": {
     "title": "Thực hành",
     "intro": "Luyện tập những gì bài học dạy trên các hệ thống dựng sẵn: điều tra máy chủ qua shell, viết luật tường lửa và phân tích lưu lượng của một ứng dụng web.",
@@ -1542,8 +1648,8 @@
     "open": "Tìm kiếm",
     "title": "Tìm trong CyberCompass",
     "close": "Đóng tìm kiếm",
-    "label": "Tìm khóa học, bài học và nghề nghiệp",
-    "placeholder": "Khóa học, bài học, nghề nghiệp…",
+    "label": "Tìm khóa học, bài học, nghề nghiệp và bài viết",
+    "placeholder": "Khóa học, bài học, nghề nghiệp, bài viết…",
     "hint": "Nhập ít nhất 2 ký tự.",
     "searching": "Đang tìm…",
     "count": "{count} kết quả",
@@ -1552,6 +1658,7 @@
     "courses": "Khóa học",
     "lessons": "Bài học",
     "careers": "Nghề nghiệp",
+    "posts": "Bài viết blog",
     "shortcut": "Tìm kiếm (nhấn / hoặc Ctrl+K)"
   },
   "compass": {

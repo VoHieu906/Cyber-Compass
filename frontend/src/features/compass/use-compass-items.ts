@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  ArrowDownToLine, ArrowUpToLine, Bell, Briefcase, ClipboardCheck, FlaskConical, GraduationCap, LayoutDashboard, ListTree, Route, Search, Settings, ShieldCheck, type LucideIcon,
+  ArrowDownToLine, ArrowUpToLine, Bell, Briefcase, ClipboardCheck, FlaskConical, GraduationCap, LayoutDashboard, ListTree, Newspaper, Route, Search, Settings, ShieldCheck, type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -34,6 +34,7 @@ const LINK_ICONS: Record<NavLink["key"], LucideIcon> = {
   assessment: ClipboardCheck,
   roadmap: Route,
   labs: FlaskConical,
+  blog: Newspaper,
 };
 
 const scrollPage = (top: number) => {

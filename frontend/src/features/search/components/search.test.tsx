@@ -26,6 +26,7 @@ const results = {
     { slug: "osi-model", title: "The OSI model", summary: "Seven layers of the network.", course: "Networking Fundamentals" },
   ],
   careers: [],
+  posts: [],
 };
 
 describe("search", () => {
@@ -37,7 +38,7 @@ describe("search", () => {
     renderWithProviders(<SearchDialog />);
 
     await user.click(screen.getByRole("button", { name: "Search" }));
-    const box = screen.getByRole("searchbox", { name: "Search courses, lessons and careers" });
+    const box = screen.getByRole("searchbox", { name: "Search courses, lessons, careers and posts" });
     expect(box).toHaveFocus();
     await user.type(box, "n");
     expect(screen.getByText("Type at least 2 characters.")).toBeInTheDocument();
@@ -73,7 +74,7 @@ describe("search", () => {
   });
 
   it("says when nothing matches and when search fails", async () => {
-    mocks.search.mockResolvedValueOnce({ query: "zz", courses: [], lessons: [], careers: [] }).mockRejectedValueOnce(new Error("down"));
+    mocks.search.mockResolvedValueOnce({ query: "zz", courses: [], lessons: [], careers: [], posts: [] }).mockRejectedValueOnce(new Error("down"));
     const user = userEvent.setup();
     renderWithProviders(<SearchDialog />);
 

@@ -2,32 +2,36 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  archiveLesson,
   createChapter,
   createLesson,
-  deleteLesson,
-  discardDraft,
+  createPost,
   fetchBlockTypes,
   fetchCourses,
-  fetchLesson,
   fetchLessons,
   fetchMedia,
-  fetchRevisions,
-  publishLesson,
+  fetchPosts,
+  lessonApi,
+  postApi,
   renameChapter,
   reorderChapters,
   reorderLessons,
-  restoreRevision,
-  saveDraft,
   uploadMedia,
+  type DocumentApi,
 } from "./api";
-import type { AdminCourse, AdminLesson, LessonQuery, WorkingCopy } from "./types";
+import type { AdminCourse, AdminLesson, AdminPost, LessonQuery, PostQuery } from "./types";
+
+/** The block-document types the editor serves (D55). */
+const APIS = { lesson: lessonApi, post: postApi };
+export type DocKind = keyof typeof APIS;
+export type DocOf<K extends DocKind> = K extends "lesson" ? AdminLesson : AdminPost;
+const apiFor = <K extends DocKind>(kind: K) => APIS[kind] as unknown as DocumentApi<DocOf<K>>;
 
 export const contentKeys = {
   all: ["admin", "content"] as const,
   lessons: (query: LessonQuery) => ["admin", "content", "lessons", query] as const,
-  lesson: (id: number) => ["admin", "content", "lesson", id] as const,
-  revisions: (id: number) => ["admin", "content", "revisions", id] as const,
+  posts: (query: PostQuery) => ["admin", "content", "posts", query] as const,
+  doc: (kind: DocKind, id: number) => ["admin", "content", kind, id] as const,
+  revisions: (kind: DocKind, id: number) => ["admin", "content", "revisions", kind, id] as const,
   blockTypes: ["admin", "content", "block-types"] as const,
   courses: ["admin", "content", "courses"] as const,
   media: ["admin", "content", "media"] as const,
@@ -42,22 +46,22 @@ export function useLessons(query: LessonQuery) {
 }
 
 /**
- * The lesson in the editor. Never refetched behind the editor's back (no focus refetch):
+ * The document in the editor. Never refetched behind the editor's back (no focus refetch):
  * the form holds unsaved work, and lock_version decides what the server accepts.
  */
-export function useAdminLesson(id: number) {
+export function useEditorDoc<K extends DocKind>(kind: K, id: number) {
   return useQuery({
-    queryKey: contentKeys.lesson(id),
-    queryFn: ({ signal }) => fetchLesson(id, signal),
+    queryKey: contentKeys.doc(kind, id),
+    queryFn: ({ signal }) => apiFor(kind).fetch(id, signal),
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   });
 }
 
-export function useRevisions(id: number, enabled: boolean) {
+export function useRevisions(kind: DocKind, id: number, enabled: boolean) {
   return useQuery({
-    queryKey: contentKeys.revisions(id),
-    queryFn: ({ signal }) => fetchRevisions(id, signal),
+    queryKey: contentKeys.revisions(kind, id),
+    queryFn: ({ signal }) => apiFor(kind).fetchRevisions(id, signal),
     enabled,
   });
 }
@@ -78,44 +82,47 @@ export function useMediaLibrary(enabled: boolean) {
   return useQuery({ queryKey: contentKeys.media, queryFn: ({ signal }) => fetchMedia(signal), enabled });
 }
 
-/** After any lesson change: the editor gets the fresh lesson; lists and counts are refetched. */
-function useLessonMutation<V>(id: number, fn: (variables: V) => Promise<AdminLesson>) {
+/** After any change: the editor gets the fresh document; lists and counts are refetched. */
+function useDocMutation<K extends DocKind, V>(kind: K, id: number, fn: (variables: V) => Promise<DocOf<K>>) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: fn,
-    onSuccess: (lesson) => {
-      queryClient.setQueryData(contentKeys.lesson(id), lesson);
+    onSuccess: (doc) => {
+      queryClient.setQueryData(contentKeys.doc(kind, id), doc);
       void queryClient.invalidateQueries({
-        predicate: (q) => q.queryKey[0] === "admin" && !(q.queryKey[1] === "content" && q.queryKey[2] === "lesson"),
+        predicate: (q) =>
+          q.queryKey[0] === "admin" &&
+          !(q.queryKey[1] === "content" && (q.queryKey[2] === "lesson" || q.queryKey[2] === "post")),
       });
     },
   });
 }
 
-export const useSaveDraft = (id: number) =>
-  useLessonMutation(id, ({ copy, lockVersion }: { copy: WorkingCopy; lockVersion: number }) =>
-    saveDraft(id, copy, lockVersion),
-  );
-export const usePublish = (id: number) =>
-  useLessonMutation(id, ({ lockVersion, note }: { lockVersion: number; note: string }) =>
-    publishLesson(id, lockVersion, note),
-  );
-export const useDiscardDraft = (id: number) => useLessonMutation(id, () => discardDraft(id));
-export const useArchive = (id: number) => useLessonMutation(id, () => archiveLesson(id));
-export const useRestoreRevision = (id: number) =>
-  useLessonMutation(id, ({ version, lockVersion }: { version: number; lockVersion: number }) =>
-    restoreRevision(id, version, lockVersion),
-  );
-
-export function useDeleteLesson(id: number) {
+/** Every editing action of one document, through its type's API. */
+export function useDocActions<K extends DocKind>(kind: K, id: number) {
+  const api = apiFor(kind);
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => deleteLesson(id),
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: contentKeys.lesson(id) });
-      void queryClient.invalidateQueries({ queryKey: ["admin"] });
-    },
-  });
+  return {
+    save: useDocMutation(kind, id, ({ copy, lockVersion }: { copy: DocOf<K>["working_copy"]; lockVersion: number }) =>
+      api.saveDraft(id, copy, lockVersion),
+    ),
+    publish: useDocMutation(kind, id, ({ lockVersion, note }: { lockVersion: number; note: string }) =>
+      api.publish(id, lockVersion, note),
+    ),
+    discard: useDocMutation(kind, id, () => api.discardDraft(id)),
+    archive: useDocMutation(kind, id, () => api.archive(id)),
+    unarchive: useDocMutation(kind, id, () => api.unarchive(id)),
+    restore: useDocMutation(kind, id, ({ version, lockVersion }: { version: number; lockVersion: number }) =>
+      api.restoreRevision(id, version, lockVersion),
+    ),
+    remove: useMutation({
+      mutationFn: () => api.remove(id),
+      onSuccess: () => {
+        queryClient.removeQueries({ queryKey: contentKeys.doc(kind, id) });
+        void queryClient.invalidateQueries({ queryKey: ["admin"] });
+      },
+    }),
+  };
 }
 
 export function useCreateLesson() {
@@ -123,7 +130,7 @@ export function useCreateLesson() {
   return useMutation({
     mutationFn: createLesson,
     onSuccess: (lesson) => {
-      queryClient.setQueryData(contentKeys.lesson(lesson.id), lesson);
+      queryClient.setQueryData(contentKeys.doc("lesson", lesson.id), lesson);
       void queryClient.invalidateQueries({ queryKey: ["admin"] });
     },
   });
@@ -153,6 +160,25 @@ export const useReorderChapters = () =>
   useCourseMutation(({ courseId, ids }: { courseId: number; ids: number[] }) => reorderChapters(courseId, ids));
 export const useReorderLessons = () =>
   useCourseMutation(({ chapterId, ids }: { chapterId: number; ids: number[] }) => reorderLessons(chapterId, ids));
+
+export function usePosts(query: PostQuery) {
+  return useQuery({
+    queryKey: contentKeys.posts(query),
+    queryFn: ({ signal }) => fetchPosts(query, signal),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useCreatePost() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createPost,
+    onSuccess: (post) => {
+      queryClient.setQueryData(contentKeys.doc("post", post.id), post);
+      void queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+  });
+}
 
 export function useUploadMedia() {
   const queryClient = useQueryClient();

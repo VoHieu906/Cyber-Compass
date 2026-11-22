@@ -14,6 +14,32 @@ export type EditorSection = {
 
 export type Resource = { label: string; url: string };
 
+/** The fields every block document's working copy has (lessons and posts, D55). */
+export type BaseCopy = {
+  slug: string;
+  title: string;
+  summary: string;
+  estimated_minutes: number;
+  sections: EditorSection[];
+};
+
+/** A block document in the editor (AdminLessonResource, AdminPostResource): the shared shape. */
+export type EditorDoc<C extends BaseCopy = BaseCopy> = {
+  id: number;
+  slug: string;
+  status: LessonStatus;
+  published_at: string | null;
+  slug_editable: boolean;
+  has_unpublished_changes: boolean;
+  /** Send back with every change; 0 while there is no draft. A stale value gets 409. */
+  lock_version: number;
+  draft: { updated_at: string | null; updated_by: string | null } | null;
+  can_delete: boolean;
+  working_copy: C;
+  /** The last saved working copy, serialized exactly as readers receive it. */
+  preview_sections: LessonSection[];
+};
+
 /** The lesson being edited: the draft if one exists, otherwise the live lesson. */
 export type WorkingCopy = {
   chapter_id: number;
@@ -27,26 +53,35 @@ export type WorkingCopy = {
   sections: EditorSection[];
 };
 
-export type AdminLesson = {
-  id: number;
-  slug: string;
-  status: LessonStatus;
-  published_at: string | null;
-  slug_editable: boolean;
-  has_unpublished_changes: boolean;
-  /** Send back with every change; 0 while there is no draft. A stale value gets 409. */
-  lock_version: number;
-  draft: { updated_at: string | null; updated_by: string | null } | null;
+export type AdminLesson = EditorDoc<WorkingCopy> & {
   course: { id: number; slug: string; title: string; is_published: boolean };
   chapter: { id: number; title: string };
   topics: { slug: string; title: string }[];
-  can_delete: boolean;
   /** Section id => exercise questions ("lesson/key") that point at it (D30): removing one is refused on publish. */
   exercise_references: Record<string, string[]>;
-  working_copy: WorkingCopy;
-  /** The last saved working copy, serialized exactly as learners receive it. */
-  preview_sections: LessonSection[];
 };
+
+/** A blog post's working copy (F2). The reading time is computed by the API, never typed. */
+export type PostCopy = BaseCopy & { cover: string | null; tags: string[] };
+
+export type AdminPost = EditorDoc<PostCopy> & {
+  cover: { id: string; url: string; alt: string; width: number | null; height: number | null } | null;
+};
+
+export type AdminPostListItem = {
+  id: number;
+  slug: string;
+  title: string;
+  status: LessonStatus;
+  has_unpublished_changes: boolean;
+  tags: string[];
+  section_count: number;
+  published_at: string | null;
+  last_edited_at: string | null;
+  last_edited_by: string | null;
+};
+
+export type PostQuery = { q: string; status: LessonStatus | ""; page: number };
 
 export type AdminLessonListItem = {
   id: number;

@@ -32,6 +32,10 @@
           "value": "https://media.${DOMAIN}"
         },
         {
+          "name": "SITE_URL",
+          "value": "https://app.${DOMAIN}"
+        },
+        {
           "name": "CSP_REPORT_ONLY",
           "value": "true"
         }

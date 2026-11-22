@@ -1,4 +1,4 @@
-import type { BlockTypeInfo, EditorSection, WorkingCopy } from "./types";
+import type { BlockTypeInfo, EditorSection } from "./types";
 
 /** Server validation errors keyed like the request body (`sections.3.payload.items.0`). */
 export type FieldErrors = Record<string, string[]>;
@@ -45,7 +45,7 @@ export function newSection(type: BlockTypeInfo): EditorSection {
 }
 
 /** Stable comparison for "are there unsaved changes". Key order is irrelevant; undefined equals absent. */
-export function sameCopy(a: WorkingCopy, b: WorkingCopy): boolean {
+export function sameCopy<T>(a: T, b: T): boolean {
   return stableStringify(a) === stableStringify(b);
 }
 

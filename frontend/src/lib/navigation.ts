@@ -10,6 +10,7 @@ export const LINKS = [
   { href: "/assessment", key: "assessment" },
   { href: "/roadmap", key: "roadmap" },
   { href: "/labs", key: "labs" },
+  { href: "/blog", key: "blog" },
 ] as const;
 
 export type NavLink = (typeof LINKS)[number];

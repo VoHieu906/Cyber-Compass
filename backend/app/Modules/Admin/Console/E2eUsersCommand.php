@@ -4,6 +4,7 @@ namespace App\Modules\Admin\Console;
 
 use App\Enums\Locale;
 use App\Enums\UserRole;
+use App\Models\Post;
 use App\Models\User;
 use App\Modules\Auth\Actions\RegisterUser;
 use Illuminate\Console\Command;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
  * registration action as the sign-up form, so they start exactly like a new learner, and the
  *
  * register rate limit stays a real limit. Every account matches `e2e-*@example.test`, and
- * --purge deletes only those. Refuses to run outside local and testing environments.
+ * --purge deletes only those, and the blog posts they created. Refuses to run outside local and testing environments.
  *
  * Prints one JSON line: {"password": "...", "learners": [...], "admins": [...]}.
  */
@@ -40,6 +41,8 @@ final class E2eUsersCommand extends Command
         }
 
         if ($this->option('purge')) {
+            // Posts the suite published (F2) go with their authors; they would otherwise stay on the blog.
+            Post::query()->whereIn('created_by', self::throwaway()->select('id'))->delete();
             $deleted = 0;
             self::throwaway()->each(function (User $user) use (&$deleted) {
                 $user->delete();

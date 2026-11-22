@@ -8,9 +8,11 @@ export type SearchResults = {
   courses: (SearchHit & { domain: string | null })[];
   lessons: (SearchHit & { course: string })[];
   careers: SearchHit[];
+  posts: SearchHit[];
 };
 
 /** The shortest query the API accepts. */
 export const MIN_QUERY = 2;
 
-export const search = (q: string, signal?: AbortSignal) => api.get<SearchResults>("/api/v1/search", { signal, query: { q } });
+export const search = (q: string, signal?: AbortSignal) =>
+  api.get<SearchResults>("/api/v1/search", { signal, query: { q } });

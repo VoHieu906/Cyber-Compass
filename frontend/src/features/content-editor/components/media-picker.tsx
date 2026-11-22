@@ -23,10 +23,18 @@ export function MediaPicker({
   value,
   error,
   onChange,
+  label,
+  hint,
+  onClear,
 }: {
   value: string;
   error?: string;
   onChange: (id: string) => void;
+  /** Defaults to "Image"; a post's cover names itself. */
+  label?: string;
+  hint?: string;
+  /** Offers "Remove" when the image is optional (a post's cover). */
+  onClear?: () => void;
 }) {
   const t = useTranslations("content.media");
   const tCommon = useTranslations("common");
@@ -36,7 +44,8 @@ export function MediaPicker({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-sm font-medium text-ink">{t("image")}</p>
+      <p className="text-sm font-medium text-ink">{label ?? t("image")}</p>
+      {hint ? <p className="text-sm text-muted">{hint}</p> : null}
       {value && selected ? (
         <figure className="flex items-start gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element -- re-encoded upload served from API storage */}
@@ -55,11 +64,16 @@ export function MediaPicker({
       ) : (
         <p className="text-sm">{t("none")}</p>
       )}
-      <div>
+      <div className="flex flex-wrap gap-2">
         <Button variant="secondary" size="sm" onClick={() => setOpen(true)}>
           <Images aria-hidden />
           {value ? t("change") : t("choose")}
         </Button>
+        {onClear && value ? (
+          <Button variant="ghost" size="sm" onClick={onClear}>
+            {t("remove")}
+          </Button>
+        ) : null}
       </div>
       {error ? <p className="text-sm text-bad">{error}</p> : null}
 

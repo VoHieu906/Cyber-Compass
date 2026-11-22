@@ -67,7 +67,7 @@ describe("compass items", () => {
   it("shows guests the public routes and the page tools only", async () => {
     mocks.me.mockResolvedValue(null);
     setup();
-    expect(names(await open(userEvent.setup()))).toEqual(["Courses", "Careers", "Assessment", "Roadmap", "Labs", "Search", "Scroll to top", "Scroll to bottom"]);
+    expect(names(await open(userEvent.setup()))).toEqual(["Courses", "Careers", "Assessment", "Roadmap", "Labs", "Blog", "Search", "Scroll to top", "Scroll to bottom"]);
   });
 
   it("adds the dashboard, notifications and settings for learners, the admin console for admins", async () => {
@@ -75,8 +75,8 @@ describe("compass items", () => {
     const user = userEvent.setup();
     setup();
     const learner = names(await open(user));
-    expect(learner).toEqual(["Dashboard", "Courses", "Careers", "Assessment", "Roadmap", "Labs", "Notifications", "Settings", "Search", "Scroll to top", "Scroll to bottom"]);
-    expect(await screen.findByRole("menuitem", { name: /^Notifications, 7 of 11, 3 unread/ })).toBeInTheDocument();
+    expect(learner).toEqual(["Dashboard", "Courses", "Careers", "Assessment", "Roadmap", "Labs", "Blog", "Notifications", "Settings", "Search", "Scroll to top", "Scroll to bottom"]);
+    expect(await screen.findByRole("menuitem", { name: /^Notifications, 8 of 12, 3 unread/ })).toBeInTheDocument();
   });
 
   it("lists the admin console only for admins", async () => {
@@ -121,7 +121,7 @@ describe("compass keyboard", () => {
     await screen.findAllByRole("menuitem");
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     // The current section of the site starts focused and is marked.
-    await waitFor(() => expect(focused()).toMatch(/^Settings, 8 of 11, has submenu/));
+    await waitFor(() => expect(focused()).toMatch(/^Settings, 9 of 12, has submenu/));
     expect(screen.getByRole("menuitem", { name: /^Settings/ })).toHaveAttribute("aria-current", "page");
 
     await user.keyboard("{ArrowRight}");

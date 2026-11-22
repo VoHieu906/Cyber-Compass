@@ -20,7 +20,12 @@ type Options = {
   revalidate?: number;
 };
 
-export async function serverGet<T>(path: string, { revalidate = 60 }: Options = {}): Promise<T> {
+export async function serverGet<T>(path: string, options: Options = {}): Promise<T> {
+  return (await serverGetBody<{ data: T }>(path, options)).data;
+}
+
+/** The whole response body, for paginated lists that carry `meta` (and extras) beside `data`. */
+export async function serverGetBody<T>(path: string, { revalidate = 60 }: Options = {}): Promise<T> {
   const response = await fetch(`${baseUrl}${path}`, {
     headers: {
       Accept: "application/json",
@@ -35,7 +40,7 @@ export async function serverGet<T>(path: string, { revalidate = 60 }: Options = 
     throw new ApiError(response.status, body);
   }
 
-  return ((await response.json()) as { data: T }).data;
+  return (await response.json()) as T;
 }
 
 /** Like serverGet, but resolves to null on 404 so pages can call notFound(). */
