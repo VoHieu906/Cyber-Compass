@@ -155,6 +155,30 @@
   }
 }
 
+/* Compass menu (D51, docs/DESIGN_SYSTEM.md Compass). The trigger sits in the right gutter of the
+ * page container, so on very wide screens it stays beside the content instead of the far corner. */
+.compass-trigger {
+  right: max(12px, calc(max(var(--gutter), (100vw - var(--container)) / 2) - var(--gutter) / 2 - 22px));
+  bottom: var(--space-lg);
+}
+@keyframes compass-in {
+  from { opacity: 0; transform: scale(0.96); }
+}
+.compass-in {
+  animation: compass-in var(--dur-short) var(--ease-out);
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+}
+/* Three distinct states: hover or open (paper-3), current page (accent-soft fill, accent edge), keyboard focus (ink edge, 3px). */
+.compass-seg { fill: var(--color-paper-2); stroke: var(--color-field-edge); stroke-width: 1; transition: fill var(--dur-micro), stroke var(--dur-micro); }
+.compass-icon { color: var(--color-ink-2); }
+.compass-text { fill: var(--color-ink-2); font-size: 11px; font-weight: 500; }
+.compass-item:hover .compass-seg, .compass-item[data-open] .compass-seg { fill: var(--color-paper-3); }
+.compass-item[aria-current] .compass-seg { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 1.5; }
+.compass-item[aria-current] .compass-icon { color: var(--color-accent); }
+.compass-item[aria-current] .compass-text { fill: var(--color-ink); font-weight: 600; }
+.compass-item:focus-visible .compass-seg { stroke: var(--color-ink); stroke-width: 3; }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

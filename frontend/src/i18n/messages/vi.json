@@ -1549,5 +1549,27 @@
     "lessons": "Bài học",
     "careers": "Nghề nghiệp",
     "shortcut": "Tìm kiếm (nhấn / hoặc Ctrl+K)"
+  },
+  "compass": {
+    "open": "Menu la bàn",
+    "label": "La bàn",
+    "position": "{index} trên {count}",
+    "hasSubmenu": "có menu con",
+    "unread": "{count} chưa đọc",
+    "notifications": "Thông báo",
+    "search": "Tìm kiếm",
+    "onThisPage": "Trên trang này",
+    "top": "Lên đầu trang",
+    "bottom": "Xuống cuối trang",
+    "roadmapOutline": "Dàn ý",
+    "roadmapMap": "Bản đồ kiến thức",
+    "assessmentStart": "Bắt đầu",
+    "assessmentContinue": "Tiếp tục",
+    "assessmentResult": "Kết quả gần nhất",
+    "pageTasks": "Nhiệm vụ",
+    "pageConsole": "Dòng lệnh",
+    "pageNextTask": "Nhiệm vụ chưa xong tiếp theo",
+    "pageTheory": "Lý thuyết",
+    "pageQuestions": "Câu hỏi"
   }
 }

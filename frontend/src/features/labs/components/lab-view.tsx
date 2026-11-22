@@ -15,6 +15,7 @@ import { DifficultyChip, Duration } from "@/features/catalog/components/labels";
 import { Prose } from "@/features/learning/components/prose";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { goTo, useCompassPageItems } from "@/features/compass/page-items";
 import { useLab, useLabAction, useResetLab, useStartLab } from "../hooks";
 import type { Checkpoint, FirewallScenario, FirewallState, HttpScenario, HttpState, LabAction, LabActionResult, LabDetail, ShellScenario, ShellState } from "../types";
 import { FirewallConsole } from "./firewall-console";
@@ -95,6 +96,22 @@ function Running({ lab }: { lab: LabDetail }) {
   const errorMessage = useErrorMessage();
   const [notice, setNotice] = useState<string | null>(null);
   const attempt = lab.attempt!;
+  const tc = useTranslations("compass");
+  const open = lab.checkpoints.some((c) => !c.passed);
+  useCompassPageItems([
+    { id: "tasks", label: tc("pageTasks"), run: () => goTo(document.getElementById("checkpoints-heading")) },
+    {
+      id: "console",
+      label: tc("pageConsole"),
+      run: () => goTo(document.querySelector<HTMLElement>("#lab-console :is(input, select, textarea):not(:disabled)") ?? document.getElementById("lab-console")),
+    },
+    ...(open
+      ? [{ id: "next", label: tc("pageNextTask"), run: () => {
+          const task = document.querySelector<HTMLElement>('li[data-passed="false"]');
+          goTo(task?.querySelector<HTMLElement>("input:not(:disabled)") ?? task ?? null);
+        } }]
+      : []),
+  ]);
 
   /** Sends one action with the version this page last saw; failures become a message, not a throw. */
   async function send(action: LabAction): Promise<LabActionResult | null> {
@@ -122,7 +139,7 @@ function Running({ lab }: { lab: LabDetail }) {
     // On lg+ the workspace fills the screen below the header, so tasks and console are readable together.
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:h-[calc(100dvh-var(--header-height)-3rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
       <Checkpoints lab={lab} busy={act.isPending} onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })} />
-      <div className={cn("flex min-w-0 flex-col gap-3 lg:min-h-0", lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1")}>
+      <div id="lab-console" className={cn("flex min-w-0 flex-col gap-3 lg:min-h-0", lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1")}>
         {notice ? (
           <Alert tone="error">{notice}</Alert>
         ) : null}

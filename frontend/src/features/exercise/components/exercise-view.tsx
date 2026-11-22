@@ -16,6 +16,7 @@ import type { Lesson } from "@/features/learning/types";
 import { ApiError } from "@/lib/api/client";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import { goTo, useCompassPageItems } from "@/features/compass/page-items";
 import { answeredCount, isAnswered, responseFor, toSubmission } from "../answers";
 import { useExercise, useExerciseDraft, useSubmitExercise } from "../hooks";
 import type { Exercise, ExerciseQuestion, ExerciseResult } from "../types";
@@ -98,6 +99,25 @@ function Workspace({ lesson, exercise }: { lesson: Lesson; exercise: Exercise })
   );
   const panel = <TheoryPanel lesson={lesson} sectionId={sectionId} />;
 
+  useCompassPageItems([
+    {
+      id: "theory",
+      label: t("compass.pageTheory"),
+      run: () => {
+        if (!split) tabs.setSelected(1);
+        requestAnimationFrame(() => goTo(document.getElementById("theory-panel")));
+      },
+    },
+    {
+      id: "questions",
+      label: t("compass.pageQuestions"),
+      run: () => {
+        if (!split) tabs.setSelected(0);
+        requestAnimationFrame(() => goTo(document.querySelector<HTMLElement>(split ? "#exercise-work h2" : "#theory-panel h2")));
+      },
+    },
+  ]);
+
   return (
     <div className="container-page flex flex-col gap-8 py-[var(--space-xl)]">
       <header className="flex flex-col gap-4">
@@ -130,7 +150,7 @@ function Workspace({ lesson, exercise }: { lesson: Lesson; exercise: Exercise })
               {panel}
             </div>
           </aside>
-          <div className="max-w-[46rem] min-w-0">{work}</div>
+          <div id="exercise-work" className="max-w-[46rem] min-w-0">{work}</div>
         </div>
       ) : (
         <div className="flex flex-col gap-5">

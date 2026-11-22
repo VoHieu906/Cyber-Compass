@@ -11,6 +11,7 @@ import { useErrorMessage } from "@/features/auth/use-error-message";
 import { renderInline } from "@/features/learning/components/prose";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { useCompassPageItems } from "@/features/compass/page-items";
 import { useAnswerSaver, useAttempt, useSubmitAttempt } from "../hooks";
 import { answeredCount, domainProgress, firstUnanswered, percent, selectionsFrom, type DomainProgress, type Selections } from "../progress";
 import type { Attempt, AttemptQuestion } from "../types";
@@ -57,6 +58,16 @@ function Runner({ attempt, onSubmitted }: { attempt: Attempt; onSubmitted: () =>
   const groups = domainProgress(questions, selections);
   const current = reviewing ? null : questions[index];
   const group = current ? groups.find((g) => g.slug === current.domain.slug)! : null;
+
+  // Each domain in the compass jumps to its first question.
+  useCompassPageItems(
+    groups.map((g) => ({
+      id: g.slug,
+      label: g.name,
+      current: g.slug === current?.domain.slug,
+      run: () => setIndex(questions.findIndex((q) => q.domain.slug === g.slug)),
+    })),
+  );
 
   // Move focus to the new question's heading, so keyboard and screen reader users follow along.
   const headingRef = useRef<HTMLHeadingElement>(null);

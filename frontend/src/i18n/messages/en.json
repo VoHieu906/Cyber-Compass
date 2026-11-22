@@ -1549,5 +1549,27 @@
     "lessons": "Lessons",
     "careers": "Careers",
     "shortcut": "Search (press / or Ctrl+K)"
+  },
+  "compass": {
+    "open": "Compass menu",
+    "label": "Compass",
+    "position": "{index} of {count}",
+    "hasSubmenu": "has submenu",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "notifications": "Notifications",
+    "search": "Search",
+    "onThisPage": "On this page",
+    "top": "Scroll to top",
+    "bottom": "Scroll to bottom",
+    "roadmapOutline": "Outline",
+    "roadmapMap": "Knowledge map",
+    "assessmentStart": "Start",
+    "assessmentContinue": "Continue",
+    "assessmentResult": "Last result",
+    "pageTasks": "Tasks",
+    "pageConsole": "Console",
+    "pageNextTask": "Next unfinished task",
+    "pageTheory": "Theory",
+    "pageQuestions": "Questions"
   }
 }

@@ -15,8 +15,8 @@ export const assessmentKeys = {
   result: (id: number) => ["assessment", "result", id] as const,
 };
 
-export function useActiveAssessment() {
-  return useQuery({ queryKey: assessmentKeys.active, queryFn: ({ signal }) => fetchActiveAssessment(signal) });
+export function useActiveAssessment(enabled = true) {
+  return useQuery({ queryKey: assessmentKeys.active, queryFn: ({ signal }) => fetchActiveAssessment(signal), enabled });
 }
 
 export function useAttemptHistory() {

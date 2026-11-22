@@ -1,16 +1,18 @@
 "use client";
 
+import { Bell, Lock, SlidersHorizontal, Target, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+/** Settings tabs; the compass lists them too (D51), with the icons. */
 export const SETTINGS_TABS = [
-  { href: "/settings/profile", key: "profile" },
-  { href: "/settings/goals", key: "goals" },
-  { href: "/settings/security", key: "security" },
-  { href: "/settings/preferences", key: "preferences" },
-  { href: "/settings/notifications", key: "notifications" },
+  { href: "/settings/profile", key: "profile", Icon: UserRound },
+  { href: "/settings/goals", key: "goals", Icon: Target },
+  { href: "/settings/security", key: "security", Icon: Lock },
+  { href: "/settings/preferences", key: "preferences", Icon: SlidersHorizontal },
+  { href: "/settings/notifications", key: "notifications", Icon: Bell },
 ] as const;
 
 /**

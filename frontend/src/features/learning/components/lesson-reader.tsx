@@ -14,6 +14,8 @@ import { useCompleteLesson, useLesson, useStartLesson, useTimeOnPage } from "../
 import type { Lesson } from "../types";
 import { renderInline } from "./prose";
 import { Section } from "./sections";
+import { goTo, useCompassPageItems } from "@/features/compass/page-items";
+import { useActiveSection } from "@/lib/use-active-section";
 
 export function LessonReader({ slug }: { slug: string }) {
   const t = useTranslations("learn");
@@ -43,6 +45,8 @@ export function LessonReader({ slug }: { slug: string }) {
 function LessonView({ lesson }: { lesson: Lesson }) {
   const t = useTranslations();
   const headed = lesson.sections.filter((s) => s.heading && s.type !== "callout");
+  const reading = useActiveSection(headed.map((s) => s.id));
+  useCompassPageItems(headed.map((s) => ({ id: s.id, label: s.heading!, current: s.id === reading, run: () => goTo(document.getElementById(s.id)) })));
 
   return (
     <div className="container-page grid gap-10 py-[var(--space-xl)] lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
@@ -54,7 +58,8 @@ function LessonView({ lesson }: { lesson: Lesson }) {
               <li key={s.id}>
                 <a
                   href={`#${s.id}`}
-                  className="-ml-px block border-l border-transparent py-1 pl-3 text-sm text-muted transition-[color,border-color] duration-[var(--dur-micro)] hover:border-rule-2 hover:text-ink"
+                  aria-current={s.id === reading ? "location" : undefined}
+                  className="-ml-px block border-l border-transparent py-1 pl-3 text-sm text-muted transition-[color,border-color] duration-[var(--dur-micro)] hover:border-rule-2 hover:text-ink aria-[current=location]:border-accent aria-[current=location]:text-ink"
                 >
                   {s.heading}
                 </a>

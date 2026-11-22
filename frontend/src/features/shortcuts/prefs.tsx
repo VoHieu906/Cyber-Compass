@@ -61,7 +61,7 @@ const useGuestPrefs = () => useSyncExternalStore(subscribe, readGuest, () => EMP
 
 /** The preferences in force, plus a save that goes to the account or to this browser. */
 export function useNavPrefs() {
-  const { data: user, isPending } = useCurrentUser();
+  const { data: user, dataUpdatedAt, errorUpdatedAt } = useCurrentUser();
   const guest = useGuestPrefs();
   const update = useUpdatePreferences();
   const save = useCallback(
@@ -78,8 +78,11 @@ export function useNavPrefs() {
   );
   const source = user ? user.profile : guest;
   return {
-    /** Unknown until /me answers, so the compass does not flash in and out. */
-    ready: !isPending,
+    /**
+     * Unknown until /me first answers, so the compass does not flash in. Stays true through
+     * refetches: a query that never succeeded goes back to pending on each retry.
+     */
+    ready: dataUpdatedAt > 0 || errorUpdatedAt > 0,
     compassEnabled: source.compass_enabled ?? true,
     shortcuts: source.shortcuts ?? EMPTY_OVERRIDES,
     save,
