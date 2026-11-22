@@ -20,7 +20,9 @@ use Illuminate\Validation\ValidationException;
 
 beforeEach(function () {
     Storage::fake(config('cybercompass.uploads_disk'));
-    $this->dir = 'posts/media/_test-'.uniqid();
+    // A writable stand-in for database/seeders/content (CI's checkout is not writable by the app user).
+    config(['cybercompass.content_root' => storage_path('framework/testing/content-'.uniqid())]);
+    $this->dir = 'posts/media/test';
     File::makeDirectory(ContentFileMedia::root().'/'.$this->dir, 0777, true);
     $image = imagecreatetruecolor(40, 20);
     imagefilledrectangle($image, 0, 0, 39, 19, imagecolorallocate($image, 30, 120, 200));
@@ -28,7 +30,7 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    File::deleteDirectory(ContentFileMedia::root().'/'.$this->dir);
+    File::deleteDirectory(ContentFileMedia::root());
 });
 
 function postFile(string $dir, array $changes = []): array

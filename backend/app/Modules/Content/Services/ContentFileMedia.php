@@ -88,8 +88,9 @@ final class ContentFileMedia
         return $media?->source ? ['file' => $media->source, 'alt' => $media->alt] : $uuid;
     }
 
+    /** database/seeders/content; tests point `cybercompass.content_root` at a writable folder (CI checks out read-only for the app user). */
     public static function root(): string
     {
-        return database_path('seeders/content');
+        return config('cybercompass.content_root') ?? database_path('seeders/content');
     }
 }
