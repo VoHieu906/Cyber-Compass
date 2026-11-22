@@ -8,8 +8,15 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Alert } from "@/components/ui/alert";
 import { Dialog } from "@/components/ui/dialog";
 import { controlClasses } from "@/components/ui/input";
+import { ariaKeys, isMacPlatform } from "@/lib/shortcuts/registry";
+import { useBindings, useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { cn } from "@/lib/utils";
 import { MIN_QUERY, search } from "../api";
+
+const OPEN_SEARCH = "cybercompass:open-search";
+
+/** Opens the header's search dialog from elsewhere (the compass), so there is one search. */
+export const openSearch = () => document.dispatchEvent(new Event(OPEN_SEARCH));
 
 /** Waits until typing pauses, so the API sees one request per pause rather than per key. */
 function useDebounced<T>(value: T, ms: number): T {
@@ -21,27 +28,21 @@ function useDebounced<T>(value: T, ms: number): T {
   return debounced;
 }
 
-/** True when the key press belongs to a field the person is typing in. */
-const typing = (target: EventTarget | null) =>
-  target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
-
 /**
- * Header search (D36): courses, lessons and careers, grouped. Opens from the button, "/" or
- * Ctrl+K. The native dialog traps focus, closes on Escape and returns focus to the button.
+ * Header search (D36): courses, lessons and careers, grouped. Opens from the button, its
+ * shortcuts ("/" and Ctrl/⌘+K by default, D52) or the compass (`openSearch`). The native dialog traps focus, closes on Escape and returns focus to the button.
  */
 export function SearchDialog() {
   const t = useTranslations("search");
   const [open, setOpen] = useState(false);
-
+  const show = () => setOpen(true);
+  useShortcut("search.open", show);
+  useShortcut("search.openCombo", show);
+  const keys = [...useBindings("search.open"), ...useBindings("search.openCombo")];
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.key === "/" && !typing(e.target)) || (e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey))) {
-        e.preventDefault();
-        setOpen(true);
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const onOpen = () => setOpen(true);
+    document.addEventListener(OPEN_SEARCH, onOpen);
+    return () => document.removeEventListener(OPEN_SEARCH, onOpen);
   }, []);
 
   return (
@@ -50,7 +51,7 @@ export function SearchDialog() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={t("open")}
-        aria-keyshortcuts="/ Control+K"
+        aria-keyshortcuts={ariaKeys(keys, isMacPlatform()) || undefined}
         title={t("shortcut")}
         className="flex size-9 items-center justify-center rounded-control text-ink-2 transition-[color,background-color] duration-[var(--dur-micro)] hover:bg-paper-3 hover:text-ink active:bg-paper-2"
       >

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
 import { useState, type ReactNode } from "react";
+import { ShortcutsProvider } from "@/features/shortcuts/prefs";
 import { ApiError } from "@/lib/api/client";
 
 function makeQueryClient() {
@@ -24,7 +25,9 @@ export function Providers({ children, nonce }: { children: ReactNode; nonce?: st
   const [queryClient] = useState(makeQueryClient);
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange nonce={nonce}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <ShortcutsProvider>{children}</ShortcutsProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

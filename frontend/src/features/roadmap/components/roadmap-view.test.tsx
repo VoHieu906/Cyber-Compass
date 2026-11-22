@@ -25,7 +25,7 @@ const user = (career: { slug: string; title: string } | null): User => ({
   role: "learner",
   email_verified_at: null,
   created_at: null,
-  profile: { avatar_url: null, phone: null, date_of_birth: null, education_level: null, locale: "en", theme: "dark", timezone: null },
+  profile: { avatar_url: null, phone: null, date_of_birth: null, education_level: null, locale: "en", theme: "dark", timezone: null, compass_enabled: true, shortcuts: {} },
   learning_goal: career ? { career, self_level: null, weekly_minutes: 120, domains: [] } : null,
 });
 

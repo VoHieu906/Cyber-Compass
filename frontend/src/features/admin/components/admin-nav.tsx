@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * Admin areas. Adding an area (questions in Phase 4) is a route
  * folder under app/(admin)/admin plus one entry here.
  */
-const areas = [
+export const ADMIN_AREAS = [
   { href: "/admin", key: "overview", Icon: Gauge, exact: true },
   { href: "/admin/lessons", key: "lessons", Icon: BookOpenText, exact: false },
   { href: "/admin/courses", key: "courses", Icon: FolderTree, exact: false },
@@ -27,7 +27,7 @@ export function AdminNav() {
       className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:sticky-panel lg:-m-1 lg:self-start lg:p-1"
     >
       <ul className="flex gap-1 border-b border-rule lg:flex-col lg:border-b-0">
-        {areas.map(({ href, key, Icon, exact }) => {
+        {ADMIN_AREAS.map(({ href, key, Icon, exact }) => {
           const active = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
           return (
             <li key={href} className="shrink-0">

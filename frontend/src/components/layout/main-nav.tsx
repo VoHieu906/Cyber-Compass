@@ -8,26 +8,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
 import { useCurrentUser } from "@/features/auth/hooks";
+import { isActive, visibleLinks } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-/** Routes that exist today; search is the header's search dialog (D36). The dashboard shows once signed in; signed-out visitors who open the assessment, roadmap or labs are sent to log in first. */
-const LINKS = [
-  { href: "/dashboard", key: "dashboard", signedIn: true },
-  { href: "/courses", key: "courses" },
-  { href: "/careers", key: "careers" },
-  { href: "/assessment", key: "assessment" },
-  { href: "/roadmap", key: "roadmap" },
-  { href: "/labs", key: "labs" },
-] as const;
-
-/** The links to show: the dashboard only once signed in, so the guest header stays short. */
+/** The links to show (`lib/navigation.ts`, shared with the compass). */
 function useLinks() {
   const { data: user } = useCurrentUser();
-  return LINKS.filter((link) => !("signedIn" in link) || Boolean(user));
-}
-
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return visibleLinks(Boolean(user));
 }
 
 export function MainNav() {

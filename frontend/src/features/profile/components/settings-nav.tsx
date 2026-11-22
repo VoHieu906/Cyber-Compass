@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+export const SETTINGS_TABS = [
   { href: "/settings/profile", key: "profile" },
   { href: "/settings/goals", key: "goals" },
   { href: "/settings/security", key: "security" },
@@ -24,7 +24,7 @@ export function SettingsNav() {
   return (
     <nav aria-label={tSettings("title")} className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:sticky-panel lg:-m-1 lg:self-start lg:p-1">
       <ul className="flex gap-1 border-b border-rule lg:flex-col lg:border-b-0">
-        {tabs.map((tab) => {
+        {SETTINGS_TABS.map((tab) => {
           const active = pathname === tab.href;
           return (
             <li key={tab.href} className="shrink-0">

@@ -91,6 +91,61 @@ describe('preferences', function () {
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['locale', 'theme']);
     });
+
+    it('defaults to the compass on and no shortcut overrides', function () {
+        $this->actingAs($this->user, 'web')->getJson('/api/v1/me')
+            ->assertOk()
+            ->assertJsonPath('data.profile.compass_enabled', true)
+            ->assertJsonPath('data.profile.shortcuts', []);
+    });
+
+    it('saves the compass switch and shortcut overrides', function () {
+        $shortcuts = [
+            'compass.toggle' => ['code' => 'KeyJ', 'alt' => true, 'shift' => true],
+            'search.open' => ['key' => '/'],
+            'search.openCombo' => null,
+        ];
+        $this->actingAs($this->user, 'web')
+            ->patchJson('/api/v1/me/preferences', ['compass_enabled' => false, 'shortcuts' => $shortcuts])
+            ->assertOk()
+            ->assertJsonPath('data.profile.compass_enabled', false)
+            ->assertJsonPath('data.profile.shortcuts', fn (array $saved) => $saved['compass.toggle']['code'] === 'KeyJ');
+
+        $profile = $this->user->profile()->first();
+        expect($profile->compass_enabled)->toBeFalse()
+            ->and($profile->shortcuts)->toEqual($shortcuts);
+
+        // An empty map resets every shortcut and leaves the other preferences alone.
+        $this->actingAs($this->user, 'web')
+            ->patchJson('/api/v1/me/preferences', ['shortcuts' => (object) []])
+            ->assertOk()
+            ->assertJsonPath('data.profile.compass_enabled', false);
+        expect($profile->fresh()->shortcuts)->toBe([]);
+    });
+
+    it('rejects malformed shortcut maps', function (mixed $shortcuts) {
+        $this->actingAs($this->user, 'web')
+            ->patchJson('/api/v1/me/preferences', ['shortcuts' => $shortcuts])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['shortcuts']);
+    })->with([
+        'not a map' => [[['code' => 'KeyK']]],
+        'bad action id' => [['Bad Id!' => ['code' => 'KeyK']]],
+        'code and key' => [['search.open' => ['code' => 'KeyK', 'key' => 'k']]],
+        'neither code nor key' => [['search.open' => ['alt' => true]]],
+        'unknown field' => [['search.open' => ['code' => 'KeyK', 'script' => 'x']]],
+        'non-boolean modifier' => [['search.open' => ['code' => 'KeyK', 'alt' => 'yes']]],
+        'long key' => [['search.open' => ['key' => 'ab']]],
+        'bad code' => [['search.open' => ['code' => '<b>']]],
+        'too many' => [collect(range(1, 65))->mapWithKeys(fn ($i) => ["a{$i}" => null])->all()],
+    ]);
+
+    it('rejects a non-boolean compass switch', function () {
+        $this->actingAs($this->user, 'web')
+            ->patchJson('/api/v1/me/preferences', ['compass_enabled' => 'sometimes'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['compass_enabled']);
+    });
 });
 
 describe('password', function () {

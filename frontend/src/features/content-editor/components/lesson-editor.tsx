@@ -13,6 +13,7 @@ import { controlClasses } from "@/components/ui/input";
 import { useErrorMessage } from "@/features/auth/use-error-message";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
+import { useShortcut } from "@/lib/shortcuts/use-shortcut";
 import { countErrors, errorAt, moveItem, newSection, sameCopy, type FieldErrors } from "../editor-state";
 import {
   useAdminCourses,
@@ -191,21 +192,12 @@ function EditorForm({
     }
   }, [adoptSaved, badJson.size, copy, handleError, keys, lesson.lock_version, save, t]);
 
-  // Ctrl/Cmd+S saves; leaving with unsaved work asks first.
+  // Ctrl/Cmd+S saves (the registry's editor.save, D52); leaving with unsaved work asks first.
   const saveRef = useRef(doSave);
   useEffect(() => {
     saveRef.current = doSave;
   }, [doSave]);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        void saveRef.current();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  useShortcut("editor.save", () => void saveRef.current());
   useEffect(() => {
     if (!dirty) return;
     const onLeave = (e: BeforeUnloadEvent) => e.preventDefault();

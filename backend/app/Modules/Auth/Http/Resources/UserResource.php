@@ -37,6 +37,9 @@ class UserResource extends JsonResource
                 'locale' => $profile?->locale?->value ?? 'en',
                 'theme' => $profile?->theme?->value ?? 'system',
                 'timezone' => $profile?->timezone,
+                'compass_enabled' => $profile?->compass_enabled ?? true,
+                // Action id => binding, or null when disabled (D53); an object even when empty.
+                'shortcuts' => (object) ($profile?->shortcuts ?? []),
             ],
             'learning_goal' => $goal ? [
                 'career' => $goal->career ? ['slug' => $goal->career->slug, 'title' => $goal->career->title] : null,

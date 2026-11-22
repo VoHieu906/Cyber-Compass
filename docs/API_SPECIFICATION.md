@@ -80,7 +80,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | 🔒 | PATCH | `/me/profile` (name, phone, date_of_birth, education_level) | ✅ Phase 2 |
 | 🔒 | POST | `/me/avatar` (multipart `avatar`: jpg/png/webp, 64–6000 px, ≤ 2 MB; stored as a 256 px WebP under a random name) | ✅ Phase 2 |
 | 🔒 | DELETE | `/me/avatar` | ✅ Phase 2 |
-| 🔒 | PATCH | `/me/preferences` (locale, theme, `timezone` (an IANA name, legacy aliases such as Asia/Saigon accepted, Phase 6); any of them) | ✅ Phase 2, timezone Phase 6 |
+| 🔒 | PATCH | `/me/preferences` (locale, theme, `timezone` (an IANA name, legacy aliases such as Asia/Saigon accepted, Phase 6), `compass_enabled` (boolean) and `shortcuts` (an object of action id to `{code \| key, mod?, ctrl?, alt?, shift?, meta?}` or null for disabled, at most 64; `{}` resets all; Phase 7.5, D53); any of them). `/me` returns both under `profile` | ✅ Phase 2, timezone Phase 6, compass and shortcuts Phase 7.5 |
 | 🔒 | PUT | `/me/password` (current_password, password, password_confirmation). Ends other sessions. | ✅ Phase 2 |
 | 🔒 | PUT | `/me/learning-goal` (`career` slug, `self_level` beginner/intermediate/advanced, `weekly_minutes` 30 to 2400, `domains[]` slugs). Every field is optional and only the ones sent change; null clears. Returns me, whose `learning_goal` is `{career {slug, title} \| null, self_level, weekly_minutes, domains[]}` or null. Changing the career never rebuilds the roadmap. | ✅ Phase 4 |
 | 🔒 | GET/PUT | `/me/notification-preferences`: GET lists every type `[{type, in_app, email}]` (defaults in app on, email off); PUT `{preferences: [{type, in_app, email}]}` changes the types sent (distinct, all three fields required) and returns the full list | ✅ Phase 6 |

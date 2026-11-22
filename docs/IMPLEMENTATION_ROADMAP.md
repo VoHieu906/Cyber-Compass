@@ -266,6 +266,22 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 
 **Mid-phase UI change (2026-11-22), sticky side panels and the lab workspace:** frontend only; impact check (CLAUDE.md §5) found no duplicate or conflict (it extends the exercise theory panel's pattern). One utility, `lg:sticky-panel`, now serves every sticky side column (DESIGN_SYSTEM §5); the lab page's tasks and console fill the screen on `lg+`. Checked in Edge at 1280×720, 1440×900, 1920×1080 and 1000px on all three labs (the page never moves while scrolling the list or typing), plus the exercise, assessment (the domains nav measured 702px against 656px at 768px tall) and settings pages. 340 Vitest, 24 Playwright, tsc and ESLint clean.
 
+## Phase 7.5: Compass navigation and keyboard shortcuts
+
+Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployment ships it. A circular "compass" menu for fast navigation with the mouse or the keyboard alone, a "Compass menu" switch under Preferences, and a new settings tab, Keyboard shortcuts, where every shortcut can be rebound, reset or disabled. Decisions D51 to D53.
+
+**Impact check (CLAUDE.md §5, 2026-11-22):**
+- **Duplicate, resolved by design:** the header, the mobile menu, the settings nav, the admin nav and the account menu each kept their own route list. They move to one source (`lib/navigation.ts` plus the settings and admin exports) that the compass also reads (D51). The header stays unchanged.
+- **Reused, not rebuilt:** the search dialog (the compass opens it), the bell's unread-count query (no extra request), the lesson reader's "On this page" sections, `isActive`, the admin check of `account-nav.tsx`.
+- **Conflict, decided (D52):** matching on `event.code` alone would have changed `/` on layouts where it needs Shift; hybrid matching keeps today's behaviour.
+- **Schema, approved (D53):** two columns on `user_profiles`.
+- **Shift:** none from later phases. The compass joins `sweep.spec.ts` and `performance.spec.ts`; the last assessment result is fetched only when the menu opens.
+
+**Parts (each gated and reported):**
+- **Part A:** one navigation source; the shortcut registry with the search and editor shortcuts moved onto it; the two preference columns with Pest tests.
+- **Part B:** `lib/radial` geometry; the compass trigger and rings; keyboard and screen reader behaviour; page items for the lesson reader, labs, exercises and the assessment attempt.
+- **Part C:** the Preferences switch and the Keyboard shortcuts tab; the Playwright spec; docs.
+
 ## Follow-ups (not scheduled in a phase)
 
 - **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.

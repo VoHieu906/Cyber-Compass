@@ -30,7 +30,7 @@ const user: User = {
   role: "learner",
   email_verified_at: null,
   created_at: null,
-  profile: { avatar_url: null, phone: null, date_of_birth: null, education_level: null, locale: "en", theme: "dark", timezone: "UTC" },
+  profile: { avatar_url: null, phone: null, date_of_birth: null, education_level: null, locale: "en", theme: "dark", timezone: "UTC", compass_enabled: true, shortcuts: {} },
   learning_goal: null,
 };
 

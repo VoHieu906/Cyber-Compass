@@ -1,4 +1,5 @@
 import type { Locale } from "@/i18n/config";
+import type { Overrides } from "@/lib/shortcuts/registry";
 
 export type ThemePreference = "light" | "dark" | "system";
 export type EducationLevel = "high_school" | "undergraduate" | "graduate" | "other";
@@ -20,6 +21,10 @@ export type User = {
     theme: ThemePreference;
     /** IANA timezone for local dates (streaks, weeks, reminders); null until the browser reports one. */
     timezone: string | null;
+    /** The compass menu (D51); default true. */
+    compass_enabled: boolean;
+    /** Keyboard shortcut overrides by action id; null disables one (D52, D53). */
+    shortcuts: Overrides;
   };
   learning_goal: LearningGoal | null;
 };

@@ -40,7 +40,7 @@ final class ProfileController extends Controller
         return new UserResource($action->remove($request->user()));
     }
 
-    /** Update language and theme. */
+    /** Update language, theme, timezone, the compass switch and keyboard shortcuts. */
     public function updatePreferences(UpdatePreferencesRequest $request): UserResource
     {
         $user = $request->user();

@@ -1,6 +1,7 @@
 import type { Locale } from "@/i18n/config";
 import { api } from "@/lib/api/client";
 import type { EducationLevel, SelfLevel, ThemePreference, User } from "@/features/auth/types";
+import type { Overrides } from "@/lib/shortcuts/registry";
 
 export type ProfileInput = {
   name: string;
@@ -10,7 +11,7 @@ export type ProfileInput = {
 };
 
 /** `timezone` is an IANA name such as Asia/Ho_Chi_Minh (D33). */
-export type PreferencesInput = Partial<{ locale: Locale; theme: ThemePreference; timezone: string }>;
+export type PreferencesInput = Partial<{ locale: Locale; theme: ThemePreference; timezone: string; compass_enabled: boolean; shortcuts: Overrides }>;
 
 export type PasswordInput = { current_password: string; password: string; password_confirmation: string };
 
