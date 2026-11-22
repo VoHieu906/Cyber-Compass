@@ -29,6 +29,10 @@ Phase 7 Part D: what was measured, the budgets that now guard it, and what was c
 | `GET /search?q=net` | 6 | 8 |
 | `GET /labs` | 4 | 6 |
 | `GET /domains` | 1 | 3 |
+| `GET /posts` (F2; never carries sections) | 5 | 7 |
+| `GET /posts/{slug}`, a 150-block post (F2) | 5 | 7 |
+
+The post budgets live in `tests/Feature/Blog/PostTest.php` (they need five 150-block posts, which the seeded content does not have). The same test caps the size: the list stays under 10 KB, and a 150-block post of about 9 000 words is about 150 KB of JSON, sent gzipped (the API image's nginx compresses JSON; `Content-Encoding: gzip` checked on 2026-11-22).
 
 **Growth check.** After the learner completes six more lessons (which also writes activities, course progress, notifications and milestones through the real listeners), every endpoint runs exactly the same number of queries. Relations are loaded in batches (`where ... in (...)`), never per row.
 
@@ -80,6 +84,8 @@ About 205 KB of every route is Next.js and React. The rest: TanStack Query 13 KB
 | `/learn/osi-model` | 255 | 5 | 300, 6 | 368 ms |
 | `/learn/osi-model/exercise` | 260 | 4 | 300, 5 | 364 ms |
 | `/labs/investigate-a-suspicious-login` | 229 | 3 | 265, 4 | 304 ms |
+| `/blog` (F2, local production build 2026-11-22) | 187 | 1 | 250, 2 | 320 ms |
+| `/blog/(long post)` (F2: a 120-block post the spec publishes, read as a guest) | 257 | 1 | 300, 2 | 384 ms |
 
 Measured on CI after the change in §5, which took zod off the public pages and the dashboard (219 and 224 KB before). The budgets were set before that change and now leave more room. CI enforces them with `E2E_PERF=1`; locally (`next dev`, unminified) the spec only writes its report.
 

@@ -568,27 +568,29 @@ function EditorForm<K extends DocKind>({
           })
         }
       />
-      <ConfirmDialog
-        open={confirm === "unarchive"}
-        onClose={() => setConfirm(null)}
-        title={t("unarchiveTitle")}
-        body={t("unarchiveBody")}
-        action={t("unarchive")}
-        pending={unarchive.isPending}
-        onConfirm={() =>
-          unarchive.mutate(undefined, {
-            onSuccess: (next) => {
-              load(next as Doc);
-              setNotice(t("unarchived"));
-              setConfirm(null);
-            },
-            onError: (e) => {
-              setConfirm(null);
-              handleError(e);
-            },
-          })
-        }
-      />
+      {adapter.canUnarchive ? (
+        <ConfirmDialog
+          open={confirm === "unarchive"}
+          onClose={() => setConfirm(null)}
+          title={t("unarchiveTitle")}
+          body={t("unarchiveBody")}
+          action={t("unarchive")}
+          pending={unarchive.isPending}
+          onConfirm={() =>
+            unarchive.mutate(undefined, {
+              onSuccess: (next) => {
+                load(next as Doc);
+                setNotice(t("unarchived"));
+                setConfirm(null);
+              },
+              onError: (e) => {
+                setConfirm(null);
+                handleError(e);
+              },
+            })
+          }
+        />
+      ) : null}
       <ConfirmDialog
         open={confirm === "delete"}
         onClose={() => setConfirm(null)}

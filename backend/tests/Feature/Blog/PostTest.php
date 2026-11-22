@@ -335,11 +335,12 @@ describe('performance', function () {
         [$listQueries, $listBytes] = $count('/api/v1/posts');
         [$detailQueries, $detailBytes] = $count('/api/v1/posts/long-post-1');
 
-        // Budgets (docs/PERFORMANCE.md): list 5, detail 5; the list never carries sections.
-        expect($listQueries)->toBeLessThanOrEqual(5)
-            ->and($detailQueries)->toBeLessThanOrEqual(5)
+        // Budgets (docs/PERFORMANCE.md): list 7 and detail 7 (5 each measured); the list never
+        // carries sections, so its size does not grow with the posts.
+        expect($listQueries)->toBeLessThanOrEqual(7)
+            ->and($detailQueries)->toBeLessThanOrEqual(7)
             ->and($listBytes)->toBeLessThan(10_000)
-            // A 150-block post of about 14 000 words stays well under the 1 MB the reader is sized for.
+            // A 150-block post of about 9 000 words is about 150 KB of JSON (gzip on the API's nginx).
             ->and($detailBytes)->toBeLessThan(250_000);
     });
 });

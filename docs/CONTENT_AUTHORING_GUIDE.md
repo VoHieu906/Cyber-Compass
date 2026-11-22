@@ -155,6 +155,17 @@ Labs live in `backend/database/seeders/content/labs.php`, keyed by slug in the o
 - **Write a story, not a quiz.** Each lab should be a small, believable situation that the lesson's skills solve, with checkpoints in the order an investigator would reach them. Use documentation addresses (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) and `.example` domains.
 - **Removing a lab** archives it; attempts keep it.
 
+## 4c. Blog posts (F2)
+
+A **post** is a long read outside the courses: an explainer, a deep dive, a story about how a system really works. It uses the same blocks, rules and editor as a lesson (ARCHITECTURE D55), but it never counts toward progress, streaks or roadmaps, and guests can read it.
+
+- **Post or lesson?** Write a **lesson** when the material is part of a path someone follows to a goal: it sits in a chapter, has objectives and takeaways, and may get an exercise or a lab. Write a **post** when it stands alone, crosses several topics or goes deeper than a learner needs to progress (for example "Docker & Containers 101"). A post can link to the lessons and labs it builds on; a lesson never depends on a post.
+- **Length.** Up to 150 blocks. Long posts read well when every major part has a heading (the reader's "On this page" list, the compass and the heading links are built from headings), with a knowledge check after each key part rather than a quiz at the end. Callout headings are not listed.
+- **Details.** A summary (the card, search results and the page description; required to publish), up to 8 tags (lowercase, hyphenated), an optional cover image. The reading time is computed from the text (200 words a minute, half a minute per interactive block); there is nothing to type.
+- **In the admin console.** Admin → Blog posts → New post, then the same Save draft, Preview, Publish with a note and History as lessons. A published post can be archived (it leaves the blog and search) and brought back as it was; only a post that was never published can be deleted.
+- **In content files.** `backend/database/seeders/content/posts/<slug>.php` returns one post: `slug`, `title`, `summary`, `tags`, `published_at`, optional `cover`, and `sections` in the same `[type, heading, payload]` format as lessons. `content:import` loads it with the lesson rules: everything validated first, a post edited in the admin console is skipped unless `--force`, section identities come from the post slug and the heading (renaming a heading gives a block a new identity), and a post removed from the files is archived. `content:export <slug> --post` writes the live post back. `cybercompass:release` imports posts like everything else.
+- **Images from files** (D56). Where a `media` block or a cover expects an uploaded image, a file can write `['file' => 'posts/media/<slug>/<name>.png', 'alt' => 'What the image shows']`, a path under `database/seeders/content`. The import re-encodes it to WebP through the upload pipeline (PNG, JPEG, WebP or GIF; SVG is refused like uploads, so render SVG artwork to PNG first), names it after its path and bytes (an unchanged file is reused, a changed one becomes a new image) and export writes the reference back. Only original artwork: no logos or copied images.
+
 ## 5. Before you publish
 
 - [ ] The lesson reads well with every visual skipped.

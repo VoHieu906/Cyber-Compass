@@ -8,8 +8,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Deployment is not roadmap work (D54).** The owner deploys on their own schedule with DEPLOYMENT_AWS.md and `infrastructure/aws/`. Nothing has been run against AWS yet.
 - **Work after v1 is the [Feature track](IMPLEMENTATION_ROADMAP.md#feature-track):** stable ids `F<n>`, commits `type(scope): summary (F<n> Part X)`, and every feature passes [the gate](IMPLEMENTATION_ROADMAP.md#the-gate) including the deploy-ready gate, reported under "Deploy notes".
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
-- **Next: F2, Blog** (planned; its feature task fills it in, starting with the CLAUDE.md §5 impact check).
-- **Tests:** 699 Pest, 386 Vitest and 28 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F2 (Blog) Part A, the feature, is complete** (D55, D56). **Next: F2 Part B**, the first post ("Docker & Containers 101") as a content file.
+- **Tests:** 722 Pest, 393 Vitest and 30 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -49,6 +49,16 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Shortcuts** (D52): every shortcut is an action in `lib/shortcuts/registry.ts` used through `useShortcut()`; it then appears in Settings → Keyboard shortcuts. A new action id needs its `shortcuts.actions.*` messages in en and vi.
 - **Preferences** (D53): `user_profiles.compass_enabled` and `shortcuts`, through `PATCH /me/preferences`; the server checks shape only.
 - **E2E:** `e2e/compass.spec.ts` uses learner accounts 9 and 10 (`compass`, `compass2`); global setup now makes 11 learners.
+
+## F2: blog (Part A, 2026-11-22)
+
+- **Block documents** (D55): lessons and posts share `Content/Documents` (`BlockDocument`, `WorkingCopy`, `DocumentDrafts`, `DocumentPublisher`, `ReadingTime`) plus the generic `SectionWriter`, `BlockSerializer` (was `LessonSerializer`) and `RevisionSummary`. A third document type is four twin tables, a model implementing `BlockDocument`, a `WorkingCopy` subclass for its metadata, and an editor adapter. The D30 exercise check stays lesson-only inside `SectionWriter`.
+- **Posts** live in the `Blog` module and the `posts`, `post_sections`, `post_drafts`, `post_revisions` tables. Every reader query goes through `Post::scopeVisibleToReaders`. Posts never touch progress, events, roadmaps or notifications.
+- **Editor:** `DocumentEditor` with an `EditorAdapter` per type (`lesson-editor.tsx`, `post-editor.tsx`); a type's own wording is a message namespace (`blog.editor`, `blog.history`) that falls back to `content.editor` and `content.history` (`useDocText`). One document API (`documentApi`) and one set of hooks (`useEditorDoc`, `useDocActions`).
+- **Reader:** `DocumentLayout` is the lesson reader's layout; `enhanced` (posts) adds heading links, lazily mounted heavy blocks, a scrolling table of contents and `ReadingProgress`. Lessons render exactly as before.
+- **Content files:** `content/posts/<slug>.php`, imported by `content:import` and `cybercompass:release`; images may be named by file (D56, `ContentFileMedia`), recorded in `lesson_media.source`. `content:export <slug> --post`.
+- **Public pages** `/blog` and `/blog/[slug]` are server-rendered and fetch uncached, so a publish shows at once. `SITE_URL` (server-only) gives canonical and Open Graph URLs.
+- **E2E:** `e2e/blog.spec.ts`; `performance.spec.ts` publishes a 120-block post for the reader budget. The purge in `cybercompass:e2e-users` deletes posts made by e2e accounts.
 
 ## UI change after Part G (2026-11-22)
 
@@ -92,7 +102,9 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Tests coupled to seeded content:** derive expected values from the data rather than hard-coding them.
 - **Export formatting:** `content:export` output can reorder payload keys (MySQL JSON); review the diff before committing.
 - **3D scripts** can be switched off with `CONTENT_SCRIPTED_3D=false` ([SANDBOXED_3D.md](SANDBOXED_3D.md)).
-- **Not built yet:** email verification.
+- **Not built yet:** email verification; a sitemap (F2 adds the blog without one).
+- **Compass top ring** has 12 to 14 items once signed in (F2 added Blog), still icons-only with the hub naming each.
+- **Admin post list** keeps its search and filter in component state, not in the address (the lesson list uses the address).
 - **Lesson time** counts only when a learner reaches the end of a lesson; reading part of one records nothing (Phase 6 known gap).
 - **Notifications created in the same second** can list in either order (timestamps are per second).
 - **Lab content is English** like lessons (O2); engine messages (shell errors, refusals) are English too, while the UI around them is bilingual.

@@ -316,17 +316,37 @@ Audit entry shape: `{ id, action, actor: {id, name} | null, subject: {type, id, 
 
 **Lesson change (additive):** `GET /lessons/{slug}` section `id`s are now stable UUIDs (were `section-{position}`). Draft and archived lessons answer 404 and are left out of every count, curriculum and roadmap.
 
+### Blog (✅ F2, D55)
+
+Posts are read by anyone; their sections are the lesson blocks, serialized exactly like `GET /lessons/{slug}` (`BlockSerializer`, so `media` resolves to `{url, alt, width, height}` and `script-3d` code is left out when the operator switches it off). Reading a post records nothing: no progress, activity or learning event.
+
+| | Method | Path | |
+|---|---|---|---|
+| 🔓 | GET | `/posts` (tag, page, per_page default 12, max 30): published posts, newest first, **without sections**: `{data [{slug, title, summary, tags, estimated_minutes, published_at, author, cover {id, url, alt, width, height} \| null}], meta, links, tags [every tag in use]}` | ✅ |
+| 🔓 | GET | `/posts/{slug}`: the card fields plus `updated_at` and `sections`. Drafts and archived posts answer 404 | ✅ |
+| 🛡 | GET | `/admin/content/posts` (q on title/slug, filter[status], filter[has_draft]; last edited first; `tags`, `section_count`, last edited by/at) | ✅ |
+| 🛡 | POST | `/admin/content/posts` (title, slug). 201; a `draft` post readers never see | ✅ |
+| 🛡 | GET | `/admin/content/posts/{id}`: the editor shape shared with lessons (`working_copy` = `{slug, title, summary, cover, tags, estimated_minutes, sections}`, `preview_sections`, `lock_version`, `has_unpublished_changes`, `slug_editable`, `can_delete`) plus `cover` resolved | ✅ |
+| 🛡 | PUT | `/admin/content/posts/{id}/draft` (whole working copy + lock_version). At most 150 sections and 8 tags (lowercase slugs); `cover` must be an uploaded media id or null; `estimated_minutes` is computed, a sent value is ignored. Same section id, 409 and error-key rules as lessons | ✅ |
+| 🛡 | DELETE | `/admin/content/posts/{id}/draft`. 422 for a never-published post | ✅ |
+| 🛡 | POST | `/admin/content/posts/{id}/publish` (lock_version, note?). Needs a summary and ≥1 section; writes revision n+1 | ✅ |
+| 🛡 | POST | `/admin/content/posts/{id}/archive` (published only) · `/admin/content/posts/{id}/unarchive` (archived only; the last published version comes back) | ✅ |
+| 🛡 | DELETE | `/admin/content/posts/{id}`. 204 only if never published; else 409 (archive it) | ✅ |
+| 🛡 | GET | `/admin/content/posts/{id}/revisions` · POST `/admin/content/posts/{id}/revisions/{version}/restore` (lock_version), as for lessons | ✅ |
+
+Covers and `media` blocks use the existing `/admin/content/media` upload. The admin routes sit under `/admin/content/`, so they share the lesson routes' WAF exclusion (D50) and their exemption from `TrimStrings`. Audit actions: `post.created`, `post.published`, `post.draft_discarded`, `post.archived`, `post.unarchived`, `post.deleted`, `post.revision_restored` (subject type `post`).
+
 ### Search
 
 | | Method | Path |
 |---|---|---|
-| 🔓 | GET | `/search?q=` (2 to 100 characters after trimming, else 422): `{query, courses [{slug, title, summary, domain}], lessons [{slug, title, summary, course}], careers [{slug, title, summary}]}`, at most 5 each, titles starting with the term first. D15 matching on title and summary; `%` and `_` match themselves. Throttle `search`: 60 per minute per learner or address. ✅ Phase 6 Part E (D36) |
+| 🔓 | GET | `/search?q=` (2 to 100 characters after trimming, else 422): `{query, courses [{slug, title, summary, domain}], lessons [{slug, title, summary, course}], careers [{slug, title, summary}], posts [{slug, title, summary}]}`, at most 5 each, titles starting with the term first. D15 matching on title and summary; `%` and `_` match themselves. Throttle `search`: 60 per minute per learner or address. ✅ Phase 6 Part E (D36) |
 
 ## Security notes
 
 - Exercise and assessment answer keys never appear in a response before the attempt is submitted. Feature tests assert this.
 - Policies scope every user-owned record. Another user's record returns 404, not 403. Admin routes are the exception by design: a learner gets 403 on every `/admin/*` route (AdminAccessTest checks all of them, read from the router).
 - Admins never see password hashes, remember tokens or reset tokens, and the audit log strips them from `changes`.
-- Global search uses `Lesson::scopeVisibleToLearners` and only published courses and careers, so drafts, archived lessons and unpublished courses never leak through it (tested).
+- Global search uses `Lesson::scopeVisibleToLearners`, `Post::scopeVisibleToReaders` and only published courses and careers, so drafts, archived lessons and posts and unpublished courses never leak through it (tested).
 - Uploads are validated by MIME type and dimensions, stored under random names, and served from S3 or CloudFront. User-supplied SVG is never served.
 - Lesson content is structured JSON rendered by React components. There is no `dangerouslySetInnerHTML` with user or content HTML.

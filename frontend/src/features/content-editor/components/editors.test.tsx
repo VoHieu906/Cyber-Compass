@@ -128,6 +128,7 @@ describe("block-document editor adapters", () => {
   });
 
   it("keeps the lesson editor as it was: chapter, objectives and typed reading time", async () => {
+    const consoleError = vi.spyOn(console, "error");
     renderWithProviders(<LessonEditor id={7} />);
 
     expect(await screen.findByRole("heading", { level: 2, name: "Lesson details" })).toBeInTheDocument();
@@ -136,5 +137,8 @@ describe("block-document editor adapters", () => {
     expect(screen.getByLabelText("Reading time (minutes)")).toHaveValue(15);
     expect(screen.getByText("Networking · Models")).toBeInTheDocument();
     expect(screen.queryByText("Cover image")).not.toBeInTheDocument();
+    // Every message the lesson editor asks for exists (post-only wording must not leak into it).
+    expect(consoleError.mock.calls.flat().join(" ")).not.toMatch(/MISSING_MESSAGE/);
+    consoleError.mockRestore();
   });
 });

@@ -60,7 +60,8 @@ backend/app/
 │   ├── Auth/         Http/{Controllers,Requests}, Actions/
 │   ├── Profile/      Http/..., Actions/
 │   ├── Catalog/      courses, chapters, favorites, enrollments
-│   ├── Content/      block registry (JSON Schema per block type), importer, serializer, lesson editor: drafts, publish, revisions, media (Phase 3.5)
+│   ├── Content/      block registry (JSON Schema per block type), importer, serializer, lesson editor: drafts, publish, revisions, media (Phase 3.5); the shared block-document core in Content/Documents (F2, D55)
+│   ├── Blog/         posts on the block-document core: public list and reader, authoring, PostWorkingCopy (F2)
 │   ├── Admin/        EnsureAdmin, user administration, append-only audit log, make-admin command (Phase 3.5)
 │   ├── Learning/     lessons, lesson progress, exercises, attempts
 │   ├── Assessment/   assessments, attempts, ScoringService
@@ -68,7 +69,8 @@ backend/app/
 │   ├── Roadmap/      learning paths, RoadmapGenerator, node status resolver
 │   ├── Labs/         labs, attempts, checkpoint validators
 │   ├── Progress/     dashboard stats, activities, streaks
-│   └── Notifications/ list/read/delete, preferences, Notification classes
+│   ├── Notifications/ list/read/delete, preferences, Notification classes
+│   └── Search/       GlobalSearch over courses, lessons, careers and posts
 │       each: Http/Controllers, Http/Requests, Http/Resources, Actions/, Services/, Policies/, routes.php
 ├── Support/                        ApiResponse helpers, base exceptions, enums
 └── Providers/

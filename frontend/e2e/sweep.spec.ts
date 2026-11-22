@@ -105,6 +105,7 @@ test.describe("responsive and accessibility sweep", () => {
         "/courses/networking-fundamentals",
         "/careers",
         "/careers/soc-analyst",
+        "/blog",
         "/login",
         "/register",
         "/forgot-password",
