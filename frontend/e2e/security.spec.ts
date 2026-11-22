@@ -71,6 +71,8 @@ test.describe("content security policy", () => {
     await expect(page).toHaveURL(/\/admin\/lessons\/\d+$/);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
     await page.getByRole("tab", { name: "Preview" }).click();
+    // The 3D frame mounts only near the viewport (D22), so bring its block into view first.
+    await page.getByRole("heading", { name: "Follow a packet" }).scrollIntoViewIfNeeded();
     await expect(page.locator('iframe[src="/sandbox/scene3d/frame.html"]').first()).toBeAttached();
     await page.waitForTimeout(1_500);
     expect(await violations()).toEqual([]);

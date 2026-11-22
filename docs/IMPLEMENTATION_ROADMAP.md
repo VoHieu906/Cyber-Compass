@@ -378,6 +378,8 @@ A public blog beside Courses, Assessment and Labs. Posts are built from the same
 - **Browser check** (Edge, light and dark, 1280 and 390): cover and illustration load, every block renders (no "diagram isn't available"), no lazy placeholder left after scrolling, no page overflow, both 3D blocks running, the step-through reaching `COPY app.py`, no console errors; 37 of 37. Screenshots of the scene-3d, script-3d, topology and step-through blocks in all four combinations are in the session scratchpad (`shots-b/`). On phones the 3D labels are small, as in the pilot lessons' scenes, and the topology scrolls inside its own box.
 - **Tests:** 723 Pest (a guard that the seeded post keeps every block type and tone), 393 Vitest, 30 Playwright; `/blog/docker-containers-101` joined the accessibility sweep.
 
+**CI:** green on 65245e2 (run 45007737215) after one re-run: the CSP test of the lesson editor's preview waited for a 3D frame that mounts only near the viewport, so it depended on how tall the text renders on the runner. It now scrolls the block into view first (fixed in the following commit).
+
 **Deploy notes (Part B):** content only. `cybercompass:release` imports the post and uploads its two images to `uploads_disk` (D56, checked on `docker-compose.prod.yml` in Part A). No migration, variable, route or budget change. Owner action when deploying: nothing.
 
 **F2 complete (2026-11-22).**
