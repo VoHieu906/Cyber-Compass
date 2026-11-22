@@ -328,7 +328,7 @@ Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployme
 - Edge: not applicable. No new origin; the shortcut map is at most 64 small entries, far below 8 KB, and goes through the existing `PATCH /me/preferences` (no new API route); `/settings/shortcuts` is a web page under the existing app rules.
 - Storage and jobs: not applicable.
 - Budgets: done. Public pages 190 KB against 250 on the production build; the menu loads on first use. No new dependency.
-- Production parity: **not yet checked** on `docker-compose.prod.yml`, and CI has not run (the F1 commits are not pushed).
+- Production parity: CI is green on a761b38 (backend, frontend with the production build, end-to-end with the budgets). **Not yet checked** on `docker-compose.prod.yml`.
 - Docs: not applicable (nothing changes for the owner's deployment).
 - Owner action when deploying: nothing.
 
