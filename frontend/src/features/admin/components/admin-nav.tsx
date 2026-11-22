@@ -24,7 +24,7 @@ export function AdminNav() {
   return (
     <nav
       aria-label={t("label")}
-      className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:mx-0 lg:overflow-visible lg:px-0"
+      className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:sticky-panel lg:-m-1 lg:self-start lg:p-1"
     >
       <ul className="flex gap-1 border-b border-rule lg:flex-col lg:border-b-0">
         {areas.map(({ href, key, Icon, exact }) => {

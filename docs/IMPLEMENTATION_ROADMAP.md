@@ -264,6 +264,8 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 
 **Carried from Phase 6:** E2E covers the dashboard, the bell and search. The security review adds the `search` limiter, 404 for another learner's notification, email only by opt-in, and drafts never reaching search. Deployment adds the scheduler container (D38, hourly reminders), the queue worker as a service (D37), SES for mail (D39), and a check that one dashboard load (8 API requests) stays well inside the 120-per-minute `api` limit for normal use.
 
+**Mid-phase UI change (2026-11-22), sticky side panels and the lab workspace:** frontend only; impact check (CLAUDE.md §5) found no duplicate or conflict (it extends the exercise theory panel's pattern). One utility, `lg:sticky-panel`, now serves every sticky side column (DESIGN_SYSTEM §5); the lab page's tasks and console fill the screen on `lg+`. Checked in Edge at 1280×720, 1440×900, 1920×1080 and 1000px on all three labs (the page never moves while scrolling the list or typing), plus the exercise, assessment (the domains nav measured 702px against 656px at 768px tall) and settings pages. 340 Vitest, 24 Playwright, tsc and ESLint clean.
+
 ## Follow-ups (not scheduled in a phase)
 
 - **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.

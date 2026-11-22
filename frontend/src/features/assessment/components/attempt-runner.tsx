@@ -69,7 +69,7 @@ function Runner({ attempt, onSubmitted }: { attempt: Attempt; onSubmitted: () =>
   return (
     <div className="container-page grid gap-8 py-[var(--space-xl)] lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
       <aside className="max-lg:hidden">
-        <nav aria-label={t("domains")} className="sticky top-[calc(var(--header-height)+1.5rem)] flex flex-col gap-5">
+        <nav aria-label={t("domains")} className="-m-1 flex flex-col gap-5 p-1 lg:sticky-panel">
           <p className="text-sm font-medium text-ink">{t("domains")}</p>
           <ol className="flex flex-col gap-4">
             {groups.map((g) => (

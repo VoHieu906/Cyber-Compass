@@ -22,7 +22,7 @@ export function SettingsNav() {
   const tSettings = useTranslations("settings");
   const pathname = usePathname();
   return (
-    <nav aria-label={tSettings("title")} className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:mx-0 lg:overflow-visible lg:px-0">
+    <nav aria-label={tSettings("title")} className="-mx-[var(--gutter)] overflow-x-auto px-[var(--gutter)] lg:sticky-panel lg:-m-1 lg:self-start lg:p-1">
       <ul className="flex gap-1 border-b border-rule lg:flex-col lg:border-b-0">
         {tabs.map((tab) => {
           const active = pathname === tab.href;

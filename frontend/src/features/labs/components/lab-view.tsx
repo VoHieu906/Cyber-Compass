@@ -3,7 +3,7 @@
 import { ArrowLeft, Check, Circle, Play, RotateCcw, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { useErrorMessage } from "@/features/auth/use-error-message";
 import { DifficultyChip, Duration } from "@/features/catalog/components/labels";
 import { Prose } from "@/features/learning/components/prose";
 import { ApiError } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 import { useLab, useLabAction, useResetLab, useStartLab } from "../hooks";
 import type { Checkpoint, FirewallScenario, FirewallState, HttpScenario, HttpState, LabAction, LabActionResult, LabDetail, ShellScenario, ShellState } from "../types";
 import { FirewallConsole } from "./firewall-console";
@@ -118,9 +119,10 @@ function Running({ lab }: { lab: LabDetail }) {
     );
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
+    // On lg+ the workspace fills the screen below the header, so tasks and console are readable together.
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:h-[calc(100dvh-var(--header-height)-3rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
       <Checkpoints lab={lab} busy={act.isPending} onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })} />
-      <div className="flex min-w-0 flex-col gap-3">
+      <div className={cn("flex min-w-0 flex-col gap-3 lg:min-h-0", lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1")}>
         {notice ? (
           <Alert tone="error">{notice}</Alert>
         ) : null}
@@ -135,9 +137,26 @@ function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; o
   const passed = lab.checkpoints.filter((c) => c.passed).length;
   const total = lab.checkpoints.length;
   const done = lab.attempt?.completed_at != null;
+  const list = useRef<HTMLDivElement>(null);
+  const seen = useRef(passed);
+
+  // When a task passes, bring the next open one into view inside the list (never the page, never focus).
+  useEffect(() => {
+    const box = list.current;
+    if (!box || passed <= seen.current) {
+      seen.current = passed;
+      return;
+    }
+    seen.current = passed;
+    const next = box.querySelector<HTMLElement>('li[data-passed="false"]');
+    if (!next) return;
+    const top = next.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop - 12;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    box.scrollTo?.({ top, behavior: reduce ? "auto" : "smooth" });
+  }, [passed]);
 
   return (
-    <aside aria-labelledby="checkpoints-heading" className="flex flex-col gap-4 lg:sticky lg:top-[calc(var(--header-height)+1.5rem)] lg:self-start">
+    <aside aria-labelledby="checkpoints-heading" className="flex flex-col gap-4 lg:min-h-0">
       <div className="flex flex-col gap-2">
         <h2 id="checkpoints-heading" className="text-[length:var(--text-title)]">
           {t("tasks")}
@@ -153,12 +172,18 @@ function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; o
           {passed === total ? t("complete") : t("completedBefore")}
         </p>
       ) : null}
-      <ol className="flex flex-col gap-3">
-        {lab.checkpoints.map((c, i) => (
-          <CheckpointItem key={c.id} checkpoint={c} number={i + 1} busy={busy} onAnswer={onAnswer} />
-        ))}
-      </ol>
-      <ResetButton lab={lab} />
+      {/* Only the list scrolls on lg+; the padding keeps the edge fades and focus rings off the first and last items. */}
+      <div
+        ref={list}
+        className="flex flex-col gap-4 lg:sticky-panel lg:-mx-1 lg:min-h-0 lg:flex-1 lg:px-1 lg:py-3 lg:[mask-image:linear-gradient(to_bottom,transparent,black_0.75rem,black_calc(100%-0.75rem),transparent)]"
+      >
+        <ol className="flex flex-col gap-3">
+          {lab.checkpoints.map((c, i) => (
+            <CheckpointItem key={c.id} checkpoint={c} number={i + 1} busy={busy} onAnswer={onAnswer} />
+          ))}
+        </ol>
+        <ResetButton lab={lab} />
+      </div>
     </aside>
   );
 }
@@ -170,7 +195,7 @@ function CheckpointItem({ checkpoint, number, busy, onAnswer }: { checkpoint: Ch
   const inputId = `answer-${checkpoint.id}`;
 
   return (
-    <li className="flex flex-col gap-2 rounded-card border border-rule bg-paper-2 p-4">
+    <li data-passed={checkpoint.passed} className="flex flex-col gap-2 rounded-card border border-rule bg-paper-2 p-4">
       <p className="flex gap-2.5 text-sm text-ink">
         {checkpoint.passed ? <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" /> : <Circle aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />}
         <span>

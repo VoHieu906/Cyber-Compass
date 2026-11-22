@@ -165,3 +165,17 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Side panel that stays in view and scrolls inside itself (docs/DESIGN_SYSTEM.md, Sticky panels).
+ * Sticky and overflow sit on the same element: a sticky child of an overflow box would stick to the box, not the page.
+ * Use as lg:sticky-panel; in a grid or flex row, add lg:self-start so the panel is not stretched. */
+@utility sticky-panel {
+  position: sticky;
+  top: calc(var(--header-height) + 1.5rem);
+  max-height: calc(100dvh - var(--header-height) - 3rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-rule-2) transparent;
+}

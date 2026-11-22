@@ -41,6 +41,11 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
+## UI change after Part G (2026-11-22)
+
+- **Sticky side panels** go through one utility, `lg:sticky-panel` (DESIGN_SYSTEM §5): exercise theory panel, assessment domains nav (it overflowed a 768px-tall screen), settings and admin navs, and the lab task list. Never write another `sticky top-…` string for a side column.
+- **Lab workspace** fills the screen on `lg+`, so a learner reads any task and types in the console without scrolling the page. The checkpoint `<li>` carries `data-passed`, used to scroll the list to the next open task. Below `lg` nothing changed.
+
 ## Phase 6 notes that stay true
 
 - **Activity is written only by listeners** (D33) through `Progress\Services\ActivityRecorder`; streaks and weeks use the learner's stored timezone through `LearnerClock` (legacy aliases such as Asia/Saigon accepted). Never compute progress in the UI.

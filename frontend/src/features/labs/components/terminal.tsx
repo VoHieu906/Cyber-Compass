@@ -64,7 +64,7 @@ export function Terminal({
   }
 
   return (
-    <section aria-label={t("label", { host: scenario.hostname })} className="flex flex-col overflow-hidden rounded-card border border-rule bg-paper-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
+    <section aria-label={t("label", { host: scenario.hostname })} className="flex flex-col overflow-hidden rounded-card border lg:flex-1 border-rule bg-paper-3 focus-within:border-accent focus-within:ring-2 focus-within:ring-accent/30">
       <div className="flex items-center justify-between gap-3 border-b border-rule px-4 py-2 text-sm">
         <span className="measured text-ink">
           {scenario.user}@{scenario.hostname}
@@ -74,7 +74,7 @@ export function Terminal({
       <div
         ref={screen}
         onClick={() => input.current?.focus()}
-        className="measured h-[26rem] overflow-y-auto px-4 py-3 text-[0.8125rem] leading-relaxed text-ink"
+        className="measured h-[26rem] overflow-y-auto px-4 lg:h-auto lg:min-h-[26rem] lg:flex-1 py-3 text-[0.8125rem] leading-relaxed text-ink"
       >
         <p className="text-muted">{t("welcome")}</p>
         <ol role="log" aria-label={t("transcript")} aria-live="polite" className="flex flex-col gap-1">

@@ -126,7 +126,7 @@ function Workspace({ lesson, exercise }: { lesson: Lesson; exercise: Exercise })
       {split ? (
         <div className="grid grid-cols-[minmax(0,24rem)_minmax(0,1fr)] gap-[var(--gap-columns)]">
           <aside aria-label={t("exercise.theory.label")}>
-            <div id="theory-panel" className="sticky top-[calc(var(--header-height)+1.5rem)] max-h-[calc(100dvh-var(--header-height)-3rem)] overflow-y-auto pr-2">
+            <div id="theory-panel" className="lg:sticky-panel pr-2">
               {panel}
             </div>
           </aside>
