@@ -111,6 +111,8 @@ describe("post reader", () => {
     await user.click(screen.getByRole("button", { name: "Copy a link to “Part 3”" }));
 
     expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/#s-3$/));
+    // The button sits beside the heading: the heading's accessible name is only its text.
+    expect(screen.getByRole("heading", { level: 2, name: "Part 3" }).textContent).toBe("Part 3");
     expect(window.location.hash).toBe("#s-3");
   });
 

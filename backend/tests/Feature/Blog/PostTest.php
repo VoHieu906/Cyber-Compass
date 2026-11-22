@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Event;
 */
 
 beforeEach(function () {
+    // Each test reads a blog that holds only its own posts (the seeded ones are removed inside the test's transaction).
+    Post::query()->delete();
     $this->admin = User::factory()->admin()->create(['name' => 'Ada Admin']);
     $this->learner = User::factory()->create();
 });

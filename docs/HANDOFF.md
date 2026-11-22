@@ -8,8 +8,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Deployment is not roadmap work (D54).** The owner deploys on their own schedule with DEPLOYMENT_AWS.md and `infrastructure/aws/`. Nothing has been run against AWS yet.
 - **Work after v1 is the [Feature track](IMPLEMENTATION_ROADMAP.md#feature-track):** stable ids `F<n>`, commits `type(scope): summary (F<n> Part X)`, and every feature passes [the gate](IMPLEMENTATION_ROADMAP.md#the-gate) including the deploy-ready gate, reported under "Deploy notes".
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
-- **F2 (Blog) Part A, the feature, is complete** (D55, D56). **Next: F2 Part B**, the first post ("Docker & Containers 101") as a content file.
-- **Tests:** 722 Pest, 393 Vitest and 30 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type). **Next:** no feature is planned; a new one starts with the CLAUDE.md §5 impact check as F3.
+- **Tests:** 723 Pest, 393 Vitest and 30 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -58,7 +58,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Reader:** `DocumentLayout` is the lesson reader's layout; `enhanced` (posts) adds heading links, lazily mounted heavy blocks, a scrolling table of contents and `ReadingProgress`. Lessons render exactly as before.
 - **Content files:** `content/posts/<slug>.php`, imported by `content:import` and `cybercompass:release`; images may be named by file (D56, `ContentFileMedia`), recorded in `lesson_media.source`. `content:export <slug> --post`.
 - **Public pages** `/blog` and `/blog/[slug]` are server-rendered and fetch uncached, so a publish shows at once. `SITE_URL` (server-only) gives canonical and Open Graph URLs.
-- **E2E:** `e2e/blog.spec.ts`; `performance.spec.ts` publishes a 120-block post for the reader budget. The purge in `cybercompass:e2e-users` deletes posts made by e2e accounts.
+- **Seeded post:** `docker-containers-101` uses every block type; `SeededPostsTest` keeps it that way. Blog tests start from an empty blog inside their transaction, and media tests count only uploads (`source` null), because seeding now adds posts and images.
+- **E2E:** `e2e/blog.spec.ts`; `performance.spec.ts` publishes a 120-block post for the reader budget; the sweep covers `/blog` and the Docker post. The purge in `cybercompass:e2e-users` deletes posts made by e2e accounts.
 
 ## UI change after Part G (2026-11-22)
 

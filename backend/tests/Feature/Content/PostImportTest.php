@@ -20,6 +20,9 @@ use Illuminate\Validation\ValidationException;
 
 beforeEach(function () {
     Storage::fake(config('cybercompass.uploads_disk'));
+    // Only this test's images and posts: the seeded blog (and its images) would otherwise be archived or counted.
+    Post::query()->delete();
+    LessonMedia::query()->delete();
     // A writable stand-in for database/seeders/content (CI's checkout is not writable by the app user).
     config(['cybercompass.content_root' => storage_path('framework/testing/content-'.uniqid())]);
     $this->dir = 'posts/media/test';
@@ -110,6 +113,8 @@ it('refuses SVG images, missing alt text and more than 150 sections', function (
         ->toThrow(ValidationException::class, 'SVG');
     expect(fn () => app(ContentImporter::class)->importPosts([postFile($this->dir, ['cover' => ['file' => "{$this->dir}/layers.png", 'alt' => ' ']])]))
         ->toThrow(ValidationException::class, 'alt text');
+    expect(fn () => app(ContentImporter::class)->importPosts([postFile($this->dir, ['cover' => ['file' => "{$this->dir}/layers.png", 'alt' => str_repeat('a', 251)]])]))
+        ->toThrow(ValidationException::class, 'at most 250');
     expect(fn () => app(ContentImporter::class)->importPosts([postFile($this->dir, ['sections' => $many])]))
         ->toThrow(ValidationException::class, 'At most 150');
 });

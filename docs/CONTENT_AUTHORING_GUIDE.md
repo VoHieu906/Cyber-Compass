@@ -159,6 +159,7 @@ Labs live in `backend/database/seeders/content/labs.php`, keyed by slug in the o
 
 A **post** is a long read outside the courses: an explainer, a deep dive, a story about how a system really works. It uses the same blocks, rules and editor as a lesson (ARCHITECTURE D55), but it never counts toward progress, streaks or roadmaps, and guests can read it.
 
+- **Reference post.** "Docker & Containers 101" (`content/posts/docker-containers-101.php`) uses every block type in a long read, with images from files; copy what works from it.
 - **Post or lesson?** Write a **lesson** when the material is part of a path someone follows to a goal: it sits in a chapter, has objectives and takeaways, and may get an exercise or a lab. Write a **post** when it stands alone, crosses several topics or goes deeper than a learner needs to progress (for example "Docker & Containers 101"). A post can link to the lessons and labs it builds on; a lesson never depends on a post.
 - **Length.** Up to 150 blocks. Long posts read well when every major part has a heading (the reader's "On this page" list, the compass and the heading links are built from headings), with a knowledge check after each key part rather than a quiz at the end. Callout headings are not listed.
 - **Details.** A summary (the card, search results and the page description; required to publish), up to 8 tags (lowercase, hyphenated), an optional cover image. The reading time is computed from the text (200 words a minute, half a minute per interactive block); there is nothing to type.

@@ -153,7 +153,7 @@ function CopyLink({ id, heading }: { id: string; heading: string }) {
       type="button"
       onClick={copy}
       aria-label={t("copySectionLink", { heading })}
-      className="ml-2 inline-flex size-7 translate-y-[-0.1em] items-center justify-center rounded-chip align-middle text-muted transition-[color,opacity] duration-[var(--dur-micro)] group-hover:opacity-100 hover:text-ink focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
+      className="inline-flex size-7 shrink-0 items-center justify-center rounded-chip text-muted transition-[color,opacity] duration-[var(--dur-micro)] group-hover:opacity-100 hover:text-ink focus-visible:opacity-100 [@media(hover:hover)]:opacity-0"
     >
       {copied ? <Check aria-hidden className="size-4" /> : <Link2 aria-hidden className="size-4" />}
       <span className="sr-only" aria-live="polite">
@@ -164,18 +164,22 @@ function CopyLink({ id, heading }: { id: string; heading: string }) {
 }
 
 export function Section({ section, enhanced = false }: { section: LessonSection; enhanced?: boolean }) {
-  const heading =
+  const title =
     section.heading && section.type !== "callout" ? (
-      <h2
-        className={cn(
-          "scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]",
-          enhanced && "group",
-        )}
-      >
+      <h2 className="scroll-mt-[calc(var(--header-height)+1.5rem)] text-[length:var(--text-title)]">
         {section.heading}
-        {enhanced ? <CopyLink id={section.id} heading={section.heading} /> : null}
       </h2>
     ) : null;
+  // The link button sits beside the heading, not inside it, so the heading's accessible name stays its text.
+  const heading =
+    title && enhanced ? (
+      <div className="group flex items-center gap-1">
+        {title}
+        <CopyLink id={section.id} heading={section.heading!} />
+      </div>
+    ) : (
+      title
+    );
 
   let body: React.ReactNode = null;
   switch (section.type) {

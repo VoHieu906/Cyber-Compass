@@ -17,7 +17,8 @@ it('re-encodes an upload to WebP under a random name, at most 1600 px wide', fun
         'alt' => 'Wireshark capture of a TLS handshake',
     ], ['Accept' => 'application/json'])->assertCreated();
 
-    $media = LessonMedia::query()->sole();
+    // Seeded content may hold images from content files (D56); uploads have no source.
+    $media = LessonMedia::query()->whereNull('source')->sole();
     expect($response->json('data.id'))->toBe($media->uuid)
         ->and($media->path)->toBe("lesson-media/{$media->uuid}.webp")
         ->and([$media->width, $media->height])->toBe([1600, 800])
@@ -34,7 +35,7 @@ it('requires alt text and refuses SVG', function () {
     $this->actingAs($this->admin, 'web')->post('/api/v1/admin/content/media', ['image' => $svg, 'alt' => 'A diagram'], ['Accept' => 'application/json'])
         ->assertJsonValidationErrors('image');
 
-    expect(LessonMedia::query()->count())->toBe(0);
+    expect(LessonMedia::query()->whereNull('source')->count())->toBe(0);
 });
 
 it('puts an uploaded image in a lesson, resolved for learners at read time', function () {

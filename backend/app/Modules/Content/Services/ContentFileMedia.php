@@ -53,8 +53,9 @@ final class ContentFileMedia
 
             return null;
         }
-        if ($alt === '' || mb_strlen($alt) > 300) {
-            $errors[$at][] = 'Every image needs alt text of at most 300 characters.';
+        // The same limit as uploads and the lesson_media.alt column.
+        if ($alt === '' || mb_strlen($alt) > 250) {
+            $errors[$at][] = 'Every image needs alt text of at most 250 characters.';
 
             return null;
         }

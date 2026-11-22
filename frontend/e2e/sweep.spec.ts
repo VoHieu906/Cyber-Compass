@@ -106,6 +106,7 @@ test.describe("responsive and accessibility sweep", () => {
         "/careers",
         "/careers/soc-analyst",
         "/blog",
+        "/blog/docker-containers-101",
         "/login",
         "/register",
         "/forgot-password",

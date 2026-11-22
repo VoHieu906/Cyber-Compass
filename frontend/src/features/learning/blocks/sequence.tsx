@@ -27,7 +27,8 @@ export function Sequence({ data }: { data: SequenceData }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-control border border-rule bg-paper-3">
+      {/* Focusable so a keyboard can scroll a five-actor sequence sideways on a phone (WCAG 2.1.1), like code blocks. */}
+      <div tabIndex={0} className="overflow-x-auto rounded-control border border-rule bg-paper-3">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           role="img"
