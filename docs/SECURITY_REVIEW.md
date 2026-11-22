@@ -136,5 +136,5 @@ One dashboard load makes 8 requests and the bell polls once a minute, so normal 
 | A06 Vulnerable components | `composer audit`, `npm audit` clean; CI runs on every push (D46) |
 | A07 Identification and authentication failures | Lockout, per-address limit (S1), timebox, session regeneration, reset rules |
 | A08 Software and data integrity | Lockfiles committed and installed with `npm ci` and `composer install`; CI on every change; images built from them (Part F) |
-| A09 Logging and monitoring | Append-only admin audit log; CloudWatch logs and alarms (D48, Part H2) |
+| A09 Logging and monitoring | Append-only admin audit log; CloudWatch logs and alarms (D48, set up by the owner when deploying, D54) |
 | A10 Server-side request forgery | No outbound request is made from learner input (lab HTTP inspector is simulated) |

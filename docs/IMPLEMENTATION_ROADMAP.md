@@ -1,16 +1,39 @@
 # Implementation Roadmap
 
-Seven phases. Each one ends with the same gate: tests pass, `tsc --noEmit` is clean, Laravel has no errors, the UI has been checked in a real browser at 1280px and 390px in both themes, the docs are updated, and a report lists what was done and what remains.
+The initial build (v1) is Phases 1 to 7, all complete. Work after v1 is the [Feature track](#feature-track): each feature has a stable id `F<n>`. Deploying to AWS is not roadmap work: the owner runs it on their own schedule with [DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md) and `infrastructure/aws/` (D54).
 
 ```mermaid
 flowchart LR
-  P1[1 Foundation] --> P2[2 Auth + profile]
-  P2 --> P3[3 Content + catalog + landing]
-  P3 --> P4[4 Assessment + personalization]
-  P4 --> P5[5 Roadmap UI, exercises, labs]
-  P5 --> P6[6 Dashboard + notifications]
-  P6 --> P7[7 Quality + deployment]
+  subgraph v1[Initial build v1]
+    P1[1 Foundation] --> P2[2 Auth + profile]
+    P2 --> P3[3 Content + catalog + landing]
+    P3 --> P4[4 Assessment + personalization]
+    P4 --> P5[5 Roadmap UI, exercises, labs]
+    P5 --> P6[6 Dashboard + notifications]
+    P6 --> P7[7 Quality + deploy readiness]
+  end
+  P7 --> F1[F1 Compass + shortcuts]
+  F1 --> F2[F2 Blog, planned]
+  F2 --> FN[F3 ...]
+  P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
+
+## The gate
+
+Every phase and every feature ends with the same gate: tests pass, `tsc --noEmit` is clean, Laravel has no errors, the UI has been checked in a real browser at 1280px and 390px in both themes, the docs are updated, and a report lists what was done and what remains.
+
+### Deploy-ready gate (every feature, D54)
+
+A feature is done only when all of these hold. Its report has a **Deploy notes** subsection listing each item as done or not applicable, plus anything the owner must do by hand when deploying (normally "nothing").
+
+- **Migrations:** expand-only and safe while the previous release is still serving (the Phase 3.5 rule). No destructive change in the same release as the code that stops using a column.
+- **Release task:** `cybercompass:release` (preflight, then migrate, then content import) covers the feature with no manual step. New seed content imports idempotently.
+- **Configuration:** every new environment variable goes into `backend/.env.production.example` or `frontend/.env.production.example`, the task definition templates in `infrastructure/aws/templates/`, and `config.example.sh` when it is an account value. If it is unsafe when wrong, it gets a `cybercompass:preflight` check. Secrets go to Secrets Manager entries in the templates, never into images.
+- **Edge:** new external origins go into `lib/security/csp.ts`. New large request bodies (over 8 KB) or payloads that look like code, XSS or shell get a WAF exclusion in the WAF template (D50). New public routes go onto the public list in `RouteInventoryTest`. New path prefixes get ALB or CloudFront rules if they don't fall under existing ones.
+- **Storage and jobs:** uploads use `uploads_disk` with re-encoding and no visibility option. New queued jobs or scheduled commands run on the existing worker and scheduler services and are visible in `QueueMetrics` if they matter.
+- **Budgets:** query budgets for new hot endpoints, page weight and API budgets for new important pages (`performance.spec.ts`), and `npx next analyze` for new dependencies. Run `npm run lock:linux` after dependency changes.
+- **Production parity:** the feature works on `docker-compose.prod.yml` (production images, SeaweedFS S3, Mailpit), not only the dev stack. CI is green.
+- **Docs:** if the feature changes anything the owner does when deploying, update DEPLOYMENT_AWS.md in the same change.
 
 ## Phase 1: Foundation ✅ (completed 2026-11-19)
 
@@ -191,9 +214,9 @@ Activity recording through events, streak calculator (local-date aware), dashboa
 
 **Phase 6 totals:** 638 Pest and 333 Vitest (from 561 and 303). Decisions D32 to D36.
 
-## Phase 7: Quality and deployment
+## Phase 7: Quality and deployment ✅ (completed 2026-11-21, Parts A to G)
 
-Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise, dashboard). Security review (OWASP checklist, dependency audit, headers, rate limits, and the lab engine checklist: ARCHITECTURE §7.1 rules re-verified, the no-exec architecture test passing, ReDoS patterns tried against `grep -E`, oversized commands, output and state refused, the action rate limit and the 409 on stale state exercised). Performance (bundle analysis, image sizes, N+1 checks). Responsive and accessibility audit. Hallmark sweep. Production Dockerfiles, ECS task definitions, step-by-step AWS deployment guide, and a real deployment.
+Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise, dashboard). Security review (OWASP checklist, dependency audit, headers, rate limits, and the lab engine checklist: ARCHITECTURE §7.1 rules re-verified, the no-exec architecture test passing, ReDoS patterns tried against `grep -E`, oversized commands, output and state refused, the action rate limit and the 409 on stale state exercised). Performance (bundle analysis, image sizes, N+1 checks). Responsive and accessibility audit. Hallmark sweep. Production Dockerfiles, ECS task definitions, step-by-step AWS deployment guide. (The real deployment was planned as Part H; it left the roadmap with D54.)
 
 **Impact check (2026-11-21), decisions D37 to D45:**
 - **Conflict, decided:** the `s3` uploads disk could not work in production (the S3 adapter was never installed); fixed in Part F (D39).
@@ -214,8 +237,7 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 - **Part E, responsive, accessibility and Hallmark:** every route at 390, 768 and 1280px in both themes with the header-fit check, axe in Playwright, keyboard and focus, sloplint across the app.
 - **Part F, production build:** S3 adapter and SES mailer, hardened production images, worker and scheduler containers, production environment templates, the migrate-and-import task, the queue metric log line (D48), `docker-compose.prod.yml` running the production images locally (uploads checked against a temporary S3-compatible container).
 - **Part G, AWS documentation:** `infrastructure/aws/` (task definitions, IAM policies, CLI steps, the OIDC role, alarms, the WAF template, the sleep and wake scripts), `docs/DEPLOYMENT_AWS.md` (the brief's ten items, costs, logs and monitoring, IaC as future work), README, stale-doc fixes, the Phase 7 report.
-- **Part H1, real deployment (D44):** the budget first (D48), then the owner runs each documented step in their AWS account; each is verified (login, a lesson, an email, an upload, the reminder schedule).
-- **Part H2, operations:** CD with GitHub OIDC and the approval gate (D47), the SNS topic, alarms and dashboard (D48), sleep and wake scripts tried end to end (D49), the WAF in Count mode and the keep-or-detach decision (D50).
+- **Deployment (not a roadmap part, D54):** the owner deploys independently with [DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md) and `infrastructure/aws/`. The guide, templates and scripts stay as they are, including the CD workflow draft (D47), the alarms (D48), sleep and wake (D49) and the WAF trial (D50): they are the owner's tools, not phases.
 
 **Part A exit, verified (2026-11-21):**
 - **Delivered:** Playwright (`@playwright/test` 1.65, dev only) in `frontend/e2e` with `npm run e2e`: Edge locally through the `msedge` channel, bundled Chromium with `E2E_CHANNEL=`; it reuses the dev server on port 3000 or builds and starts the app. `cybercompass:e2e-users` (Admin module) makes throwaway learners and admins through `RegisterUser`, prints them as JSON, purges every `e2e-*@example.test` account and refuses outside local and testing; global setup and teardown call it through `docker compose exec`. A console guard fails any page that logs an error, unless the spec names the expected status. Twelve tests in six specs: the learner journey (register, assessment, career goal, roadmap built from the result, an exercise failed and then passed from the answers the API reveals after submission, never from the database, the roadmap in progress, the lesson on the dashboard, the bell counting notifications delivered by the queue worker); auth (guest redirect and return, wrong password, login to the dashboard, logout, an open redirect through `next` ignored); labs (pipes, refusals for `;`, `>` and `rm`, a nested-quantifier `grep -E` answering quickly, a wrong answer, completion, a stale second tab getting the 409 and reloading); search (guest `/`, grouped and marked results, Ctrl+K, nothing found, focus returning, a slash typed in a field); the admin console (overview, user search, lessons; a learner told it is for admins only); a phone pass over seven signed-in pages (no page or header overflow, the Menu holding the navigation).
@@ -260,13 +282,20 @@ Critical-path E2E tests (Playwright: register, assess, roadmap, lesson, exercise
 - **Checked without AWS:** every script passes `bash -n`; every template is valid JSON before and after rendering with sample values, with no placeholder left unresolved; the ALB dimension is derived correctly; the asleep page fits the ALB's 1 024-byte limit. Nothing was run against AWS and no cloud resource exists.
 - **Found while writing:** `deploy.sh` could only update services, so a first deployment would have failed; it now creates any missing service. In a `workflow_run` job `GITHUB_SHA` is the latest commit on `main`, not the one CI tested, so the CD draft tags images from the checked-out commit.
 
-**Phase 7 status (2026-11-21): Parts A to G complete.** Part H (H1: the deployment by hand; H2: CD, alarms, sleep and wake, the WAF trial) waits for the owner: it creates billed AWS resources.
+**Phase 7 complete (2026-11-21): Parts A to G.** This closes the initial build (v1). Deployment is the owner's, outside the roadmap (D54).
 
 **Carried from Phase 6:** E2E covers the dashboard, the bell and search. The security review adds the `search` limiter, 404 for another learner's notification, email only by opt-in, and drafts never reaching search. Deployment adds the scheduler container (D38, hourly reminders), the queue worker as a service (D37), SES for mail (D39), and a check that one dashboard load (8 API requests) stays well inside the 120-per-minute `api` limit for normal use.
 
 **Mid-phase UI change (2026-11-22), sticky side panels and the lab workspace:** frontend only; impact check (CLAUDE.md §5) found no duplicate or conflict (it extends the exercise theory panel's pattern). One utility, `lg:sticky-panel`, now serves every sticky side column (DESIGN_SYSTEM §5); the lab page's tasks and console fill the screen on `lg+`. Checked in Edge at 1280×720, 1440×900, 1920×1080 and 1000px on all three labs (the page never moves while scrolling the list or typing), plus the exercise, assessment (the domains nav measured 702px against 656px at 768px tall) and settings pages. 340 Vitest, 24 Playwright, tsc and ESLint clean.
 
-## Phase 7.5: Compass navigation and keyboard shortcuts
+## Feature track
+
+Every feature after v1 gets a stable id `F<n>` in the order work starts on it: never renumbered, never inserted between others. Parts inside a feature stay Part A, B, C. Each feature follows the CLAUDE.md §5 impact check and passes [the gate](#the-gate), including the deploy-ready gate. Commit convention: `type(scope): summary (F<n> Part X)`.
+
+### F1: Compass navigation and keyboard shortcuts ✅ (completed 2026-11-22)
+
+(Formerly Phase 7.5; earlier commits and D51 to D53 use that name.)
+
 
 Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployment ships it. A circular "compass" menu for fast navigation with the mouse or the keyboard alone, a "Compass menu" switch under Preferences, and a new settings tab, Keyboard shortcuts, where every shortcut can be rebound, reset or disabled. Decisions D51 to D53.
 
@@ -288,9 +317,24 @@ Inserted on 2026-11-22 by the owner, built before Phase 7 Part H so the deployme
 
 **Part C exit, verified (2026-11-22):** Preferences → "Show the compass menu" (it moves at once and saves to the account; off unmounts the trigger and its shortcut); Settings → Keyboard shortcuts (`/settings/shortcuts`, grouped, change with conflict and reserved-key checks, turn off, reset one or all; the editor group only for admins; menu keys listed as fixed). `e2e/compass.spec.ts` (two accounts: one account's passes would exceed the API's 120 a minute): keyboard-only route to a settings tab with the active marks, a rebound shortcut, switching it off and back on, and the menu inside the screen below the header at 390, 1280, 1920 and 3840×1080 in both themes. Contrast computed from the tokens in both themes: text 10:1 or better, segment edges at least 3.5:1. `/settings/shortcuts` joined the accessibility sweep (green). Hallmark sloplint on the new code: 0 FAIL; waived reflexes: no `:disabled` style (compass items are never disabled) and the existing neutral tokens; the render tier was not run. Totals: 699 Pest, 386 Vitest, 28 Playwright. tsc, ESLint and Pint clean.
 
-**Phase 7.5 complete (2026-11-22).** Next is Phase 7 Part H, still waiting for the owner.
+**F1 complete (2026-11-22).**
 
 **Known limits:** a signed-in top ring has 11 to 13 items, so it shows icons only (the hub names each); long submenu names are shortened with an ellipsis (full name in the hub and tooltip); on phones the trigger overlaps the content edge; guests cannot open Settings, so their localStorage preferences only take effect if a later page lets them change one.
+
+**Deploy notes** (added when the deploy-ready gate was introduced, D54):
+- Migrations: done. One additive migration (`compass_enabled` with a default, nullable `shortcuts`); the previous release ignores both columns.
+- Release task: done. `cybercompass:release` runs the migration; no seed content.
+- Configuration: not applicable (no new variable).
+- Edge: not applicable. No new origin; the shortcut map is at most 64 small entries, far below 8 KB, and goes through the existing `PATCH /me/preferences` (no new API route); `/settings/shortcuts` is a web page under the existing app rules.
+- Storage and jobs: not applicable.
+- Budgets: done. Public pages 190 KB against 250 on the production build; the menu loads on first use. No new dependency.
+- Production parity: **not yet checked** on `docker-compose.prod.yml`, and CI has not run (the F1 commits are not pushed).
+- Docs: not applicable (nothing changes for the owner's deployment).
+- Owner action when deploying: nothing.
+
+### F2: Blog (planned)
+
+To be filled in by the feature task.
 
 ## Follow-ups (not scheduled in a phase)
 

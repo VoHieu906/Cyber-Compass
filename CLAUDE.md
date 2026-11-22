@@ -63,8 +63,8 @@ Check this table before building anything. Later phases reuse or extend what is 
 | Security review, headers and CSP (brief §9) | Delivered (Phase 7 Parts B and C, D42) | [docs/SECURITY_REVIEW.md](docs/SECURITY_REVIEW.md); `RouteInventoryTest`; `cybercompass:preflight`; `src/proxy.ts` with `lib/security/csp.ts`; `SecurityHeaders` middleware; `e2e/security.spec.ts` | A new public route goes on the inventory's public list on purpose; a new external origin goes into `csp.ts`; a new production setting gets a preflight check. Never trust forwarded headers beyond the ALB (S9). |
 | Performance (brief Phase 7) | Delivered (Phase 7 Part D) | [docs/PERFORMANCE.md](docs/PERFORMANCE.md); `tests/Feature/Performance/QueryBudgetTest.php`; `e2e/performance.spec.ts` (enforced in CI); `src/lib/zod-config.ts` | A new hot endpoint gets a query budget; a new page that matters gets a weight and API budget; check a new dependency with `npx next analyze`. |
 | Production build and release (brief §10) | Delivered (Phase 7 Part F, D37 to D39) | `cybercompass:release` (preflight, migrate, content), `QueueMetrics` and the `metrics` log channel (D48), `docker-compose.prod.yml`, `*/.env.production.example`, the S3 adapter | Uploads never pass a visibility option (the private bucket refuses ACLs). A new production variable goes into the `.env.production.example` file and, if unsafe when wrong, a preflight check. Run `npm run lock:linux` after changing frontend dependencies on Windows. |
-| AWS deployment documentation (brief §10) | Delivered (Phase 7 Part G, D37 to D50); the deployment itself is Part H | [docs/DEPLOYMENT_AWS.md](docs/DEPLOYMENT_AWS.md); `infrastructure/aws/` (`config.example.sh`, `templates/`, `scripts/`) | Change AWS resources through these templates and scripts, never only in the console; a new production variable goes into the task definition templates and `.env.production.example`. Never commit `config.sh`. |
-| Compass menu and keyboard shortcuts (owner request, Phase 7.5) | Delivered (D51 to D53) | `lib/navigation.ts` (primary links, `isActive`), `SETTINGS_TABS`, `ADMIN_AREAS`; shortcut registry `lib/shortcuts` (`ACTIONS`, `useShortcut`, `typing`) with overrides from `features/shortcuts/prefs.tsx`; `user_profiles.compass_enabled` and `shortcuts`; the compass in `features/compass` (`useCompassItems`, `useCompassPageItems`), geometry in `lib/radial`; settings tab `/settings/shortcuts` | Read routes from these lists, never retype one. A page adds "On this page" items through `useCompassPageItems`, never by reading the DOM from the compass. A new shortcut is an action in `ACTIONS` used through `useShortcut`; never add a raw `keydown` listener for a global shortcut. |
+| AWS deployment documentation (brief §10) | Delivered (Phase 7 Part G, D37 to D50); the deployment itself is run by the owner, outside the roadmap (D54) | [docs/DEPLOYMENT_AWS.md](docs/DEPLOYMENT_AWS.md); `infrastructure/aws/` (`config.example.sh`, `templates/`, `scripts/`) | Change AWS resources through these templates and scripts, never only in the console; a new production variable goes into the task definition templates and `.env.production.example`. Never commit `config.sh`. |
+| Compass menu and keyboard shortcuts (owner request, F1, formerly Phase 7.5) | Delivered (D51 to D53) | `lib/navigation.ts` (primary links, `isActive`), `SETTINGS_TABS`, `ADMIN_AREAS`; shortcut registry `lib/shortcuts` (`ACTIONS`, `useShortcut`, `typing`) with overrides from `features/shortcuts/prefs.tsx`; `user_profiles.compass_enabled` and `shortcuts`; the compass in `features/compass` (`useCompassItems`, `useCompassPageItems`), geometry in `lib/radial`; settings tab `/settings/shortcuts` | Read routes from these lists, never retype one. A page adds "On this page" items through `useCompassPageItems`, never by reading the DOM from the compass. A new shortcut is an action in `ACTIONS` used through `useShortcut`; never add a raw `keydown` listener for a global shortcut. |
 | Entity list in the brief (§6) | Normalized | [DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) normalization notes: `domains` replace categories, paths hold topics, no stored path progress | Follow the schema doc, not the brief's entity list. |
 
 ## 4. Extend, never duplicate
@@ -80,7 +80,7 @@ This protocol applies to any phase or feature not already in IMPLEMENTATION_ROAD
    - **Duplicate:** the work already exists, or is planned in another phase.
    - **Conflict:** the work contradicts an existing decision, schema, API contract or convention, or would break or force rework of a later phase.
    - **Shift:** the work pulls scope forward from a later phase, or pushes scope back to one.
-3. **No findings:** document the phase in IMPLEMENTATION_ROADMAP.md (numbered between existing phases, for example 4.5) with its impact notes, then proceed.
+3. **No findings:** document the work in IMPLEMENTATION_ROADMAP.md as a new feature id F<n> in the Feature track, with its impact notes, then proceed.
 4. **Any Duplicate or Conflict: stop and ask the user before implementing.** For each finding, present:
    - what overlaps or conflicts, and where (files, phase, decision ID)
    - 2 or 3 options (for example: reuse or extend the existing part, change the earlier decision, move the work to another phase, drop it)
@@ -90,12 +90,12 @@ This protocol applies to any phase or feature not already in IMPLEMENTATION_ROAD
    State a **Shift** clearly in the plan. Ask only if it materially changes another phase's scope.
 5. **After the user decides:** record the decision in ARCHITECTURE.md as a new decision ID, update the roadmap so the affected phases no longer overlap, and update the table in §3.
 
-## 6. End of every phase
+## 6. End of every phase or feature
 
-Before reporting a phase as done, update:
+Before reporting a phase or feature as done, update:
 
 - [docs/HANDOFF.md](docs/HANDOFF.md)
-- the phase report in [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)
+- the phase or feature report in [docs/IMPLEMENTATION_ROADMAP.md](docs/IMPLEMENTATION_ROADMAP.md)
 - the table in §3 of this file
 
-The phase gate itself (tests, typecheck, real-browser check, docs, report) is defined at the top of the roadmap.
+The gate itself (tests, typecheck, real-browser check, docs, report) and the deploy-ready gate every feature must pass (D54) are defined at the top of the roadmap.

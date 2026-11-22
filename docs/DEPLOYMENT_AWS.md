@@ -2,7 +2,7 @@
 
 A step-by-step guide to running CyberCompass on AWS with the AWS CLI and the JSON templates in [`infrastructure/aws/`](../infrastructure/aws/) (ARCHITECTURE D44: no infrastructure-as-code tool, so every resource is created by a command you can read and explain). The layout and every decision behind it are in [ARCHITECTURE §8](ARCHITECTURE.md#8-deployment-architecture-aws) and decisions D37 to D50.
 
-> **Status:** written and checked locally in Phase 7 Part G. Nothing in this guide has been run against AWS yet; the real deployment is Part H, run by the project owner one step at a time. Every command that creates something says what it costs.
+> **Status:** written and checked locally in Phase 7 Part G. Nothing in this guide has been run against AWS yet; the project owner runs the deployment one step at a time, on their own schedule (outside the roadmap, D54). Every command that creates something says what it costs.
 
 ## Contents
 
@@ -19,7 +19,7 @@ A step-by-step guide to running CyberCompass on AWS with the AWS CLI and the JSO
 | 9. Environment variable configuration | [Environment variables](#environment-variables), step 7 |
 | 10. Logs and monitoring | step 14, [Logs](#logs) |
 
-Steps 1 to 15 are Part H1 (the deployment by hand). Steps 16 to 18 are Part H2 (deployment from GitHub, the WAF trial, sleep and wake).
+Steps 1 to 15 are the deployment by hand. Steps 16 to 18 are the optional operations tools (deployment from GitHub, the WAF trial, sleep and wake).
 
 ## What you will build
 
@@ -444,7 +444,7 @@ Nine alarms fit CloudWatch's free ten, three dashboards are free, and SNS email 
 | The queue and the scheduler | After a lesson completion the bell shows it; the dashboard's queue widget shows a line every minute |
 | CSP | The first deployment sends the policy as report-only (`CSP_REPORT_ONLY=true` in `task-web.json`, D42). Browse every area with the browser console open; when it shows no violation, set `"false"` and deploy again |
 
-## Step 16. Deploying from GitHub (D47, Part H2)
+## Step 16. Deploying from GitHub (D47)
 
 Deployments then run from GitHub after CI passes on `main` and you approve them, with no AWS key stored anywhere: GitHub's OIDC token is exchanged for a short-lived role.
 
@@ -459,7 +459,7 @@ aws iam put-role-policy --role-name ${APP}-github-deploy --policy-name deploy \
 
 The role trusts only `repo:<owner>/<repo>:environment:production`, so a fork or another branch's workflow cannot use it. In GitHub (Settings, Environments): create `production`, add yourself as a required reviewer, and add these environment variables (ids, not secrets): `AWS_REGION`, `AWS_ACCOUNT_ID`, `DOMAIN`, `PUBLIC_SUBNETS`, `SG_TASKS`, `RDS_ENDPOINT`, `SECRET_ARN`, `UPLOADS_BUCKET`. Then activate the workflow: `cp infrastructure/aws/templates/github/deploy.yml .github/workflows/deploy.yml`, commit and push. Every later push to `main` that passes CI waits for your approval and then runs `deploy.sh`.
 
-## Step 17. The WAF trial (D50, Part H2)
+## Step 17. The WAF trial (D50)
 
 One regional web ACL on the ALB covers both `api.<domain>` and the app (CloudFront reaches the app through the ALB). Every rule only counts during the trial. The common rule set skips lesson saves, uploads and lab commands, which it would otherwise block (bodies over 8 KB, code that looks like XSS, `cat /etc/passwd` in the Linux lab). About $9 to $10 a month, billed hourly, so a few days cost about $2.
 

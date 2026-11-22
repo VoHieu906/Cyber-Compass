@@ -138,7 +138,7 @@ Charts come from `frontend/src/lib/charts` (`ColumnChart`, `LineChart`, `ChartTa
 
 The header bell is an icon button whose accessible name carries the unread count ("Notifications, 3 unread"); the badge is decorative, accent on `accent-ink`, capped at 9+. Unread rows sit on a faint `accent-soft` wash and say "New" with an icon, never a bare dot. The panel is a disclosure like the account menu (Escape and outside click close it and focus returns to the bell); on phones it spans the screen under the header. Row actions are named for the notification they act on.
 
-### Compass menu (Phase 7.5, D51)
+### Compass menu (F1, D51)
 
 A round menu for moving around with the mouse or the keyboard alone. It is **in addition to** the header: `MainNav` and `MobileMenu` stay as they are and remain the path when the compass is switched off (Settings → Preferences).
 
@@ -152,7 +152,7 @@ A round menu for moving around with the mouse or the keyboard alone. It is **in 
 - **Pointer.** Hovering a parent for 120 ms opens its ring, and a quick diagonal pass over a sibling changes nothing. On touch, the first tap on a parent opens its ring and a second tap goes to the parent's own page.
 - **Keyboard and screen readers** (WAI-ARIA menu pattern): the trigger has `aria-haspopup="menu"` and `aria-expanded`; each ring is `role="menu"` (a submenu is labelled by its parent) of `menuitem`s with roving `tabindex`. ←/→ and Tab/Shift+Tab move around the ring (focus never leaves the menu), Enter/↓/Space opens a submenu or chooses, ↑/Backspace goes back a ring, Home/End, 1 to 9 jump to that item, a letter jumps to the next item starting with it, Escape closes a ring and then the menu.
 
-### Keyboard shortcuts (Phase 7.5, D52)
+### Keyboard shortcuts (F1, D52)
 
 Every shortcut is an action in `lib/shortcuts/registry.ts` (`ACTIONS`: group, default bindings, whether it fires inside fields, whether it is a fixed menu key) and is used through `useShortcut(actionId, handler)`. Never add a raw `keydown` listener for a global shortcut. Matching: a combo with Ctrl, Alt or ⌘ matches the physical key (`event.code`; a letter combo without Alt also matches the typed letter); a bare key such as `/` matches the character and ignores Shift; modifiers match exactly; `mod` is Ctrl or ⌘. Plain keys never fire while the learner types in a field (`typing()`).
 
