@@ -3,54 +3,85 @@
 namespace App\Modules\Content\Console;
 
 use App\Models\Course;
+use App\Models\Post;
 use App\Modules\Content\Services\ContentExporter;
 use Illuminate\Console\Command;
 
 /**
  * Writes a course's live (published) content back to its content file, so lessons curated in
- * the admin console can be reviewed and committed (ARCHITECTURE D19). Review the diff before
- * committing; `content:import` reads the file back without changing any section UUID.
+ * the admin console can be reviewed and committed (ARCHITECTURE D19). With --post, writes a blog
+ * post the same way (F2). Review the diff before committing; `content:import` reads the file back
+ * without changing any section UUID.
  */
 final class ExportContentCommand extends Command
 {
     protected $signature = 'content:export
-        {course : Course slug}
+        {course : Course slug (a post slug with --post)}
+        {--post : Export a blog post instead of a course}
         {--stdout : Print the file instead of writing it}
-        {--path= : Write here instead of database/seeders/content/courses/<slug>.php}';
+        {--path= : Write here instead of database/seeders/content/courses/<slug>.php (posts/<slug>.php)}';
 
-    protected $description = 'Export a course\'s published lessons to its content file';
+    protected $description = 'Export a course\'s published lessons, or a blog post, to its content file';
 
     public function handle(ContentExporter $exporter): int
     {
-        $course = Course::query()->where('slug', $this->argument('course'))->first();
+        $slug = (string) $this->argument('course');
+
+        if ($this->option('post')) {
+            $post = Post::query()->where('slug', $slug)->first();
+            if (! $post) {
+                $this->error("No post with slug \"{$slug}\".");
+
+                return self::FAILURE;
+            }
+            $result = $exporter->exportPost($post);
+
+            return $this->write($result['php'], database_path("seeders/content/posts/{$slug}.php"), $slug, function () use ($result, $slug) {
+                $this->info("Exported {$result['sections']} sections of the post {$slug}.");
+                if ($result['has_draft']) {
+                    $this->warn('The post has unpublished changes; its live version was exported.');
+                }
+            });
+        }
+
+        $course = Course::query()->where('slug', $slug)->first();
         if (! $course) {
-            $this->error("No course with slug \"{$this->argument('course')}\".");
+            $this->error("No course with slug \"{$slug}\".");
 
             return self::FAILURE;
         }
 
         $result = $exporter->export($course);
 
+        return $this->write($result['php'], database_path("seeders/content/courses/{$course->slug}.php"), $slug, function () use ($result, $course) {
+            $this->info("Exported {$result['lessons']} published lessons of {$course->slug}.");
+            if ($result['skipped_drafts']) {
+                $this->warn('Unpublished drafts were not exported (their live version was): '.implode(', ', $result['skipped_drafts']));
+            }
+            if ($result['empty_chapters']) {
+                $this->warn('Chapters with no published lessons (kept, empty): '.implode(', ', $result['empty_chapters']));
+            }
+        });
+    }
+
+    private function write(string $php, string $defaultPath, string $slug, callable $report): int
+    {
         if ($this->option('stdout')) {
-            $this->output->write($result['php']);
+            $this->output->write($php);
 
             return self::SUCCESS;
         }
 
-        $path = $this->option('path') ?: database_path("seeders/content/courses/{$course->slug}.php");
-        if (@file_put_contents($path, $result['php']) === false) {
-            $this->error("Could not write {$path}. In the dev container, run as root: docker compose exec -u root api php artisan content:export {$course->slug}");
+        $path = $this->option('path') ?: $defaultPath;
+        if (@file_put_contents($path, $php) === false) {
+            $flag = $this->option('post') ? ' --post' : '';
+            $this->error("Could not write {$path}. In the dev container, run as root: docker compose exec -u root api php artisan content:export {$slug}{$flag}");
 
             return self::FAILURE;
         }
 
-        $this->info("Exported {$result['lessons']} published lessons of {$course->slug} to {$path}.");
-        if ($result['skipped_drafts']) {
-            $this->warn('Unpublished drafts were not exported (their live version was): '.implode(', ', $result['skipped_drafts']));
-        }
-        if ($result['empty_chapters']) {
-            $this->warn('Chapters with no published lessons (kept, empty): '.implode(', ', $result['empty_chapters']));
-        }
+        $report();
+        $this->line("Written to {$path}.");
 
         return self::SUCCESS;
     }

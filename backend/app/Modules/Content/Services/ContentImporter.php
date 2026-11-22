@@ -7,16 +7,23 @@ use App\Models\Course;
 use App\Models\CourseChapter;
 use App\Models\Domain;
 use App\Models\Lesson;
+use App\Models\LessonMedia;
 use App\Models\LessonSection;
+use App\Models\Post;
+use App\Models\PostSection;
 use App\Models\Skill;
 use App\Modules\Content\Blocks\BlockRegistry;
+use App\Modules\Content\Documents\ReadingTime;
+use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Ramsey\Uuid\Uuid;
 
 /**
- * Writes courses from the content files (database/seeders/content/courses/*.php).
+ * Writes courses and blog posts from the content files (database/seeders/content/courses/*.php,
+ * database/seeders/content/posts/*.php). Posts follow the same rules as lessons (D55); images
+ * may be named by file (ContentFileMedia, D56).
  *
  * Rules (ARCHITECTURE D19, docs/PHASE_3_5_CONTENT_AND_ADMIN.md):
  * - Every section is validated by the BlockRegistry before anything is written.
@@ -31,11 +38,15 @@ final class ContentImporter
     /** Namespace for section UUIDs derived from "lesson-slug/section-key". Never change it. */
     private const SECTION_NAMESPACE = '6f1c2a9e-3b7d-4e0a-8c5f-9d2e4b7a1c30';
 
+    /** Namespace for post section UUIDs derived from "post-slug/section-key". Never change it. */
+    private const POST_SECTION_NAMESPACE = '0c7e5d3a-9f21-4b6e-a8d4-5e2f1b9c7a13';
+
     private const PARKING_OFFSET = 10000;
 
     public function __construct(
         private readonly BlockRegistry $blocks,
         private readonly SectionWriter $sections,
+        private readonly ContentFileMedia $files,
     ) {}
 
     /**
@@ -50,6 +61,7 @@ final class ContentImporter
         $report = ['courses' => count($courses), 'lessons_written' => 0, 'skipped' => [], 'archived' => []];
 
         DB::transaction(function () use ($prepared, $force, &$report) {
+            $this->files->store();
             foreach ($prepared as $course) {
                 $this->writeCourse($course, $force, $report);
             }
@@ -135,6 +147,11 @@ final class ContentImporter
         return Uuid::uuid5(self::SECTION_NAMESPACE, "{$lessonSlug}/{$key}")->toString();
     }
 
+    public static function postSectionUuid(string $postSlug, string $key): string
+    {
+        return Uuid::uuid5(self::POST_SECTION_NAMESPACE, "{$postSlug}/{$key}")->toString();
+    }
+
     /**
      * Validates everything up front and returns courses with normalized sections and their UUIDs.
      *
@@ -169,33 +186,10 @@ final class ContentImporter
                     }
                     $seen[$slug] = true;
 
-                    $compact = array_map(self::fromCompact(...), $lesson['sections']);
-                    try {
-                        $clean = $this->blocks->validateSections($compact, "lessons.{$slug}.sections");
-                    } catch (ValidationException $e) {
-                        $errors += $e->errors();
-
+                    $clean = $this->prepareSections('lessons', $slug, $lesson['sections'], self::sectionUuid(...), null, $errors, $uuids);
+                    if ($clean === null) {
                         continue;
                     }
-
-                    $keys = self::sectionKeys(array_map(
-                        fn ($s, $c) => ['key' => $c['key'], 'type' => $s['type'], 'heading' => $s['heading']],
-                        $clean,
-                        $compact,
-                    ));
-                    foreach ($clean as $i => &$section) {
-                        $pinned = $compact[$i]['uuid'];
-                        if ($pinned !== null && (! is_string($pinned) || ! Uuid::isValid($pinned))) {
-                            $errors["lessons.{$slug}.sections.{$i}.uuid"] = ['Must be a UUID.'];
-                        }
-                        $section['uuid'] = is_string($pinned) ? strtolower($pinned) : self::sectionUuid($slug, $keys[$i]);
-                        // A UUID names one section everywhere: upserting by it must never move another lesson's section.
-                        if (isset($uuids[$section['uuid']])) {
-                            $errors["lessons.{$slug}.sections.{$i}.uuid"] = ["Duplicate section UUID (also in {$uuids[$section['uuid']]})."];
-                        }
-                        $uuids[$section['uuid']] = $slug;
-                    }
-                    unset($section);
 
                     $courses[$ci]['chapters'][$chi]['lessons'][$li]['sections'] = $clean;
                 }
@@ -217,6 +211,58 @@ final class ContentImporter
         }
 
         return $courses;
+    }
+
+    /**
+     * Validates one document's sections (compact format) and gives each its UUID: pinned, or
+     * derived from the slug and section key. Image references become media UUIDs (D56).
+     * Returns null when the blocks are invalid (errors are added).
+     *
+     * @param  Closure(string, string): string  $uuidFor  slug, key => uuid
+     * @param  array<string, list<string>>  $errors
+     * @param  array<string, string>  $uuids  uuid => owner slug, across the whole import
+     * @return list<array{uuid: string, type: string, heading: ?string, payload: array}>|null
+     */
+    private function prepareSections(string $owner, string $slug, array $raw, Closure $uuidFor, ?int $max, array &$errors, array &$uuids): ?array
+    {
+        $compact = array_map(self::fromCompact(...), array_values($raw));
+        foreach ($compact as $i => $c) {
+            if ($c['type'] === 'media' && ContentFileMedia::isReference($c['payload']['media'] ?? null)) {
+                $compact[$i]['payload']['media'] = $this->files->resolve($c['payload']['media'], "{$owner}.{$slug}.sections.{$i}.payload.media", $errors) ?? '';
+            }
+        }
+        if ($max !== null && count($compact) > $max) {
+            $errors["{$owner}.{$slug}.sections"][] = "At most {$max} sections.";
+        }
+
+        try {
+            $clean = $this->blocks->validateSections($compact, "{$owner}.{$slug}.sections");
+        } catch (ValidationException $e) {
+            $errors += $e->errors();
+
+            return null;
+        }
+
+        $keys = self::sectionKeys(array_map(
+            fn ($s, $c) => ['key' => $c['key'], 'type' => $s['type'], 'heading' => $s['heading']],
+            $clean,
+            $compact,
+        ));
+        foreach ($clean as $i => &$section) {
+            $pinned = $compact[$i]['uuid'];
+            if ($pinned !== null && (! is_string($pinned) || ! Uuid::isValid($pinned))) {
+                $errors["{$owner}.{$slug}.sections.{$i}.uuid"] = ['Must be a UUID.'];
+            }
+            $section['uuid'] = is_string($pinned) ? strtolower($pinned) : $uuidFor($slug, $keys[$i]);
+            // A UUID names one section everywhere: upserting by it must never move another document's section.
+            if (isset($uuids[$section['uuid']])) {
+                $errors["{$owner}.{$slug}.sections.{$i}.uuid"] = ["Duplicate section UUID (also in {$uuids[$section['uuid']]})."];
+            }
+            $uuids[$section['uuid']] = $slug;
+        }
+        unset($section);
+
+        return $clean;
     }
 
     private function writeCourse(array $data, bool $force, array &$report): void
@@ -309,5 +355,131 @@ final class ContentImporter
         $max = (int) Lesson::query()->where('course_chapter_id', $chapter->id)->where('position', '<', self::PARKING_OFFSET)->max('position');
 
         return $max + 1;
+    }
+
+    /**
+     * Imports blog posts from database/seeders/content/posts/*.php (F2, D55) with the lesson
+     * rules: everything validated before anything is written, posts edited in the admin skipped
+     * unless $force, section UUIDs from post slug + section key, and seed-owned posts that left
+     * the files archived, never deleted.
+     *
+     * @param  list<array<string, mixed>>  $posts  parsed content files
+     * @return array{posts: int, posts_written: int, skipped: list<string>, archived: list<string>}
+     *
+     * @throws ValidationException when any post or section is invalid; nothing is written
+     */
+    public function importPosts(array $posts, bool $force = false): array
+    {
+        $prepared = $this->preparePosts($posts);
+        $report = ['posts' => count($posts), 'posts_written' => 0, 'skipped' => [], 'archived' => []];
+
+        DB::transaction(function () use ($prepared, $force, &$report) {
+            $this->files->store();
+            $slugs = array_column($prepared, 'slug');
+            $existing = Post::query()->whereIn('slug', $slugs)->withExists('draft')->get()->keyBy('slug');
+
+            foreach ($prepared as $data) {
+                $current = $existing->get($data['slug']);
+                if ($current && ! $force && ($current->updated_by !== null || $current->draft_exists)) {
+                    $report['skipped'][] = $data['slug'];
+
+                    continue;
+                }
+
+                $post = Post::query()->updateOrCreate(['slug' => $data['slug']], [
+                    'title' => $data['title'],
+                    'summary' => $data['summary'],
+                    'cover' => $data['cover'],
+                    'tags' => $data['tags'],
+                    'estimated_minutes' => ReadingTime::minutes($data['sections']),
+                    'status' => LessonStatus::Published,
+                    'published_at' => $current?->published_at ?? $data['published_at'],
+                ]);
+                $this->sections->write($post, $data['sections']);
+                $report['posts_written']++;
+            }
+
+            $removed = Post::query()
+                ->whereNotIn('slug', $slugs)
+                ->where('status', LessonStatus::Published)
+                ->whereNull('updated_by')
+                ->whereNull('created_by')
+                ->get();
+            foreach ($removed as $post) {
+                $post->update(['status' => LessonStatus::Archived]);
+                $report['archived'][] = $post->slug;
+            }
+        });
+
+        return $report;
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function preparePosts(array $posts): array
+    {
+        $errors = [];
+        $seen = [];
+        $uuids = [];
+        $covers = [];
+
+        foreach ($posts as $pi => $post) {
+            $slug = is_string($post['slug'] ?? null) ? $post['slug'] : "#{$pi}";
+            $at = "posts.{$slug}";
+            preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $slug) && strlen($slug) <= 120 || $errors["{$at}.slug"][] = 'Use lowercase letters, numbers and single hyphens (at most 120).';
+            isset($seen[$slug]) && $errors["{$at}.slug"][] = 'Duplicate post slug.';
+            $seen[$slug] = true;
+            $title = trim((string) ($post['title'] ?? ''));
+            ($title !== '' && mb_strlen($title) <= 160) || $errors["{$at}.title"][] = 'A title of at most 160 characters is required.';
+            $summary = trim((string) ($post['summary'] ?? ''));
+            ($summary !== '' && mb_strlen($summary) <= 300) || $errors["{$at}.summary"][] = 'A summary of at most 300 characters is required.';
+            $tags = $post['tags'] ?? [];
+            $tagsOk = is_array($tags) && count($tags) <= 8 && count($tags) === count(array_unique($tags));
+            foreach ($tagsOk ? $tags : [] as $tag) {
+                $tagsOk = $tagsOk && is_string($tag) && strlen($tag) <= 30 && preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $tag);
+            }
+            $tagsOk || $errors["{$at}.tags"][] = 'At most 8 distinct tags, each lowercase letters, numbers and hyphens (at most 30).';
+            strtotime((string) ($post['published_at'] ?? '')) !== false || $errors["{$at}.published_at"][] = 'A publication date is required.';
+
+            $cover = $post['cover'] ?? null;
+            if (ContentFileMedia::isReference($cover)) {
+                $cover = $this->files->resolve($cover, "{$at}.cover", $errors);
+            } elseif ($cover !== null) {
+                is_string($cover) && Uuid::isValid($cover) ? $covers["{$at}.cover"] = strtolower($cover) : $errors["{$at}.cover"][] = 'A media UUID or an image file reference.';
+            }
+
+            $sections = $this->prepareSections('posts', $slug, $post['sections'] ?? [], self::postSectionUuid(...), Post::MAX_SECTIONS, $errors, $uuids);
+
+            $posts[$pi] = [
+                'slug' => $slug,
+                'title' => $title,
+                'summary' => $summary,
+                'tags' => is_array($tags) ? array_values($tags) : [],
+                'published_at' => $post['published_at'] ?? null,
+                'cover' => is_string($cover) ? strtolower($cover) : null,
+                'sections' => $sections ?? [],
+            ];
+        }
+
+        // Uploaded covers named by UUID must exist (file references are created on write).
+        $known = LessonMedia::query()->whereIn('uuid', array_values($covers))->pluck('uuid')->flip();
+        foreach ($covers as $key => $uuid) {
+            isset($known[$uuid]) || $errors[$key][] = "Unknown media {$uuid}.";
+        }
+
+        // Pinned UUIDs that already belong to a section of a different post.
+        $owners = PostSection::query()->join('posts', 'posts.id', '=', 'post_sections.post_id')
+            ->whereIn('post_sections.uuid', array_keys($uuids))
+            ->pluck('posts.slug', 'post_sections.uuid');
+        foreach ($owners as $uuid => $owner) {
+            if ($owner !== $uuids[$uuid]) {
+                $errors["posts.{$uuids[$uuid]}.sections"][] = "Section UUID {$uuid} belongs to post {$owner}.";
+            }
+        }
+
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+
+        return $posts;
     }
 }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * Loads learning content from database/seeders/content/*.php.
+ * Loads learning content and blog posts from database/seeders/content/*.php (posts in posts/*.php).
  *
  * Courses, chapters, lessons and sections go through the Content module's ContentImporter,
  * which validates every block with the BlockRegistry (the same rules as the admin console)
@@ -34,27 +34,28 @@ class ContentSeeder extends Seeder
         $courses = array_map(fn ($file) => require $file, glob("{$dir}/courses/*.php"));
         $topics = require "{$dir}/topics.php";
         $careers = require "{$dir}/careers.php";
+        $posts = array_map(fn ($file) => require $file, glob("{$dir}/posts/*.php"));
 
         $this->validate($domains, ContentImporter::lessonSlugs($courses), $topics, $careers);
 
-        $report = DB::transaction(function () use ($domains, $courses, $topics, $careers, $importer) {
+        [$report, $postReport] = DB::transaction(function () use ($domains, $courses, $topics, $careers, $posts, $importer) {
             $this->seedDomains($domains);
             $report = $importer->import($courses, $this->force);
             $this->seedTopics($topics);
             $this->seedCareers($careers);
 
-            return $report;
+            return [$report, $importer->importPosts($posts, $this->force)];
         });
 
         $this->command?->info(sprintf(
-            'Content: %d domains, %d courses (%d lessons written), %d topics, %d careers.',
-            count($domains), $report['courses'], $report['lessons_written'], count($topics), count($careers),
+            'Content: %d domains, %d courses (%d lessons written), %d topics, %d careers, %d posts (%d written).',
+            count($domains), $report['courses'], $report['lessons_written'], count($topics), count($careers), $postReport['posts'], $postReport['posts_written'],
         ));
-        if ($report['skipped']) {
-            $this->command?->warn('Skipped (edited in the admin; use content:import --force to overwrite): '.implode(', ', $report['skipped']));
+        if ($skipped = [...$report['skipped'], ...$postReport['skipped']]) {
+            $this->command?->warn('Skipped (edited in the admin; use content:import --force to overwrite): '.implode(', ', $skipped));
         }
-        if ($report['archived']) {
-            $this->command?->warn('Archived (no longer in the content files): '.implode(', ', $report['archived']));
+        if ($archived = [...$report['archived'], ...$postReport['archived']]) {
+            $this->command?->warn('Archived (no longer in the content files): '.implode(', ', $archived));
         }
         // Exercises point at the sections just written (D29).
         $this->call(ExerciseSeeder::class);

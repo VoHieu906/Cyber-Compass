@@ -10,9 +10,9 @@ use Illuminate\Http\JsonResponse;
 final class SearchController extends Controller
 {
     /**
-     * Search courses, lessons and careers.
+     * Search courses, lessons, careers and blog posts.
      *
-     * `q` is 2 to 100 characters. Returns `{query, courses, lessons, careers}`, at most five of
+     * `q` is 2 to 100 characters. Returns `{query, courses, lessons, careers, posts}`, at most five of
      * each; open to guests.
      */
     public function __invoke(SearchRequest $request, GlobalSearch $search): JsonResponse

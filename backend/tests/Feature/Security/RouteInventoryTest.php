@@ -24,6 +24,9 @@ const PUBLIC_API_ROUTES = [
     'GET api/v1/careers',
     'GET api/v1/careers/{slug}',
     'GET api/v1/search',
+    // The blog is public reading (F2).
+    'GET api/v1/posts',
+    'GET api/v1/posts/{slug}',
 ];
 
 /** Route-specific limiters on top of the general `api` limiter (120 a minute per user). */

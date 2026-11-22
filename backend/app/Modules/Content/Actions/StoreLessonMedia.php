@@ -32,25 +32,41 @@ final class StoreLessonMedia
 
     public function handle(User $actor, UploadedFile $file, string $alt): LessonMedia
     {
-        [$bytes, $width, $height] = $this->webp($file);
+        return $this->store((string) file_get_contents($file->getRealPath()), $alt, (string) Str::uuid(), null, $actor,
+            fn (LessonMedia $media) => $this->audit->record($actor, 'media.uploaded', 'media', $media->id, ['alt' => $alt]));
+    }
 
-        $uuid = (string) Str::uuid();
+    /**
+     * Stores an image from a content file (ARCHITECTURE D56) under the UUID the importer derived
+     * from its path and bytes, through the same re-encoding as uploads. Call inside the import
+     * transaction; a rolled-back import leaves only a file that the next import overwrites.
+     */
+    public function importFile(string $bytes, string $alt, string $uuid, string $source): LessonMedia
+    {
+        return $this->store($bytes, $alt, $uuid, $source, null);
+    }
+
+    private function store(string $original, string $alt, string $uuid, ?string $source, ?User $uploader, ?\Closure $audit = null): LessonMedia
+    {
+        [$bytes, $width, $height] = $this->webp($original);
+
         $path = "lesson-media/{$uuid}.webp";
         $disk = Storage::disk(config('cybercompass.uploads_disk'));
         $disk->put($path, $bytes, self::PUT_OPTIONS);
 
         try {
-            return DB::transaction(function () use ($actor, $uuid, $path, $alt, $width, $height, $bytes) {
+            return DB::transaction(function () use ($uuid, $path, $source, $alt, $width, $height, $bytes, $uploader, $audit) {
                 $media = LessonMedia::query()->create([
                     'uuid' => $uuid,
                     'path' => $path,
+                    'source' => $source,
                     'alt' => $alt,
                     'width' => $width,
                     'height' => $height,
                     'size_bytes' => strlen($bytes),
-                    'uploaded_by' => $actor->id,
+                    'uploaded_by' => $uploader?->id,
                 ]);
-                $this->audit->record($actor, 'media.uploaded', 'media', $media->id, ['alt' => $alt]);
+                $audit && $audit($media);
 
                 return $media;
             });
@@ -61,9 +77,9 @@ final class StoreLessonMedia
     }
 
     /** @return array{0: string, 1: int, 2: int} */
-    private function webp(UploadedFile $file): array
+    private function webp(string $original): array
     {
-        $source = @imagecreatefromstring((string) file_get_contents($file->getRealPath()));
+        $source = @imagecreatefromstring($original);
         if ($source === false) {
             throw ValidationException::withMessages(['image' => __('validation.image', ['attribute' => 'image'])]);
         }

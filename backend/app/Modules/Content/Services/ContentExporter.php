@@ -5,7 +5,11 @@ namespace App\Modules\Content\Services;
 use App\Enums\LessonStatus;
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\LessonMedia;
 use App\Models\LessonSection;
+use App\Models\Post;
+use App\Models\PostSection;
+use Illuminate\Support\Collection;
 
 /**
  * Writes a course's live content back to the content-file format the importer reads
@@ -20,6 +24,8 @@ use App\Models\LessonSection;
  *   [type, heading, payload]. Both are what ContentImporter::fromCompact reads.
  * - A section whose UUID is not the one the importer would derive (made in the admin console,
  *   or renamed since) carries 'uuid' explicitly, so re-importing never changes a section's UUID.
+ * - Images imported from a content file are written back as their file reference (D56).
+ * - exportPost() writes a blog post (database/seeders/content/posts/<slug>.php) the same way.
  */
 final class ContentExporter
 {
@@ -82,6 +88,7 @@ final class ContentExporter
     private function lesson(Lesson $lesson): array
     {
         $sections = $lesson->sections->values();
+        $this->loadMedia($sections);
         $keys = ContentImporter::sectionKeys($sections->map(fn (LessonSection $s) => [
             'type' => $s->type,
             'heading' => $s->heading,
@@ -96,7 +103,7 @@ final class ContentExporter
             'takeaways' => $lesson->key_takeaways ?? [],
             'resources' => array_map(fn ($r) => [$r['label'], $r['url']], $lesson->resources ?? []),
             'sections' => $sections->map(function (LessonSection $s, int $i) use ($lesson, $keys) {
-                $tuple = self::compact($s->type, $s->heading, $s->payload);
+                $tuple = self::compact($s->type, $s->heading, $this->withFileMedia($s->type, $s->payload));
                 if ($s->uuid !== ContentImporter::sectionUuid($lesson->slug, $keys[$i])) {
                     $tuple['uuid'] = $s->uuid;
                 }
@@ -104,6 +111,58 @@ final class ContentExporter
                 return $tuple;
             })->all(),
         ];
+    }
+
+    /** @return array{php: string, sections: int, has_draft: bool} */
+    public function exportPost(Post $post): array
+    {
+        $post->loadMissing('sections')->loadExists('draft');
+        $sections = $post->sections->values();
+        $this->loadMedia($sections, $post->cover);
+        $keys = ContentImporter::sectionKeys($sections->map(fn (PostSection $s) => ['type' => $s->type, 'heading' => $s->heading])->all());
+
+        $data = [
+            'slug' => $post->slug,
+            'title' => $post->title,
+            'summary' => $post->summary,
+            'tags' => $post->tags ?? [],
+            'published_at' => $post->published_at?->toDateString(),
+            'cover' => $post->cover ? ContentFileMedia::reference($this->media->get($post->cover), $post->cover) : null,
+            'sections' => $sections->map(function (PostSection $s, int $i) use ($post, $keys) {
+                $tuple = self::compact($s->type, $s->heading, $this->withFileMedia($s->type, $s->payload));
+                if ($s->uuid !== ContentImporter::postSectionUuid($post->slug, $keys[$i])) {
+                    $tuple['uuid'] = $s->uuid;
+                }
+
+                return $tuple;
+            })->all(),
+        ];
+
+        $php = "<?php\n\n// Exported from the database by `php artisan content:export {$post->slug} --post`.\n"
+            ."// Edit freely: `php artisan content:import` reads this file back.\n\nreturn "
+            .PhpArrayWriter::write($data).";\n";
+
+        return ['php' => $php, 'sections' => $sections->count(), 'has_draft' => (bool) $post->draft_exists];
+    }
+
+    /** @var Collection<string, LessonMedia> */
+    private Collection $media;
+
+    /** Loads the media rows the sections (and a cover) name, for withFileMedia(). */
+    private function loadMedia(Collection $sections, ?string $cover = null): void
+    {
+        $uuids = $sections->where('type', 'media')->pluck('payload.media')->push($cover)->filter()->all();
+        $this->media = LessonMedia::query()->whereIn('uuid', $uuids)->get()->keyBy('uuid');
+    }
+
+    /** A media block whose image came from a content file names the file again (D56). */
+    private function withFileMedia(string $type, array $payload): array
+    {
+        if ($type !== 'media' || ! isset($payload['media'])) {
+            return $payload;
+        }
+
+        return ['media' => ContentFileMedia::reference($this->media->get($payload['media']), $payload['media'])] + $payload;
     }
 
     /**

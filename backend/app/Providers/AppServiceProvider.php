@@ -6,10 +6,12 @@ use App\Models\AssessmentAttempt;
 use App\Models\ExerciseAttempt;
 use App\Models\Lab;
 use App\Models\Lesson;
+use App\Models\Post;
 use App\Models\User;
 use App\Modules\Admin\Policies\UserAdminPolicy;
 use App\Modules\Assessment\Events\AssessmentSubmitted;
 use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
+use App\Modules\Blog\Policies\PostPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
 use App\Modules\Content\Events\LessonPublished;
 use App\Modules\Content\Policies\LessonPolicy;
@@ -57,6 +59,7 @@ class AppServiceProvider extends ServiceProvider
         // Admin console: account management and content authoring (one admin role today, assumption A1).
         Gate::policy(User::class, UserAdminPolicy::class);
         Gate::policy(Lesson::class, LessonPolicy::class);
+        Gate::policy(Post::class, PostPolicy::class);
 
         // Learners' own records: another learner's attempt answers 404.
         Gate::policy(AssessmentAttempt::class, AssessmentAttemptPolicy::class);

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
 /** An uploaded lesson image (always WebP). Referenced from `media` blocks by its uuid. */
-#[Fillable(['uuid', 'path', 'alt', 'width', 'height', 'size_bytes', 'uploaded_by'])]
+#[Fillable(['uuid', 'path', 'source', 'alt', 'width', 'height', 'size_bytes', 'uploaded_by'])]
 class LessonMedia extends Model
 {
     protected $table = 'lesson_media';
