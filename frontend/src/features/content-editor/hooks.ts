@@ -6,6 +6,7 @@ import {
   createLesson,
   createPost,
   fetchBlockTypes,
+  fetchCourseGraph,
   fetchCourses,
   fetchLessons,
   fetchMedia,
@@ -18,7 +19,7 @@ import {
   uploadMedia,
   type DocumentApi,
 } from "./api";
-import type { AdminCourse, AdminLesson, AdminPost, LessonQuery, PostQuery } from "./types";
+import type { AdminCourse, AdminCourseGraph, AdminLesson, AdminPost, LessonQuery, PostQuery } from "./types";
 
 /** The block-document types the editor serves (D55). */
 const APIS = { lesson: lessonApi, post: postApi };
@@ -34,6 +35,7 @@ export const contentKeys = {
   revisions: (kind: DocKind, id: number) => ["admin", "content", "revisions", kind, id] as const,
   blockTypes: ["admin", "content", "block-types"] as const,
   courses: ["admin", "content", "courses"] as const,
+  courseGraph: (courseId: number) => ["admin", "content", "course-graph", courseId] as const,
   media: ["admin", "content", "media"] as const,
 };
 
@@ -160,6 +162,17 @@ export const useReorderChapters = () =>
   useCourseMutation(({ courseId, ids }: { courseId: number; ids: number[] }) => reorderChapters(courseId, ids));
 export const useReorderLessons = () =>
   useCourseMutation(({ chapterId, ids }: { chapterId: number; ids: number[] }) => reorderLessons(chapterId, ids));
+
+/** The course map panel (F3): the stored map, its lessons, issues and history. */
+export function useCourseGraph(courseId: number) {
+  return useQuery({ queryKey: contentKeys.courseGraph(courseId), queryFn: ({ signal }) => fetchCourseGraph(courseId, signal) });
+}
+
+/** Save or restore the course map; the panel gets the fresh state from the response. */
+export function useCourseGraphMutation<V>(courseId: number, fn: (variables: V) => Promise<AdminCourseGraph>) {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: fn, onSuccess: (data) => queryClient.setQueryData(contentKeys.courseGraph(courseId), data) });
+}
 
 export function usePosts(query: PostQuery) {
   return useQuery({

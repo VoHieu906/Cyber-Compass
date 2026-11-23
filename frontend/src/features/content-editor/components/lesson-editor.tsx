@@ -4,6 +4,7 @@ import { useId } from "react";
 import { controlClasses } from "@/components/ui/input";
 import { errorAt } from "../editor-state";
 import { useAdminCourses } from "../hooks";
+import { ArchitecturePanel } from "./architecture-panel";
 import { DocumentEditor, Labelled, type DetailsProps, type EditorAdapter } from "./document-editor";
 import { LessonPreview } from "./lesson-preview";
 import { ResourceListEditor, StringListEditor } from "./list-editors";
@@ -26,12 +27,13 @@ export function LessonEditor({ id }: { id: number }) {
   return <DocumentEditor adapter={lessonAdapter} id={id} />;
 }
 
-/** Metadata: where the lesson lives, its address and the reading frame around the blocks. */
+/** Metadata: where the lesson lives, its address, the reading frame around the blocks and its architecture (F3). */
 function LessonDetails({ copy, doc: lesson, errors, onChange, t }: DetailsProps<"lesson">) {
   const courses = useAdminCourses();
   const ids = { title: useId(), slug: useId(), chapter: useId(), minutes: useId(), summary: useId() };
 
   return (
+    <>
     <section aria-labelledby="details-heading" className="flex flex-col gap-5">
       <h2 id="details-heading" className="text-[length:var(--text-lg)]">
         {t("details")}
@@ -127,5 +129,7 @@ function LessonDetails({ copy, doc: lesson, errors, onChange, t }: DetailsProps<
       </div>
       <ResourceListEditor items={copy.resources} onChange={(resources) => onChange({ resources })} errors={errors} />
     </section>
+    <ArchitecturePanel copy={copy} lesson={lesson} errors={errors} onChange={onChange} />
+    </>
   );
 }

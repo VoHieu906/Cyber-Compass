@@ -12,6 +12,7 @@ import { useErrorMessage } from "@/features/auth/use-error-message";
 import { moveItem } from "../editor-state";
 import { useAdminCourses, useCreateChapter, useRenameChapter, useReorderChapters, useReorderLessons } from "../hooks";
 import type { AdminCourse } from "../types";
+import { CourseGraphPanel } from "./course-graph-panel";
 import { LessonStatusBadge, UnpublishedChip } from "./labels";
 import { RowControls } from "./list-editors";
 
@@ -165,6 +166,15 @@ function CourseOutline({ course }: { course: AdminCourse }) {
         </Button>
       </form>
       <p className="text-sm text-muted">{t("reorderNote")}</p>
+      <section aria-labelledby="course-map-heading" className="panel flex flex-col gap-4 p-4 sm:p-5">
+        <div className="flex flex-col gap-1">
+          <h2 id="course-map-heading" className="text-[length:var(--text-lg)]">
+            {t("map.title")}
+          </h2>
+          <p className="max-w-[60ch] text-sm">{t("map.intro")}</p>
+        </div>
+        <CourseGraphPanel courseId={course.id} />
+      </section>
     </div>
   );
 }

@@ -21,6 +21,8 @@ const BUDGETS: Record<string, { jsKb: number; api: number; signedIn?: boolean }>
   "/": { jsKb: 250, api: 2 },
   "/courses": { jsKb: 250, api: 4 },
   "/courses/networking-fundamentals": { jsKb: 250, api: 2 },
+  // With the test course map (F3): the overview is server-rendered, focus mode loads on first use.
+  "/courses/applied-cryptography": { jsKb: 250, api: 2 },
   "/careers/soc-analyst": { jsKb: 250, api: 2 },
   "/dashboard": { jsKb: 260, api: 10, signedIn: true },
   "/roadmap": { jsKb: 260, api: 5, signedIn: true },

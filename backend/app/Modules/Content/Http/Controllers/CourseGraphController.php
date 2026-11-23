@@ -22,7 +22,7 @@ final class CourseGraphController extends Controller
      * Course map for editing.
      *
      * The stored map (null when none), `lock_version` to send back (0 when none), every lesson of
-     * the course with its status and published problem and shape, the issues to look at
+     * the course with its status and published architecture (problem, shape), the issues to look at
      * (unplaced, unconnected, dangling, link_outside, no_problem) and the latest audited changes.
      */
     public function show(Course $course, CourseMap $map): JsonResponse
@@ -80,6 +80,8 @@ final class CourseGraphController extends Controller
                 'status' => $l->status->value,
                 'problem' => $l->architecture?->architecture['problem'] ?? null,
                 'shape' => $l->architecture?->architecture['shape'] ?? null,
+                // The published architecture, for the panel's live preview.
+                'architecture' => $l->architecture?->architecture,
             ]))->values(),
             'issues' => $map->issues($course, $row?->graph),
             'history' => AdminAuditLog::query()

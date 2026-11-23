@@ -13,6 +13,7 @@ const copy: WorkingCopy = {
   key_takeaways: [],
   resources: [],
   sections: [{ id: "x", type: "prose", heading: null, payload: { text: "Hi" } }],
+  architecture: null,
 };
 
 describe("server errors", () => {

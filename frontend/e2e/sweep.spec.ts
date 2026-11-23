@@ -103,6 +103,8 @@ test.describe("responsive and accessibility sweep", () => {
         "/",
         "/courses",
         "/courses/networking-fundamentals",
+        // The test course map (F3, installed by global setup).
+        "/courses/applied-cryptography",
         "/careers",
         "/careers/soc-analyst",
         "/blog",

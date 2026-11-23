@@ -73,6 +73,7 @@ const lesson: AdminLesson = {
   chapter: { id: 2, title: "Models" },
   topics: [],
   exercise_references: {},
+  architecture_issues: [],
   working_copy: {
     chapter_id: 2,
     slug: "osi-model",
@@ -83,6 +84,7 @@ const lesson: AdminLesson = {
     key_takeaways: [],
     resources: [],
     sections: [],
+    architecture: null,
   },
 };
 

@@ -1,8 +1,10 @@
 import type { Paginated } from "@/features/catalog/types";
 import { api, request } from "@/lib/api/client";
 import { lessonQueryToApi } from "./query-state";
+import type { CourseGraph } from "@/lib/graph/shapes/schemas";
 import type {
   AdminCourse,
+  AdminCourseGraph,
   AdminLesson,
   AdminLessonListItem,
   AdminPost,
@@ -77,6 +79,15 @@ export const reorderChapters = (courseId: number, chapterIds: number[]) =>
 
 export const reorderLessons = (chapterId: number, lessonIds: number[]) =>
   api.put<AdminCourse>(`${base}/chapters/${chapterId}/lessons/order`, { lesson_ids: lessonIds });
+
+export const fetchCourseGraph = (courseId: number, signal?: AbortSignal) =>
+  api.get<AdminCourseGraph>(`${base}/courses/${courseId}/graph`, { signal });
+
+export const saveCourseGraph = (courseId: number, graph: CourseGraph, lockVersion: number) =>
+  api.put<AdminCourseGraph>(`${base}/courses/${courseId}/graph`, { graph, lock_version: lockVersion });
+
+export const restoreCourseGraph = (courseId: number, entryId: number, side: "before" | "after", lockVersion: number) =>
+  api.post<AdminCourseGraph>(`${base}/courses/${courseId}/graph/restore/${entryId}`, { side, lock_version: lockVersion });
 
 export const fetchMedia = (signal?: AbortSignal) => request<Paginated<Media>>("GET", `${base}/media`, { signal });
 

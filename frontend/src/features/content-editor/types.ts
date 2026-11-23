@@ -1,6 +1,7 @@
 /** Content authoring API shapes (backend app/Modules/Content/Http/Resources). */
 
 import type { LessonSection } from "@/features/learning/types";
+import type { Architecture, CourseGraph, ShapeId } from "@/lib/graph/shapes/schemas";
 
 export type LessonStatus = "draft" | "published" | "archived";
 
@@ -51,6 +52,8 @@ export type WorkingCopy = {
   key_takeaways: string[];
   resources: Resource[];
   sections: EditorSection[];
+  /** The lesson's architecture (F3, D57), validated with these sections; null when none. */
+  architecture: Architecture | null;
 };
 
 export type AdminLesson = EditorDoc<WorkingCopy> & {
@@ -59,6 +62,19 @@ export type AdminLesson = EditorDoc<WorkingCopy> & {
   topics: { slug: string; title: string }[];
   /** Section id => exercise questions ("lesson/key") that point at it (D30): removing one is refused on publish. */
   exercise_references: Record<string, string[]>;
+  /** Lessons the architecture's parts link to that readers will not see (not live in this course). */
+  architecture_issues: string[];
+};
+
+/** The course map panel (GET /admin/content/courses/{id}/graph, F3, D58). */
+export type AdminCourseGraph = {
+  course: { id: number; slug: string; title: string };
+  graph: CourseGraph | null;
+  lock_version: number;
+  owned_by_admin: boolean;
+  lessons: { slug: string; title: string; status: LessonStatus; problem: string | null; shape: ShapeId | null; architecture: Architecture | null }[];
+  issues: { type: "unplaced" | "unconnected" | "dangling" | "link_outside" | "no_problem"; lesson: string; detail?: string }[];
+  history: { id: number; action: "course_graph.saved" | "course_graph.restored"; at: string | null; actor: string | null; has_before: boolean }[];
 };
 
 /** A blog post's working copy (F2). The reading time is computed by the API, never typed. */
