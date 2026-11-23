@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "hub",
+  "description": "A centre and its spokes: the first node is the centre. Checked after architecture.json; cross-references in MapSchemas.",
+  "type": "object",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [],
+        "additionalProperties": false,
+        "properties": {
+          "id": true,
+          "label": true,
+          "note": true,
+          "section": true,
+          "lesson": true
+        }
+      }
+    }
+  }
+}

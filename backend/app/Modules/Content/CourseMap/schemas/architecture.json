@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "architecture",
+  "description": "A lesson's architecture (F3, D57): the problem it solves and, when its knowledge has a shape, the sub-nodes in that shape. Every shape adds its own schema in shapes/<shape>.json; ids, edges, sections and lesson links are checked in MapSchemas.",
+  "type": "object",
+  "required": ["version", "problem", "shape", "nodes", "edges"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" }
+  },
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "problem": { "type": "string", "minLength": 1, "maxLength": 140 },
+    "shape": { "enum": [null, "layers", "onion", "stack", "queue", "pipeline", "cycle", "hub", "tree", "mesh", "matrix"] },
+    "rows": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 30 } },
+    "cols": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 30 } },
+    "nodes": {
+      "type": "array",
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "note": { "type": "string", "minLength": 1, "maxLength": 240 },
+          "section": { "type": "string", "format": "uuid" },
+          "lesson": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 120 },
+          "parent": { "$ref": "#/$defs/id" },
+          "x": { "type": "number", "minimum": 0, "maximum": 100 },
+          "y": { "type": "number", "minimum": 0, "maximum": 100 },
+          "cell": { "type": "array", "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }], "minItems": 2, "maxItems": 2 }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "$ref": "#/$defs/id" },
+          "to": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 24 }
+        }
+      }
+    }
+  }
+}

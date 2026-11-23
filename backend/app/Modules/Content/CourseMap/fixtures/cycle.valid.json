@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "problem": "A problem a cycle answers.",
+  "shape": "cycle",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Cycle part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Cycle part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Cycle part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Cycle part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Cycle part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Cycle part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Cycle part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Cycle part 8"
+    }
+  ],
+  "edges": []
+}

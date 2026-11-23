@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "problem": "",
+  "layout": "grid",
+  "placement": { "lesson-a": { "col": 9, "row": 0 } },
+  "edges": [{ "from": "lesson-a", "to": "lesson-b", "type": "depends-on" }]
+}

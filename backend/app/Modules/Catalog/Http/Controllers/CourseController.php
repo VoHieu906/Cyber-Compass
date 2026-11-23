@@ -31,7 +31,8 @@ final class CourseController extends Controller
     /**
      * Course detail.
      *
-     * Overview, objectives, skills, prerequisites, chapters with lessons, and related courses.
+     * Overview, objectives, skills, prerequisites, chapters with lessons, related courses, and the
+     * course map (`graph`, null when the course has none; F3).
      *
      * @unauthenticated
      */
@@ -45,6 +46,8 @@ final class CourseController extends Controller
                 'skills',
                 'prerequisites:id,slug,title',
                 'chapters.lessons' => fn ($q) => $q->published(),
+                'chapters.lessons.architecture',
+                'graph',
             ])
             ->withLessonStats()
             ->firstOrFail();

@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "problem": "A problem a tree answers.",
+  "shape": "tree",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Tree part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Tree part 2",
+      "parent": "n1"
+    },
+    {
+      "id": "n3",
+      "label": "Tree part 3",
+      "parent": "n1"
+    },
+    {
+      "id": "n4",
+      "label": "Tree part 4",
+      "parent": "n1"
+    },
+    {
+      "id": "n5",
+      "label": "Tree part 5",
+      "parent": "n3"
+    },
+    {
+      "id": "n6",
+      "label": "Tree part 6",
+      "parent": "n4"
+    },
+    {
+      "id": "n7",
+      "label": "Tree part 7",
+      "parent": "n2"
+    },
+    {
+      "id": "n8",
+      "label": "Tree part 8",
+      "parent": "n3"
+    },
+    {
+      "id": "n9",
+      "label": "Tree part 9",
+      "parent": "n4"
+    },
+    {
+      "id": "n10",
+      "label": "Tree part 10",
+      "parent": "n2"
+    },
+    {
+      "id": "n11",
+      "label": "Tree part 11",
+      "parent": "n3"
+    },
+    {
+      "id": "n12",
+      "label": "Tree part 12",
+      "parent": "n4"
+    }
+  ],
+  "edges": []
+}

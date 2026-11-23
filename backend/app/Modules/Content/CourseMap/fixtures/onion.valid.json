@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "problem": "A problem a onion answers.",
+  "shape": "onion",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Onion part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Onion part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Onion part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Onion part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Onion part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Onion part 6"
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "problem": "A problem a stack answers.",
+  "shape": "stack",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Stack part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Stack part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Stack part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Stack part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Stack part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Stack part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Stack part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Stack part 8"
+    }
+  ],
+  "edges": []
+}

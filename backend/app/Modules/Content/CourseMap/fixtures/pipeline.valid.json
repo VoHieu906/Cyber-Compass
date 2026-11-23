@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "problem": "A problem a pipeline answers.",
+  "shape": "pipeline",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Pipeline part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Pipeline part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Pipeline part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Pipeline part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Pipeline part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Pipeline part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Pipeline part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Pipeline part 8"
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "course-graph",
+  "description": "A course map (F3, D57): the course's big problem, how lessons are placed and how they relate. Lesson references and lanes are checked in MapSchemas.",
+  "type": "object",
+  "required": ["version", "problem", "layout", "edges"],
+  "additionalProperties": false,
+  "$defs": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 120 },
+    "lane": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,39}$" }
+  },
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "problem": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "layout": { "enum": ["auto", "manual"] },
+    "lanes": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/lane" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 30 }
+        }
+      }
+    },
+    "placement": {
+      "type": "object",
+      "maxProperties": 40,
+      "propertyNames": { "$ref": "#/$defs/slug" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["col", "row"],
+        "additionalProperties": false,
+        "properties": {
+          "col": { "type": "integer", "minimum": 0, "maximum": 7 },
+          "row": { "type": "integer", "minimum": 0, "maximum": 9 },
+          "lane": { "$ref": "#/$defs/lane" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "type"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "$ref": "#/$defs/slug" },
+          "to": { "$ref": "#/$defs/slug" },
+          "type": { "enum": ["requires", "builds-on", "feeds-into", "contrasts-with", "parallel-to"] },
+          "label": { "type": "string", "minLength": 1, "maxLength": 24 }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "version": 1,
+      "problem": "Keep an organisation's information safe enough for what it needs to do.",
+      "layout": "auto",
+      "edges": [{ "from": "cia-triad", "to": "threats-and-risk", "type": "builds-on" }]
+    }
+  ]
+}

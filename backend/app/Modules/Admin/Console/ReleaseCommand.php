@@ -8,7 +8,8 @@ use Illuminate\Console\Command;
 /**
  * One deployment step, run as a one-off ECS task from the api image before the services update
  * (ARCHITECTURE §8): the production preflight, the migrations, then the learning content
- * (courses, topics, careers, exercises, labs, the assessment bank; D19, D24, D29). It never seeds
+ * (courses, topics, careers, exercises, labs, the assessment bank; D19, D24, D29), then the
+ * course map health check as warnings (D60). It never seeds
  * the demo accounts. Every step is idempotent, so a failed release can simply be run again.
  *
  *   php artisan cybercompass:release
@@ -34,6 +35,9 @@ final class ReleaseCommand extends Command
         if ($this->call('db:seed', ['--class' => ContentSeeder::class, '--force' => true]) !== self::SUCCESS) {
             return self::FAILURE;
         }
+
+        // Course map health (F3, D60): reported, never a reason to stop a release.
+        $this->call('content:check-graphs', ['--warn-only' => true]);
 
         $this->info('Release complete.');
 

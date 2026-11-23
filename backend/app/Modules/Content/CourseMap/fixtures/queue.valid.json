@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "problem": "A problem a queue answers.",
+  "shape": "queue",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Queue part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Queue part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Queue part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Queue part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Queue part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Queue part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Queue part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Queue part 8"
+    }
+  ],
+  "edges": []
+}

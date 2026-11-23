@@ -43,7 +43,7 @@ abstract class JsonSchemaBlock implements BlockType
     /**
      * @return array<string, list<string>>
      */
-    protected static function validateAgainst(object $schema, mixed $payload): array
+    public static function validateAgainst(object $schema, mixed $payload): array
     {
         $validator = new Validator;
         $validator->setMaxErrors(20);
@@ -108,7 +108,7 @@ abstract class JsonSchemaBlock implements BlockType
         return implode(__(' or '), array_map(fn ($t) => $names[$t] ?? $t, (array) $expected));
     }
 
-    protected static function loadSchema(string $file): object
+    public static function loadSchema(string $file): object
     {
         $schema = json_decode((string) @file_get_contents($file));
         if (! $schema instanceof \stdClass) {

@@ -39,6 +39,16 @@ class Lesson extends Model implements BlockDocument
         return $this->hasOne(Exercise::class);
     }
 
+    /**
+     * The published architecture (F3, D57); drafts carry theirs in the snapshot.
+     *
+     * @return HasOne<LessonArchitecture, $this>
+     */
+    public function architecture(): HasOne
+    {
+        return $this->hasOne(LessonArchitecture::class);
+    }
+
     /** @return HasMany<LessonSection, $this> */
     public function sections(): HasMany
     {

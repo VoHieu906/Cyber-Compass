@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "problem": "Keep an organisation's information safe enough for what it needs to do.",
+  "layout": "manual",
+  "lanes": [{ "id": "people", "label": "People" }, { "id": "systems", "label": "Systems" }],
+  "placement": {
+    "lesson-a": { "col": 0, "row": 0, "lane": "people" },
+    "lesson-b": { "col": 1, "row": 0, "lane": "people" },
+    "lesson-c": { "col": 1, "row": 1, "lane": "systems" }
+  },
+  "edges": [
+    { "from": "lesson-a", "to": "lesson-b", "type": "builds-on" },
+    { "from": "lesson-a", "to": "lesson-c", "type": "requires", "label": "vocabulary" },
+    { "from": "lesson-b", "to": "lesson-c", "type": "parallel-to" }
+  ]
+}

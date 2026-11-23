@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "problem": "A problem a layers answers.",
+  "shape": "layers",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Layers part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Layers part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Layers part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Layers part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Layers part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Layers part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Layers part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Layers part 8"
+    }
+  ],
+  "edges": []
+}

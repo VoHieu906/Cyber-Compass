@@ -57,6 +57,12 @@ class ContentSeeder extends Seeder
         if ($archived = [...$report['archived'], ...$postReport['archived']]) {
             $this->command?->warn('Archived (no longer in the content files): '.implode(', ', $archived));
         }
+        if ($report['graphs_skipped']) {
+            $this->command?->warn('Course maps skipped (saved in the admin; use content:import --force to overwrite): '.implode(', ', $report['graphs_skipped']));
+        }
+        foreach ($report['warnings'] as $warning) {
+            $this->command?->warn("Course map: {$warning}");
+        }
         // Exercises point at the sections just written (D29).
         $this->call(ExerciseSeeder::class);
         $this->call(LabSeeder::class);

@@ -5,6 +5,7 @@ namespace App\Modules\Content\Http\Resources;
 use App\Models\Lesson;
 use App\Models\Topic;
 use App\Modules\Content\Actions\LessonLifecycle;
+use App\Modules\Content\CourseMap\CourseMap;
 use App\Modules\Content\Services\BlockSerializer;
 use App\Modules\Content\Services\LessonWorkingCopy;
 use App\Modules\Learning\Services\ExerciseReferences;
@@ -45,6 +46,8 @@ class AdminLessonResource extends JsonResource
             'can_delete' => app(LessonLifecycle::class)->canDelete($this->resource),
             // Sections exercise questions point at (D30): removing one is refused on publish, so the editor warns.
             'exercise_references' => (object) app(ExerciseReferences::class)->forLesson($this->id),
+            // Sub-node links readers will not see: the target is not live in this course (F3).
+            'architecture_issues' => CourseMap::hiddenLinks($working['architecture'] ?? null, $chapter->course_id),
             'working_copy' => [
                 ...collect($working)->except('sections')->all(),
                 'sections' => array_map(fn (array $s) => [

@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\Course;
+use App\Models\CourseGraph;
 use App\Models\Lesson;
+use App\Models\LessonArchitecture;
 use App\Models\User;
 use Database\Seeders\DemoUserSeeder;
 use Illuminate\Support\Facades\DB;
@@ -93,4 +96,25 @@ it('runs the same number of queries however much the learner has done', function
         ->and($user->learningActivities()->count())->toBeGreaterThanOrEqual(6);
 
     expect(measureAll())->toBe($before);
+});
+
+it('serves a course map in the same queries however big it is (F3)', function () {
+    $uri = '/api/v1/courses/networking-fundamentals';
+    $without = queriesFor($uri);
+
+    $course = Course::query()->where('slug', 'networking-fundamentals')->firstOrFail();
+    $lessons = $course->lessons()->with('sections:id,lesson_id,uuid')->get();
+    CourseGraph::query()->create(['course_id' => $course->id, 'graph' => [
+        'version' => 1, 'problem' => 'Move data between machines reliably.', 'layout' => 'auto',
+        'edges' => $lessons->skip(1)->values()->map(fn (Lesson $l, int $i) => ['from' => $lessons[$i]->slug, 'to' => $l->slug, 'type' => 'builds-on'])->all(),
+    ]]);
+    foreach ($lessons as $lesson) {
+        LessonArchitecture::query()->create(['lesson_id' => $lesson->id, 'architecture' => [
+            'version' => 1, 'problem' => 'A problem.', 'shape' => 'layers', 'edges' => [],
+            'nodes' => $lesson->sections->take(8)->values()->map(fn ($s, $i) => ['id' => "n{$i}", 'label' => 'Part', 'section' => $s->uuid])->all(),
+        ]]);
+    }
+
+    expect(queriesFor($uri))->toBe($without)->toBeLessThanOrEqual(QUERY_BUDGETS[$uri])
+        ->and(strlen($this->getJson($uri)->getContent()))->toBeLessThan(40_000);
 });

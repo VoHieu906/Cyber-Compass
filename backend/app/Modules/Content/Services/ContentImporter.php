@@ -5,6 +5,7 @@ namespace App\Modules\Content\Services;
 use App\Enums\LessonStatus;
 use App\Models\Course;
 use App\Models\CourseChapter;
+use App\Models\CourseGraph;
 use App\Models\Domain;
 use App\Models\Lesson;
 use App\Models\LessonMedia;
@@ -13,6 +14,9 @@ use App\Models\Post;
 use App\Models\PostSection;
 use App\Models\Skill;
 use App\Modules\Content\Blocks\BlockRegistry;
+use App\Modules\Content\CourseMap\ArchitectureWriter;
+use App\Modules\Content\CourseMap\CourseMap;
+use App\Modules\Content\CourseMap\MapSchemas;
 use App\Modules\Content\Documents\ReadingTime;
 use Closure;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +36,10 @@ use Ramsey\Uuid\Uuid;
  * - Once a lesson is edited in the admin console (updated_by set, or a pending draft exists),
  *   the database owns it and imports skip it, unless $force is true.
  * - Lessons removed from a content file are archived, not deleted, and never left live.
+ * - A course's `graph` and a lesson's `architecture` (F3, D57) are validated with everything
+ *   else. The architecture travels with its lesson (skipped with it). A graph an admin saved
+ *   (course_graphs.updated_by set) is skipped too unless $force (D58); a graph removed from
+ *   the file is removed when the file owns it. Unplaced or unconnected lessons are warnings.
  */
 final class ContentImporter
 {
@@ -51,14 +59,14 @@ final class ContentImporter
 
     /**
      * @param  list<array<string, mixed>>  $courses  parsed content files
-     * @return array{courses: int, lessons_written: int, skipped: list<string>, archived: list<string>}
+     * @return array{courses: int, lessons_written: int, skipped: list<string>, archived: list<string>, graphs_skipped: list<string>, warnings: list<string>}
      *
      * @throws ValidationException when any course, lesson or section is invalid; nothing is written
      */
     public function import(array $courses, bool $force = false): array
     {
         $prepared = $this->prepare($courses);
-        $report = ['courses' => count($courses), 'lessons_written' => 0, 'skipped' => [], 'archived' => []];
+        $report = ['courses' => count($courses), 'lessons_written' => 0, 'skipped' => [], 'archived' => [], 'graphs_skipped' => [], 'warnings' => self::mapWarnings($prepared)];
 
         DB::transaction(function () use ($prepared, $force, &$report) {
             $this->files->store();
@@ -178,6 +186,12 @@ final class ContentImporter
                 $errors["{$at}.prerequisites"][] = "Unknown course {$p}.";
             }
 
+            $courseLessons = self::lessonSlugs([$course]);
+            if (isset($course['graph'])) {
+                [$graphErrors, $courses[$ci]['graph']] = MapSchemas::courseGraph($course['graph'], $courseLessons, "{$at}.graph");
+                $errors += $graphErrors;
+            }
+
             foreach ($course['chapters'] as $chi => $chapter) {
                 foreach ($chapter['lessons'] as $li => $lesson) {
                     $slug = $lesson['slug'];
@@ -192,6 +206,7 @@ final class ContentImporter
                     }
 
                     $courses[$ci]['chapters'][$chi]['lessons'][$li]['sections'] = $clean;
+                    $courses[$ci]['chapters'][$chi]['lessons'][$li]['architecture'] = $this->prepareArchitecture($lesson, $clean, $courseLessons, $errors);
                 }
             }
         }
@@ -211,6 +226,65 @@ final class ContentImporter
         }
 
         return $courses;
+    }
+
+    /**
+     * A lesson's architecture from its content file: sub-nodes name sections by key (or UUID),
+     * and may link only to other lessons of the same course file.
+     *
+     * @param  list<array{uuid: string}>  $sections
+     * @param  list<string>  $courseLessons
+     * @param  array<string, list<string>>  $errors
+     * @return array<string, mixed>|null
+     */
+    private function prepareArchitecture(array $lesson, array $sections, array $courseLessons, array &$errors): ?array
+    {
+        $raw = $lesson['architecture'] ?? null;
+        if ($raw === null) {
+            return null;
+        }
+        $slug = $lesson['slug'];
+        $at = "lessons.{$slug}.architecture";
+        foreach (is_array($raw) ? ($raw['nodes'] ?? []) : [] as $i => $node) {
+            if (is_array($node) && is_string($node['section'] ?? null) && ! Uuid::isValid($node['section'])) {
+                $raw['nodes'][$i]['section'] = self::sectionUuid($slug, $node['section']);
+            }
+            $link = is_array($node) ? ($node['lesson'] ?? null) : null;
+            if (is_string($link) && ($link === $slug || ! in_array($link, $courseLessons, true))) {
+                $errors["{$at}.nodes.{$i}.lesson"][] = "Link to another lesson of this course, not {$link}.";
+            }
+        }
+        [$archErrors, $clean] = MapSchemas::architecture($raw, array_column($sections, 'uuid'), $at);
+        $errors += $archErrors;
+
+        return $clean;
+    }
+
+    /**
+     * Unplaced, unconnected and problem-less lessons of every course with a map: authors should
+     * look, but nothing is refused.
+     *
+     * @return list<string>
+     */
+    private static function mapWarnings(array $courses): array
+    {
+        $warnings = [];
+        foreach ($courses as $course) {
+            if (! isset($course['graph'])) {
+                continue;
+            }
+            $lessons = [];
+            foreach ($course['chapters'] as $chapter) {
+                foreach ($chapter['lessons'] as $lesson) {
+                    $lessons[$lesson['slug']] = $lesson['architecture'] ?? null;
+                }
+            }
+            foreach (CourseMap::findIssues($course['graph'], array_keys($lessons), $lessons) as $issue) {
+                $warnings[] = "{$course['slug']}: {$issue['type']} {$issue['lesson']}";
+            }
+        }
+
+        return $warnings;
     }
 
     /**
@@ -318,6 +392,7 @@ final class ContentImporter
                     'published_at' => $current?->published_at ?? $data['published_at'],
                 ]);
                 $this->sections->write($lesson, $l['sections']);
+                ArchitectureWriter::write($lesson, $l['architecture'] ?? null);
                 $report['lessons_written']++;
             }
         }
@@ -334,6 +409,32 @@ final class ContentImporter
             $lesson->update(['status' => LessonStatus::Archived]);
             $report['archived'][] = $lesson->slug;
         }
+
+        $this->writeGraph($course, $data['graph'] ?? null, $force, $report);
+    }
+
+    /** The file's map, unless an admin saved this course's map since (D58). */
+    private function writeGraph(Course $course, ?array $graph, bool $force, array &$report): void
+    {
+        $current = CourseGraph::query()->where('course_id', $course->id)->first();
+        if ($current?->updated_by !== null && ! $force) {
+            $report['graphs_skipped'][] = $course->slug;
+
+            return;
+        }
+        if ($graph === null) {
+            $current?->delete();
+
+            return;
+        }
+        if ($current?->graph == $graph) {
+            return;
+        }
+        CourseGraph::query()->updateOrCreate(['course_id' => $course->id], [
+            'graph' => $graph,
+            'lock_version' => ($current->lock_version ?? 0) + 1,
+            'updated_by' => null,
+        ]);
     }
 
     /**

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "matrix",
+  "description": "A small grid (2 or 3 columns, 1 to 4 rows); two columns compare two sides. Each node sits in its own cell [row, column]. Checked after architecture.json; cross-references in MapSchemas.",
+  "type": "object",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "cell"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": true,
+          "label": true,
+          "note": true,
+          "section": true,
+          "lesson": true,
+          "cell": true
+        }
+      }
+    },
+    "rows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 4
+    },
+    "cols": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3
+    }
+  },
+  "required": [
+    "rows",
+    "cols"
+  ]
+}

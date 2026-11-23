@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "queue",
+  "description": "A FIFO queue, the first node at the front (dequeued first) and the last at the back. Checked after architecture.json; cross-references in MapSchemas.",
+  "type": "object",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": [],
+        "additionalProperties": false,
+        "properties": {
+          "id": true,
+          "label": true,
+          "note": true,
+          "section": true,
+          "lesson": true
+        }
+      }
+    }
+  }
+}

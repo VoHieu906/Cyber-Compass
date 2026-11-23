@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "cycle",
+  "description": "A closed loop in order: the last node leads back to the first. Checked after architecture.json; cross-references in MapSchemas.",
+  "type": "object",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": [],
+        "additionalProperties": false,
+        "properties": {
+          "id": true,
+          "label": true,
+          "note": true,
+          "section": true,
+          "lesson": true
+        }
+      }
+    }
+  }
+}

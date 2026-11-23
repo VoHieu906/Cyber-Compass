@@ -6,13 +6,14 @@ use App\Enums\LessonStatus;
 use App\Models\Lesson;
 use App\Models\LessonRevision;
 use App\Models\User;
+use App\Modules\Content\CourseMap\ArchitectureWriter;
 use App\Modules\Content\Documents\DocumentPublisher;
 use App\Modules\Content\Events\LessonPublished;
 use App\Modules\Content\Services\LessonWorkingCopy;
 
 /**
  * Makes the working copy live in one transaction (the shared DocumentPublisher, D55): lesson
- * row, sections upserted by UUID, revision n+1, draft dropped. Also how an archived lesson
+ * row, its architecture (F3), sections upserted by UUID, revision n+1, draft dropped. Also how an archived lesson
  * comes back. The first publish raises LessonPublished.
  */
 final class PublishLesson
@@ -47,6 +48,7 @@ final class PublishLesson
                 $lesson->position = (int) Lesson::query()->where('course_chapter_id', $snapshot['chapter_id'])->max('position') + 1;
             }
             $lesson->save();
+            ArchitectureWriter::write($lesson, $snapshot['architecture'] ?? null);
         }, function () use ($lesson, $firstPublish) {
             if ($firstPublish) {
                 LessonPublished::dispatch($lesson);

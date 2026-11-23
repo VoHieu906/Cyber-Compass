@@ -2,6 +2,7 @@
 
 use App\Modules\Admin\Http\Middleware\EnsureAdmin;
 use App\Modules\Content\Http\Controllers\BlockTypeController;
+use App\Modules\Content\Http\Controllers\CourseGraphController;
 use App\Modules\Content\Http\Controllers\CourseStructureController;
 use App\Modules\Content\Http\Controllers\LessonAdminController;
 use App\Modules\Content\Http\Controllers\LessonRevisionController;
@@ -21,6 +22,12 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class, 'throttle:admin'])->prefi
         Route::put('courses/{course:id}/chapters/order', 'reorderChapters')->whereNumber('course')->name('chapters.order');
         Route::patch('chapters/{chapter}', 'updateChapter')->whereNumber('chapter')->name('chapters.update');
         Route::put('chapters/{chapter}/lessons/order', 'reorderLessons')->whereNumber('chapter')->name('lessons.order');
+    });
+
+    Route::controller(CourseGraphController::class)->prefix('courses/{course:id}/graph')->whereNumber('course')->name('graph.')->group(function () {
+        Route::get('/', 'show')->name('show');
+        Route::put('/', 'update')->name('update');
+        Route::post('restore/{entry}', 'restore')->whereNumber('entry')->name('restore');
     });
 
     Route::controller(LessonAdminController::class)->prefix('lessons')->name('lessons.')->group(function () {

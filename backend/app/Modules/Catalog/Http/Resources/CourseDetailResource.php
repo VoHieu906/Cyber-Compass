@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\CourseChapter;
 use App\Models\Lesson;
 use App\Models\Skill;
+use App\Modules\Content\CourseMap\CourseMap;
 use Illuminate\Http\Request;
 
 /**
@@ -36,6 +37,8 @@ class CourseDetailResource extends CourseSummaryResource
                 ])->values(),
             ])->values(),
             'related' => CourseSummaryResource::collection($this->whenLoaded('related')),
+            // Built from the lessons above, so it only ever names lessons learners may see (F3).
+            'graph' => app(CourseMap::class)->forLearners($this->resource),
         ];
     }
 }

@@ -25,6 +25,8 @@ use Illuminate\Support\Collection;
  * - A section whose UUID is not the one the importer would derive (made in the admin console,
  *   or renamed since) carries 'uuid' explicitly, so re-importing never changes a section's UUID.
  * - Images imported from a content file are written back as their file reference (D56).
+ * - The course map and each lesson's architecture (F3) are written too; a sub-node's section
+ *   is written as its section key when the UUID is the derived one, else as the UUID.
  * - exportPost() writes a blog post (database/seeders/content/posts/<slug>.php) the same way.
  */
 final class ContentExporter
@@ -43,7 +45,7 @@ final class ContentExporter
                 ->where('course_chapter_id', $chapter->id)
                 ->where('status', LessonStatus::Published)
                 ->withExists('draft')
-                ->with('sections')
+                ->with(['sections', 'architecture'])
                 ->orderBy('position')
                 ->get();
             if ($published->isEmpty()) {
@@ -76,6 +78,9 @@ final class ContentExporter
             'prerequisites' => $course->prerequisites->pluck('slug')->sort()->values()->all(),
             'chapters' => $chapters,
         ];
+        if ($graph = $course->graph()->first()?->graph) {
+            $data['graph'] = $graph;
+        }
 
         $php = "<?php\n\n// Exported from the database by `php artisan content:export {$course->slug}`.\n"
             ."// Edit freely: `php artisan content:import` reads this file back.\n\nreturn "
@@ -94,6 +99,20 @@ final class ContentExporter
             'heading' => $s->heading,
         ])->all());
 
+        $architecture = $lesson->architecture?->architecture;
+        if ($architecture !== null) {
+            $byUuid = [];
+            foreach ($sections as $i => $s) {
+                $byUuid[$s->uuid] = $s->uuid === ContentImporter::sectionUuid($lesson->slug, $keys[$i]) ? $keys[$i] : $s->uuid;
+            }
+            foreach ($architecture['nodes'] as &$node) {
+                if (isset($node['section'])) {
+                    $node['section'] = $byUuid[$node['section']] ?? $node['section'];
+                }
+            }
+            unset($node);
+        }
+
         return [
             'slug' => $lesson->slug,
             'title' => $lesson->title,
@@ -110,6 +129,7 @@ final class ContentExporter
 
                 return $tuple;
             })->all(),
+            ...($architecture !== null ? ['architecture' => $architecture] : []),
         ];
     }
 

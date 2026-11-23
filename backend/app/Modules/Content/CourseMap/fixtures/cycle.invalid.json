@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "problem": "Too small.",
+  "shape": "cycle",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Alone"
+    }
+  ],
+  "edges": []
+}

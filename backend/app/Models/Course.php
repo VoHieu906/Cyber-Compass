@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['domain_id', 'slug', 'title', 'summary', 'description', 'difficulty', 'thumbnail_path', 'objectives', 'is_published', 'published_at'])]
 class Course extends Model
@@ -25,6 +26,16 @@ class Course extends Model
     public function chapters(): HasMany
     {
         return $this->hasMany(CourseChapter::class)->orderBy('position');
+    }
+
+    /**
+     * The course map (F3, D57), if one was written.
+     *
+     * @return HasOne<CourseGraph, $this>
+     */
+    public function graph(): HasOne
+    {
+        return $this->hasOne(CourseGraph::class);
     }
 
     /** @return HasManyThrough<Lesson, CourseChapter, $this> */

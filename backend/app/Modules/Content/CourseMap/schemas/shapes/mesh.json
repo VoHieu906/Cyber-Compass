@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "mesh",
+  "description": "A free network: every node has a position (x, y from 0 to 100). Checked after architecture.json; cross-references in MapSchemas.",
+  "type": "object",
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": true,
+          "label": true,
+          "note": true,
+          "section": true,
+          "lesson": true,
+          "x": true,
+          "y": true
+        }
+      }
+    }
+  }
+}

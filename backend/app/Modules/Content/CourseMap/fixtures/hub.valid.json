@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "problem": "A problem a hub answers.",
+  "shape": "hub",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Hub part 1",
+      "note": "What this part does, in one or two sentences."
+    },
+    {
+      "id": "n2",
+      "label": "Hub part 2"
+    },
+    {
+      "id": "n3",
+      "label": "Hub part 3"
+    },
+    {
+      "id": "n4",
+      "label": "Hub part 4"
+    },
+    {
+      "id": "n5",
+      "label": "Hub part 5"
+    },
+    {
+      "id": "n6",
+      "label": "Hub part 6"
+    },
+    {
+      "id": "n7",
+      "label": "Hub part 7"
+    },
+    {
+      "id": "n8",
+      "label": "Hub part 8"
+    },
+    {
+      "id": "n9",
+      "label": "Hub part 9"
+    },
+    {
+      "id": "n10",
+      "label": "Hub part 10"
+    },
+    {
+      "id": "n11",
+      "label": "Hub part 11"
+    },
+    {
+      "id": "n12",
+      "label": "Hub part 12"
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "talks to"
+    }
+  ]
+}

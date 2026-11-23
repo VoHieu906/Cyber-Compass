@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "problem": "A problem a mesh answers.",
+  "shape": "mesh",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Mesh part 1",
+      "note": "What this part does, in one or two sentences.",
+      "x": 5,
+      "y": 10
+    },
+    {
+      "id": "n2",
+      "label": "Mesh part 2",
+      "x": 35,
+      "y": 10
+    },
+    {
+      "id": "n3",
+      "label": "Mesh part 3",
+      "x": 65,
+      "y": 10
+    },
+    {
+      "id": "n4",
+      "label": "Mesh part 4",
+      "x": 95,
+      "y": 10
+    },
+    {
+      "id": "n5",
+      "label": "Mesh part 5",
+      "x": 5,
+      "y": 50
+    },
+    {
+      "id": "n6",
+      "label": "Mesh part 6",
+      "x": 35,
+      "y": 50
+    },
+    {
+      "id": "n7",
+      "label": "Mesh part 7",
+      "x": 65,
+      "y": 50
+    },
+    {
+      "id": "n8",
+      "label": "Mesh part 8",
+      "x": 95,
+      "y": 50
+    },
+    {
+      "id": "n9",
+      "label": "Mesh part 9",
+      "x": 5,
+      "y": 90
+    },
+    {
+      "id": "n10",
+      "label": "Mesh part 10",
+      "x": 35,
+      "y": 90
+    },
+    {
+      "id": "n11",
+      "label": "Mesh part 11",
+      "x": 65,
+      "y": 90
+    },
+    {
+      "id": "n12",
+      "label": "Mesh part 12",
+      "x": 95,
+      "y": 90
+    }
+  ],
+  "edges": [
+    {
+      "from": "n1",
+      "to": "n2",
+      "label": "talks to"
+    }
+  ]
+}

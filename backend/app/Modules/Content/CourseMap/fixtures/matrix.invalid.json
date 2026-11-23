@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "problem": "Too small.",
+  "shape": "matrix",
+  "nodes": [
+    {
+      "id": "n1",
+      "label": "Alone"
+    }
+  ],
+  "edges": [],
+  "rows": [
+    "Only"
+  ],
+  "cols": [
+    "One"
+  ]
+}
