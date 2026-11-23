@@ -24,12 +24,15 @@ use App\Modules\Notifications\Listeners\NotifyLearner;
 use App\Modules\Progress\Events\MilestoneReached;
 use App\Modules\Progress\Listeners\CheckMilestones;
 use App\Modules\Progress\Listeners\RecordLearningActivity;
+use App\Support\Cache\RetryingDatabaseStore;
 use App\Support\Validation\MaxBytes;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Cache\CacheManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -42,6 +45,26 @@ class AppServiceProvider extends ServiceProvider
     {
         // The single source of lesson block types (ARCHITECTURE D17).
         $this->app->singleton(BlockRegistry::class, fn () => BlockRegistry::default());
+
+        // The database cache store (D6), built as Laravel builds it, retrying deadlocked writes
+        // (two requests of one user creating the same rate limiter row at once).
+        $this->app->booting(fn () => Cache::extend('database', function ($app, array $config) {
+            /** @var CacheManager $this */
+            $store = new RetryingDatabaseStore(
+                $app['db']->connection($config['connection'] ?? null),
+                $config['table'],
+                $this->getPrefix($config),
+                $config['lock_table'] ?? 'cache_locks',
+                $config['lock_lottery'] ?? [2, 100],
+                $config['lock_timeout'] ?? 86400,
+                $this->getSerializableClasses($config),
+            );
+
+            return $this->repository(
+                $store->setLockConnection($app['db']->connection($config['lock_connection'] ?? $config['connection'] ?? null)),
+                $config,
+            );
+        }));
     }
 
     public function boot(): void
