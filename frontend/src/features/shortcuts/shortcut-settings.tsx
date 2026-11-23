@@ -9,7 +9,7 @@ import { SettingsSection } from "@/features/profile/components/settings-section"
 import { ACTION_IDS, ACTIONS, bindingFromEvent, bindingsFor, findConflict, isMacPlatform, keyParts, refusal, type ActionId, type Binding, type ShortcutGroup } from "@/lib/shortcuts/registry";
 import { useNavPrefs } from "./prefs";
 
-const GROUPS: ShortcutGroup[] = ["general", "search", "editor", "compass"];
+const GROUPS: ShortcutGroup[] = ["general", "search", "editor", "compass", "courseMap"];
 const noop = () => () => {};
 
 function Keys({ binding, mac }: { binding: Binding; mac: boolean }) {
@@ -147,6 +147,7 @@ export function ShortcutSettings() {
             ) : null}
           </ul>
           {group === "compass" ? <p className="text-sm text-muted">{t("fixedNote")}</p> : null}
+          {group === "courseMap" ? <p className="text-sm text-muted">{t("courseMapNote")}</p> : null}
         </SettingsSection>
       ))}
       <div className="flex flex-col items-start gap-3">

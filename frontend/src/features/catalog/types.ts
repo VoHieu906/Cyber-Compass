@@ -1,3 +1,5 @@
+import type { CourseMapData } from "@/features/course-map/types";
+
 export type Difficulty = "beginner" | "intermediate" | "advanced";
 
 export type DomainRef = { slug: string; name: string };
@@ -30,6 +32,8 @@ export type CourseDetail = CourseSummary & {
     lessons: { slug: string; title: string; summary: string; estimated_minutes: number }[];
   }[];
   related: CourseSummary[];
+  /** The course map (F3), or null when the course has none. */
+  graph: CourseMapData | null;
 };
 
 export type LessonStatus = "not_started" | "started" | "completed";

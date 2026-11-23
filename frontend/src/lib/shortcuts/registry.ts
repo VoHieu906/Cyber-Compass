@@ -19,7 +19,7 @@ export type Binding = {
   meta?: boolean;
 };
 
-export type ShortcutGroup = "general" | "compass" | "search" | "editor";
+export type ShortcutGroup = "general" | "compass" | "search" | "editor" | "courseMap";
 
 export type ShortcutAction = {
   group: ShortcutGroup;
@@ -43,6 +43,12 @@ export const ACTIONS = {
   "compass.first": { group: "compass", defaults: [{ code: "Home" }], fixed: true },
   "compass.last": { group: "compass", defaults: [{ code: "End" }], fixed: true },
   "compass.close": { group: "compass", defaults: [{ code: "Escape" }], fixed: true },
+  "courseMap.forward": { group: "courseMap", defaults: [{ code: "ArrowRight" }], fixed: true },
+  "courseMap.backward": { group: "courseMap", defaults: [{ code: "ArrowLeft" }], fixed: true },
+  "courseMap.next": { group: "courseMap", defaults: [{ code: "ArrowDown" }], fixed: true },
+  "courseMap.previous": { group: "courseMap", defaults: [{ code: "ArrowUp" }], fixed: true },
+  "courseMap.open": { group: "courseMap", defaults: [{ code: "Enter" }, { code: "Space" }], fixed: true },
+  "courseMap.close": { group: "courseMap", defaults: [{ code: "Escape" }], fixed: true },
 } as const satisfies Record<string, ShortcutAction>;
 
 export type ActionId = keyof typeof ACTIONS;
@@ -60,6 +66,9 @@ export function bindingsFor(id: ActionId, overrides: Overrides | undefined): Bin
 }
 
 type KeyLike = Pick<KeyboardEvent, "code" | "key" | "ctrlKey" | "altKey" | "shiftKey" | "metaKey">;
+
+/** True when a key press is one of an action's bindings (for widget keys handled in place, like the course map's). */
+export const pressed = (e: KeyLike, id: ActionId, overrides?: Overrides) => bindingsFor(id, overrides).some((b) => matches(e, b));
 
 export function matches(e: KeyLike, b: Binding): boolean {
   if (b.key !== undefined) return e.key === b.key && !e.ctrlKey && !e.altKey && !e.metaKey;
@@ -108,10 +117,10 @@ export function sameBinding(a: Binding, b: Binding, isMac: boolean): boolean {
   return a.code === b.code && Boolean(a.alt) === Boolean(b.alt) && Boolean(a.shift) === Boolean(b.shift) && commandKeys(a, isMac) === commandKeys(b, isMac);
 }
 
-/** The rebindable action, other than `id`, that already uses `binding`; fixed menu keys only bind while the menu is open. */
+/** The rebindable action, other than `id`, that already uses `binding`; fixed keys only bind inside their widget (the compass, the course map). */
 export function findConflict(id: ActionId, binding: Binding, overrides: Overrides | undefined, isMac: boolean): ActionId | null {
   for (const other of ACTION_IDS) {
-    if (other === id || ACTIONS[other].group === "compass") continue;
+    if (other === id || "fixed" in ACTIONS[other]) continue;
     if (bindingsFor(other, overrides).some((b) => sameBinding(b, binding, isMac))) return other;
   }
   return null;

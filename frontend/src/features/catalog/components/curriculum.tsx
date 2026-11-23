@@ -8,7 +8,7 @@ import { useCourseProgress } from "../hooks";
 import type { CourseDetail, LessonStatus } from "../types";
 import { Duration } from "./labels";
 
-const statusIcon: Record<LessonStatus, typeof Check> = { completed: Check, started: CircleDot, not_started: Circle };
+export const statusIcon: Record<LessonStatus, typeof Check> = { completed: Check, started: CircleDot, not_started: Circle };
 
 /** Chapters and lessons. Signed-in learners also see each lesson's status, as an icon with text for screen readers. */
 export function Curriculum({ course }: { course: Pick<CourseDetail, "slug" | "chapters"> }) {

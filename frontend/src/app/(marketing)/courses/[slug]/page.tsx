@@ -8,6 +8,7 @@ import { CourseActions } from "@/features/catalog/components/course-actions";
 import { CourseCard } from "@/features/catalog/components/course-card";
 import { CourseThumbnail } from "@/features/catalog/components/course-thumbnail";
 import { Curriculum } from "@/features/catalog/components/curriculum";
+import { CourseMapSection } from "@/features/course-map/components/course-map-section";
 import { DifficultyChip, Duration } from "@/features/catalog/components/labels";
 import type { CourseDetail } from "@/features/catalog/types";
 import { serverGetOrNull } from "@/lib/api/server";
@@ -57,6 +58,8 @@ export default async function CoursePage({ params }: PageProps<"/courses/[slug]"
           </div>
         </div>
       </div>
+
+      <CourseMapSection map={course.graph} courseSlug={course.slug} courseTitle={course.title} />
 
       <div className="grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-[var(--gap-columns)]">
         <div className="flex flex-col gap-12">

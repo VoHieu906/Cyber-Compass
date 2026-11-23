@@ -37,6 +37,12 @@ export function DocumentLayout({
       box.scrollTop = item.offsetTop - box.clientHeight / 2;
     }
   }, [enhanced, reading]);
+  // A lesson loads after the page, so the browser's own jump to "#section" (course map links, F3) found nothing yet.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id && sections.some((s) => s.id === id)) document.getElementById(id)?.scrollIntoView?.({ block: "start" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, when the document first renders
+  }, []);
   useCompassPageItems(
     headed.map((s) => ({
       id: s.id,
