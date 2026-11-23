@@ -436,8 +436,8 @@ MD],
                                 ]],
                                 ['label' => 'First octet, 0x00', 'fields' => [
                                     ['label' => 'Rest of the octet', 'bits' => '000000', 'tone' => 'muted'],
-                                    ['label' => 'U/L: locally set', 'bits' => '0', 'tone' => 'accent'],
-                                    ['label' => 'I/G: group', 'bits' => '0', 'tone' => 'attn'],
+                                    ['label' => 'U/L 0: universal', 'bits' => '0', 'tone' => 'accent'],
+                                    ['label' => 'I/G 0: individual', 'bits' => '0', 'tone' => 'attn'],
                                 ]],
                             ],
                         ]],
@@ -767,7 +767,7 @@ sudo ip neigh flush dev eth0        # forget them all; they are relearned on use
 SH, 'bash'],
                         ['callout', 'ARP spoofing', 'ARP believes any reply, even one nobody asked for. An attacker on the same network can keep telling the victim "the gateway is at my MAC address" and telling the gateway the same about the victim, then sit in the middle of their traffic. Defences: switches that check ARP against DHCP records (Dynamic ARP Inspection with DHCP snooping), static entries for a few critical hosts, and encryption such as TLS, so a man in the middle sees only ciphertext.', 'warning'],
                         ['prose', 'IPv6 does it differently', <<<'MD'
-IPv6 has no ARP. **Neighbor Discovery** does the same job with ICMPv6 messages (neighbor solicitation and advertisement) sent to multicast addresses instead of a broadcast. The idea and the weakness are the same: forged advertisements can redirect traffic, and the defence is the same kind of switch inspection.
+IPv6 has no ARP. **Neighbor Discovery** does the same job with ICMPv6 messages: a neighbor solicitation sent to a multicast address (the target's solicited-node address) instead of a broadcast, answered by a unicast neighbor advertisement. The idea and the weakness are the same: forged advertisements can redirect traffic, and the defence is the same kind of switch inspection.
 MD],
                         ['knowledge-check', 'Check your understanding', [
                             'questions' => [
@@ -1244,7 +1244,7 @@ MD],
                                     'explanation' => 'Source port is part of the 4-tuple. The operating system gives each new connection its own client port.',
                                 ],
                                 [
-                                    'prompt' => 'A receiver sends `ack=1001` three times in a row. What does the sender conclude?',
+                                    'prompt' => 'After acknowledging up to byte 1001, a receiver sends three more duplicate acknowledgements, all `ack=1001`. What does the sender conclude?',
                                     'options' => [
                                         ['text' => 'The segment starting at byte 1001 was probably lost, so it resends it', 'correct' => true],
                                         ['text' => 'The connection is closing', 'correct' => false],
@@ -1280,7 +1280,7 @@ The **Internet Control Message Protocol** (ICMP) carries the network's own messa
 - **destination unreachable** (type 3): no route, host down, port closed, or "administratively prohibited" by a firewall
 - **time exceeded** (type 11): a packet's TTL reached zero at a router
 
-Blocking all ICMP makes networks harder to fix and can break things: path MTU discovery depends on "packet too big" messages, and IPv6 cannot work at all without ICMPv6.
+Blocking all ICMP makes networks harder to fix and can break things: path MTU discovery depends on "fragmentation needed" (IPv4) and "packet too big" (IPv6) messages, and IPv6 cannot work at all without ICMPv6.
 MD],
                         ['flow', 'Where does it break?', [
                             'direction' => 'down',
@@ -1487,7 +1487,7 @@ MD],
                                 ['label' => 'HTTP', 'values' => ['80', 'TCP', 'Web traffic in clear text']],
                                 ['label' => 'HTTPS', 'values' => ['443', 'TCP, and UDP for HTTP/3', 'HTTP inside TLS; HTTP/3 runs over QUIC on UDP']],
                                 ['label' => 'DNS', 'values' => ['53', 'UDP, and TCP for large answers', 'Encrypted variants: DNS over TLS on 853, DNS over HTTPS on 443']],
-                                ['label' => 'DHCP', 'values' => ['67 server, 68 client', 'UDP', 'Broadcast on the local network only']],
+                                ['label' => 'DHCP', 'values' => ['67 server, 68 client', 'UDP', 'Starts with a broadcast on the local network; a relay agent forwards it to a server on another subnet, and renewals are unicast']],
                                 ['label' => 'SSH', 'values' => ['22', 'TCP', 'Encrypted remote shell and file copy (scp, sftp)']],
                                 ['label' => 'SMTP', 'values' => ['25 between servers, 587 for clients', 'TCP', 'Email delivery; STARTTLS upgrades it to encrypted']],
                                 ['label' => 'IMAPS', 'values' => ['993', 'TCP', 'Reading email over TLS']],
@@ -1555,7 +1555,7 @@ SH, 'bash'],
                     ],
                     'sections' => [
                         ['prose', 'Ethernet over radio', <<<'MD'
-Wi-Fi (the IEEE 802.11 standards) carries frames with the same MAC addressing as Ethernet, but over radio in the 2.4, 5 and 6 GHz bands. A network announces its name, the **SSID**, and each access point radio has its own hardware address, the **BSSID**. A device joining a network first **associates** with an access point, then **authenticates**, then derives fresh **encryption keys** in a four-way handshake. Only then does it get an address from DHCP like any wired device.
+Wi-Fi (the IEEE 802.11 standards) carries frames with the same MAC addressing as Ethernet, but over radio in the 2.4, 5 and 6 GHz bands. A network announces its name, the **SSID**, and each access point radio has its own hardware address, the **BSSID**. A device joining a network **authenticates** (with WPA3, by proving it knows the password), **associates** with an access point, then derives fresh **encryption keys** in a four-way handshake. Only then does it get an address from DHCP like any wired device.
 MD],
                         ['layer-stack', 'Rings around your data', [
                             'layers' => [
