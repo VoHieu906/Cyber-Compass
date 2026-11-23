@@ -15,8 +15,8 @@ it('shows a career with responsibilities, skills, suggested courses and a staged
         ->assertJsonPath('data.domains.0.required_level', 3)
         ->assertJsonPath('data.suggested_courses.0.slug', 'web-security-foundations')
         ->assertJsonCount(3, 'data.roadmap.stages')
-        ->assertJsonPath('data.roadmap.stages.2.topics.0.slug', 'injection-attacks')
-        ->assertJsonPath('data.roadmap.stages.2.topics.0.requires', ['web-basics']);
+        ->assertJsonPath('data.roadmap.stages.2.topics.0.slug', 'routing-and-transport')
+        ->assertJsonPath('data.roadmap.stages.2.topics.0.requires', ['addressing-and-services', 'local-networks']);
 
     expect($response->json('data.responsibilities'))->toHaveCount(5);
 });

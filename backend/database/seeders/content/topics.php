@@ -20,6 +20,29 @@ return [
         'lessons' => ['ip-addressing', 'subnetting', 'dns-and-dhcp'],
         'requires' => ['networking-basics'],
     ],
+    // F4 (D62): lessons added to a course join new topics, never existing ones, so no learner's
+    // completed topic turns back into "in progress".
+    'local-networks' => [
+        'domain' => 'networking', 'level' => 1,
+        'title' => 'The local network',
+        'summary' => 'Network devices, encapsulation, Ethernet, switching and VLANs.',
+        'lessons' => ['network-devices-and-media', 'encapsulation-and-pdus', 'ethernet-and-mac-addresses', 'switching-and-the-mac-table', 'vlans'],
+        'requires' => ['networking-basics'],
+    ],
+    'routing-and-transport' => [
+        'domain' => 'networking', 'level' => 2,
+        'title' => 'Routing and transport',
+        'summary' => 'ARP, IPv6, routing, NAT, TCP and UDP in depth, and troubleshooting.',
+        'lessons' => ['arp', 'ipv6-essentials', 'routing-basics', 'nat-and-private-addresses', 'tcp-and-udp-in-depth', 'icmp-and-troubleshooting'],
+        'requires' => ['addressing-and-services', 'local-networks'],
+    ],
+    'network-visibility' => [
+        'domain' => 'networking', 'level' => 2,
+        'title' => 'Services and visibility',
+        'summary' => 'Application protocols, Wi-Fi security and packet capture.',
+        'lessons' => ['application-protocols', 'wifi-essentials', 'packet-capture-basics'],
+        'requires' => ['routing-and-transport'],
+    ],
     'linux-shell' => [
         'domain' => 'linux', 'level' => 1,
         'title' => 'Linux shell essentials',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Lesson;
 use App\Models\User;
 
 beforeEach(function () {
@@ -20,7 +21,7 @@ it('enrolls once and reports progress from the first lesson', function () {
         ->postJson('/api/v1/courses/networking-fundamentals/enroll')
         ->assertCreated()
         ->assertJsonPath('data.enrolled', true)
-        ->assertJsonPath('data.total_lessons', 6)
+        ->assertJsonPath('data.total_lessons', Lesson::query()->visibleToLearners()->whereHas('chapter.course', fn ($q) => $q->where('slug', 'networking-fundamentals'))->count())
         ->assertJsonPath('data.percent', 0)
         ->assertJsonPath('data.next_lesson.slug', 'intro-to-computer-networks')
         ->assertJsonPath('data.lessons.osi-model', 'not_started');

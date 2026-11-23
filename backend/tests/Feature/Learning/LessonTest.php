@@ -3,6 +3,7 @@
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\Exercise;
+use App\Models\Lesson;
 use App\Models\LessonProgress;
 use App\Models\User;
 
@@ -20,9 +21,9 @@ it('returns a lesson with typed sections, context and navigation', function () {
         ->assertOk()
         ->assertJsonPath('data.course.slug', 'networking-fundamentals')
         ->assertJsonPath('data.chapter.position', 1)
-        ->assertJsonPath('data.navigation.position', 2)
-        ->assertJsonPath('data.navigation.total', 6)
-        ->assertJsonPath('data.navigation.previous.slug', 'intro-to-computer-networks')
+        ->assertJsonPath('data.navigation.position', 3)
+        ->assertJsonPath('data.navigation.total', Lesson::query()->visibleToLearners()->whereHas('chapter.course', fn ($q) => $q->where('slug', 'networking-fundamentals'))->count())
+        ->assertJsonPath('data.navigation.previous.slug', 'network-devices-and-media')
         ->assertJsonPath('data.navigation.next.slug', 'tcp-ip-model')
         ->assertJsonPath('data.sections.1.type', 'layer-stack')
         ->assertJsonPath('data.sections.1.payload.layers.0.name', 'Application')
@@ -31,11 +32,11 @@ it('returns a lesson with typed sections, context and navigation', function () {
 
 it('crosses chapter boundaries in navigation', function () {
     $this->actingAs($this->user, 'web')
-        ->getJson('/api/v1/lessons/tcp-ip-model')
-        ->assertJsonPath('data.navigation.next.slug', 'ip-addressing');
+        ->getJson('/api/v1/lessons/encapsulation-and-pdus')
+        ->assertJsonPath('data.navigation.next.slug', 'ethernet-and-mac-addresses');
 
     $this->actingAs($this->user, 'web')
-        ->getJson('/api/v1/lessons/dns-and-dhcp')
+        ->getJson('/api/v1/lessons/packet-capture-basics')
         ->assertJsonPath('data.navigation.next', null);
 });
 

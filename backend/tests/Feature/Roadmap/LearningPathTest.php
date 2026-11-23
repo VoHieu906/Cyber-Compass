@@ -2,6 +2,7 @@
 
 use App\Models\Assessment;
 use App\Models\AssessmentOption;
+use App\Models\Career;
 use App\Models\LearningPath;
 use App\Models\Topic;
 use App\Models\User;
@@ -10,6 +11,7 @@ use App\Modules\Assessment\Actions\StartAttempt;
 use App\Modules\Assessment\Actions\SubmitAttempt;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -60,7 +62,7 @@ it('builds a roadmap from the goal alone, every topic required', function () {
     $data = $this->postJson('/api/v1/learning-path/generate')->assertCreated()->json('data');
 
     expect($data)->toMatchArray(['version' => 1, 'status' => 'active', 'career' => ['slug' => 'soc-analyst', 'title' => 'SOC Analyst'], 'assessment' => null, 'completion_percent' => 0, 'outdated' => []])
-        ->and($data['nodes'])->toHaveCount(9)
+        ->and($data['nodes'])->toHaveCount(DB::table('career_topics')->where('career_id', Career::query()->where('slug', 'soc-analyst')->value('id'))->count())
         ->and(collect($data['nodes'])->pluck('recommendation')->unique()->all())->toBe(['required'])
         ->and($data['nodes'][0]['reason'])->toBe(['key' => 'career', 'params' => ['career' => 'SOC Analyst']])
         ->and($data['edges'])->toContain(['from' => 'linux-shell', 'to' => 'linux-investigation'])
@@ -142,7 +144,7 @@ it('creates a new version on request, archives the old one and keeps progress', 
         ->assertJsonPath('data.0.version', 2)
         ->assertJsonPath('data.0.status', 'active')
         ->assertJsonPath('data.1.status', 'archived')
-        ->assertJsonPath('data.0.topic_count', 9);
+        ->assertJsonPath('data.0.topic_count', DB::table('career_topics')->where('career_id', Career::query()->where('slug', 'soc-analyst')->value('id'))->count());
 });
 
 it('allows only one active roadmap per learner at the database level', function () {

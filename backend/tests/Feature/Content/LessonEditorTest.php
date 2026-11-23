@@ -77,7 +77,7 @@ describe('reading', function () {
             ->assertJsonPath('data.0.last_edited_by', 'Ada Admin');
 
         $this->actingAs($this->admin, 'web')->getJson('/api/v1/admin/content/lessons?per_page=50&sort=course')
-            ->assertJsonPath('meta.total', 30);
+            ->assertJsonPath('meta.total', Lesson::query()->count());
         $this->actingAs($this->admin, 'web')->getJson('/api/v1/admin/content/lessons?q=tls')
             ->assertJsonPath('data.0.slug', 'tls-overview');
         $this->actingAs($this->admin, 'web')->getJson('/api/v1/admin/content/lessons?filter[status]=archived')

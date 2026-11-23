@@ -21,8 +21,8 @@ return [
         'skills' => ['core-protocols', 'ip-addressing', 'log-analysis', 'linux-cli', 'security-principles', 'security-frameworks', 'python-scripting'],
         'stages' => [
             ['security-principles', 'networking-basics', 'linux-shell'],
-            ['addressing-and-services', 'linux-investigation', 'os-internals'],
-            ['security-controls', 'python-scripting', 'web-basics'],
+            ['addressing-and-services', 'local-networks', 'linux-investigation', 'os-internals'],
+            ['routing-and-transport', 'security-controls', 'python-scripting', 'web-basics'],
         ],
     ],
     'security-engineer' => [
@@ -40,8 +40,8 @@ return [
         'skills' => ['ip-addressing', 'system-hardening', 'encryption', 'tls', 'security-frameworks', 'python-scripting'],
         'stages' => [
             ['security-principles', 'networking-basics', 'linux-shell'],
-            ['addressing-and-services', 'crypto-building-blocks', 'python-scripting', 'security-controls'],
-            ['server-hardening', 'tls'],
+            ['addressing-and-services', 'local-networks', 'crypto-building-blocks', 'python-scripting', 'security-controls'],
+            ['routing-and-transport', 'server-hardening', 'tls'],
         ],
     ],
     'penetration-tester' => [
@@ -59,8 +59,8 @@ return [
         'skills' => ['http-fundamentals', 'owasp-top-10', 'injection-prevention', 'core-protocols', 'linux-cli', 'python-scripting', 'privilege-model'],
         'stages' => [
             ['security-principles', 'networking-basics', 'linux-shell', 'python-scripting'],
-            ['addressing-and-services', 'web-basics', 'os-internals'],
-            ['injection-attacks', 'linux-investigation', 'crypto-building-blocks'],
+            ['addressing-and-services', 'local-networks', 'web-basics', 'os-internals'],
+            ['routing-and-transport', 'injection-attacks', 'linux-investigation', 'crypto-building-blocks'],
         ],
     ],
     'security-administrator' => [
@@ -78,8 +78,8 @@ return [
         'skills' => ['system-hardening', 'ssh-administration', 'patch-management', 'linux-permissions', 'linux-cli', 'ip-addressing'],
         'stages' => [
             ['linux-shell', 'networking-basics', 'security-principles'],
-            ['linux-investigation', 'addressing-and-services', 'os-internals', 'security-controls'],
-            ['server-hardening'],
+            ['linux-investigation', 'addressing-and-services', 'local-networks', 'os-internals', 'security-controls'],
+            ['routing-and-transport', 'server-hardening'],
         ],
     ],
     'incident-responder' => [
@@ -97,8 +97,8 @@ return [
         'skills' => ['log-analysis', 'process-memory', 'privilege-model', 'core-protocols', 'risk-management', 'python-scripting'],
         'stages' => [
             ['security-principles', 'networking-basics', 'linux-shell'],
-            ['os-internals', 'linux-investigation', 'addressing-and-services'],
-            ['security-controls', 'python-scripting'],
+            ['os-internals', 'linux-investigation', 'addressing-and-services', 'local-networks'],
+            ['routing-and-transport', 'security-controls', 'python-scripting'],
         ],
     ],
     'digital-forensics-analyst' => [
@@ -135,8 +135,8 @@ return [
         'skills' => ['ip-addressing', 'encryption', 'tls', 'system-hardening', 'http-fundamentals', 'security-frameworks'],
         'stages' => [
             ['security-principles', 'networking-basics', 'linux-shell'],
-            ['addressing-and-services', 'crypto-building-blocks', 'web-basics', 'security-controls'],
-            ['tls', 'server-hardening'],
+            ['addressing-and-services', 'local-networks', 'crypto-building-blocks', 'web-basics', 'security-controls'],
+            ['routing-and-transport', 'tls', 'server-hardening'],
         ],
     ],
 ];

@@ -186,8 +186,8 @@ it('reports completion for each enrolled course', function () {
         ->assertJsonPath('data.0.slug', 'networking-fundamentals')
         ->assertJsonPath('data.0.domain.slug', 'networking')
         ->assertJsonPath('data.0.completed_lessons', 1)
-        ->assertJsonPath('data.0.total_lessons', 6)
-        ->assertJsonPath('data.0.percent', 16)
+        ->assertJsonPath('data.0.total_lessons', $total = Lesson::query()->visibleToLearners()->whereHas('chapter.course', fn ($q) => $q->where('slug', 'networking-fundamentals'))->count())
+        ->assertJsonPath('data.0.percent', intdiv(100, $total))
         ->assertJsonPath('data.0.completed_at', null);
 });
 

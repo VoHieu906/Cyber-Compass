@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Lesson;
 use App\Models\User;
 
 /*
@@ -41,7 +42,7 @@ it('lets admins in', function () {
     $this->actingAs($admin, 'web')->getJson('/api/v1/admin/overview')
         ->assertOk()
         ->assertJsonPath('data.users.admins', 1)
-        ->assertJsonPath('data.lessons.published', 30)
+        ->assertJsonPath('data.lessons.published', Lesson::query()->where('status', 'published')->count())
         ->assertJsonPath('data.lessons.draft', 0);
 });
 

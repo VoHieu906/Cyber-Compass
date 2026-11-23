@@ -38,8 +38,10 @@ it('makes every template topic required, in template order, without an assessmen
         '1 networking-basics required career',
         '1 linux-shell required career',
         '2 addressing-and-services required career',
+        '2 local-networks required career',
         '2 linux-investigation required career',
         '2 os-internals required career',
+        '3 routing-and-transport required career',
         '3 security-controls required career',
         '3 python-scripting required career',
         '3 web-basics required career',
@@ -66,18 +68,19 @@ it('inserts foundations of a gap domain before the topic that needs them, prereq
     $topic->lessons()->attach(Lesson::query()->where('slug', 'dns-and-dhcp')->value('id'), ['position' => 1, 'is_required' => true]);
     $career = careerWith(['network-forensics']);
 
-    // networking-basics and addressing-and-services are the level-1 networking topics;
-    // addressing-and-services requires networking-basics.
+    // networking-basics, addressing-and-services and local-networks are the level-1 networking
+    // topics; the other two require networking-basics.
     expect(planFor($career, ['networking' => 39]))->toBe([
         '1 networking-basics required foundation',
         '1 addressing-and-services required foundation',
+        '1 local-networks required foundation',
         '1 network-forensics required gap',
     ]);
 
     $nodes = app(RoadmapGenerator::class)->plan($career, ['networking' => 39]);
     expect($nodes[0]['reason_params'])->toEqual(['topic' => 'Network forensics', 'domain' => 'Networking'])
-        ->and($nodes[2]['reason_params'])->toEqual(['domain' => 'Networking', 'score' => 39])
-        ->and(array_column($nodes, 'position'))->toBe([1, 2, 3]);
+        ->and($nodes[3]['reason_params'])->toEqual(['domain' => 'Networking', 'score' => 39])
+        ->and(array_column($nodes, 'position'))->toBe([1, 2, 3, 4]);
 });
 
 it('does not insert anything for a gap in a foundation-level topic', function () {
