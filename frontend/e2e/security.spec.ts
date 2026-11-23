@@ -66,7 +66,7 @@ test.describe("content security policy", () => {
   test("the admin lesson editor and its live preview run under the policy", async ({ page }) => {
     const violations = await watchViolations(page);
     await login(page, account("admin"));
-    await page.goto("/admin/lessons");
+    await page.goto("/admin/lessons?q=Introduction");
     await page.getByRole("main").getByRole("link", { name: /Introduction to computer networks/i }).first().click();
     await expect(page).toHaveURL(/\/admin\/lessons\/\d+$/);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();

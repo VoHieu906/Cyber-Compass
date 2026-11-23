@@ -529,6 +529,7 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
   - **Seeded totals now derived from the data:** published lessons, the admin lesson list, the course's lesson count and percent, and the SOC Analyst topic count.
   - **Navigation:** `osi-model` is third now; chapter 1 ends at `encapsulation-and-pdus`, and the course ends at `packet-capture-basics`.
   - **Career and generator specs:** they list the new template topics. `local-networks` is now a level-1 networking foundation, so a networking gap inserts it too, as the D62 rule intends.
+- **CI found one more thing:** two admin end-to-end specs expected a lesson on the first page of the admin lesson list, which now holds 44 lessons; they search for it instead (`?q=`). Full Playwright suite: 33 of 33.
 - **Browser check** (Edge, dev server, a throwaway learner): all 14 new lessons at 1280 in light and 390 in dark render every block, with no unavailable notice, no page overflow and no console errors (28 of 28). The first run tripped the API's 120-requests-a-minute limit by loading 14 lessons back to back; the affected lesson passed alone.
 
 **Deploy notes (Part A):**

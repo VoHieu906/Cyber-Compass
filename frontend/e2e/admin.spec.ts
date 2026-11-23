@@ -17,7 +17,8 @@ test.describe("admin console", () => {
     await page.getByRole("main").getByRole("searchbox").fill(learner.email);
     await expect(page.getByRole("main").getByText(learner.email)).toBeVisible();
 
-    await page.goto("/admin/lessons");
+    // Search rather than rely on list order: the list holds every lesson (44 after F4).
+    await page.goto("/admin/lessons?q=OSI");
     await expect(
       page
         .getByRole("main")
