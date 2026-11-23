@@ -248,6 +248,19 @@ Sub-nodes (2 to 12, fewer for some shapes) have an `id`, a short `label` (up to 
 - **Adding a shape.** One entry in `MapSchemas::SHAPES`, `Content/CourseMap/schemas/shapes/<shape>.json`, `<shape>.valid.json` and `<shape>.invalid.json` in `Content/CourseMap/fixtures` (the valid one at the shape's maximum size), the shape's layout (`layouts.ts`), glyph (`glyphs.ts`) and height rule (`sizes.ts`) in `frontend/src/lib/graph/shapes`, its entry in `SHAPES` and `SHAPE_LIMITS` (`schemas.ts`), its name and meaning in the `courseMap.shapes` and `courseMap.shapeHelp` messages (en and vi), and a row in the table above. Pest and Vitest both fail until every shape has its schema and fixtures.
 - **Changing a shape's schema.** Bump `MapVersions::CURRENT` and add a step that turns the old version into the new one. Content files, drafts, revisions and admin saves are upgraded as they are read; run `php artisan content:check-graphs --upgrade` once after deploying to rewrite the stored rows, then update the content files (an export does it).
 
+## 4e. Expanding a course
+
+How Networking Fundamentals grew from 6 to 20 lessons (F4). A request can say "expand course X following the guide".
+
+1. **Propose first, write after approval.** Send a table, chapter → lesson → the one problem it solves → shape and why → main blocks → minutes, plus the course's big problem, a sketch of the Course map (typed relations, lanes, where lessons converge), the overlap check and the impact findings (CLAUDE.md §5).
+2. **Existing lessons are stable.** Never change a slug or a section heading: section identities come from them, and exercises point at sections (D30). Appending sections and editing text are fine. Check first that no existing lesson or the course map is admin-owned (D19, D58); if one is, ask before `--force`.
+3. **Overlap check.** Search the other course files, `labs.php` and the blog posts. Teach only the angle this course needs and name the owning lesson, lab or post (by title and path; prose links must be `https://`).
+4. **Topics (D62).** New lessons join new topics with the right prerequisites, never existing ones. Add the new topics to the careers that rate the domain, after their prerequisites. Say in the course description that course completion now counts the new lessons.
+5. **Exercises.** Say which new lessons would benefit and the effort; the owner decides whether they ship with the expansion or later.
+6. **Course map and architectures.** An architecture for every lesson whose knowledge has a real shape (`null` otherwise, §4d); keep the map's relations and placement current.
+7. **Tests to update.** Anything that counts the course's lessons or minutes, navigation (first, last, chapter boundaries), career templates and the roadmap generator's specs. Derive counts from the data where the test is about behaviour.
+8. **Report.** The chapter → lesson → problem → shape → blocks → minutes table, the course's total time, map screenshots (overview and focus states), every overlap decision, and the effect on existing learners.
+
 ## 5. Before you publish
 
 - [ ] The lesson reads well with every visual skipped.

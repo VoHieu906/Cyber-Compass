@@ -16,6 +16,7 @@ flowchart LR
   F1 --> F2[F2 Blog]
   F2 --> F3[F3 Course map]
   F3 --> F4[F4 Networking Fundamentals, expanded]
+  F4 --> F5[F5 Networking exercises, planned]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -498,6 +499,44 @@ A map at the top of every course page: each lesson node solves one problem, and 
 - Budgets: done (above). No new dependency.
 - Production parity: done. The full Playwright suite with budgets enforced passes on `docker-compose.prod.yml` (production images rebuilt from c97a519): 33 of 33, `/courses/[slug]` at 199 KB of JavaScript and 1 API request. CI is green on 22f2b6e and c97a519.
 - Docs: no change to DEPLOYMENT_AWS.md.
+- Owner action when deploying: nothing.
+
+### F4: Networking Fundamentals, expanded (in progress, 2026-11-24)
+
+Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-confident course of 20 lessons in 5 chapters (335 minutes), mainly so its Course map has real structure: parallel tracks, converging branches, contrasts and every architecture shape. Part C adds rule-based Course map suggestions for admins. Decisions D61 and D62 (D63 with Part C).
+
+**Proposal and impact check (CLAUDE.md §5, 2026-11-23), answered by the owner on 2026-11-24:**
+- **Outline approved with two changes:** `arp` moves to chapter 3 right after `ip-addressing` (it requires it) and into the `routing-and-transport` topic; `tcp-and-udp-in-depth` uses its own sequence for acknowledgements and retransmission instead of repeating the handshake.
+- **Conflict, decided (D61):** the F3 renderer would draw a 20-lesson map about 500px wider than its box at 1280. Narrower nodes plus a goal band under the lessons when the map would not fit (Part B).
+- **Conflict, decided (D62):** new lessons join three new topics (`local-networks`, `routing-and-transport`, `network-visibility`); the two core ones join the six careers that rate networking 2. Existing topics, statuses and roadmaps are untouched; course and domain completion count the new lessons, which the course description says.
+- **Overlap with other courses, handled by linking:** HTTP (Web Security Foundations, the shop-session lab), TLS (Applied Cryptography), host firewalls (System Hardening, the firewall lab), container networking (the Docker blog post), SSH (System Hardening). Inside the course, the TCP-vs-UDP comparison and the IPv6 paragraph stay as overviews and the new lessons go deeper.
+- **Shift:** graded exercises for the new lessons move to F5.
+- **Ownership:** all six existing lessons were seed-owned with no drafts and the course had no map, so the import needs no `--force` (checked locally; production cannot be checked from here).
+
+**Parts:**
+- **Part A:** the 14 new lessons and the chapter restructure in the course file; topics and careers.
+- **Part B:** an architecture for every lesson, the Course map data, and the D61 renderer change.
+- **Part C:** Course map suggestions for admins (extends F3).
+
+**Part A exit, verified (2026-11-24):**
+- **Delivered:**
+  - **Course file:** `networking-fundamentals.php` now has 20 lessons in 5 chapters. The six existing lessons are copied byte for byte: slugs, headings, sections and section UUIDs are unchanged, and all 54 exercise questions still resolve to their sections. The course summary, description (with the 6-to-20 note) and objectives are rewritten.
+  - **14 new lessons:** each has a summary, objectives, takeaways, resources, at least one knowledge check and the blocks from the approved outline. Commands are iproute2 and current tools (`ip`, `ss`, `tracepath`, `nft`, `bridge`, `iw`, `nmcli`); addresses come from documentation ranges.
+  - **Topics:** `local-networks` (level 1), `routing-and-transport` and `network-visibility` (level 2).
+  - **Careers:** soc-analyst, security-engineer, penetration-tester, security-administrator, incident-responder and cloud-security-engineer gain `local-networks` in the stage with addressing-and-services and `routing-and-transport` in the stage after it.
+- **Import:** clean. Two imports in a row leave identical content (a hash of every lesson's sections is the same), and the course's export round trip passes in `ContentExportTest`. `content:check-graphs` reports 0 errors.
+- **Tests:** 785 Pest, unchanged in number; 11 existing tests updated.
+  - **Seeded totals now derived from the data:** published lessons, the admin lesson list, the course's lesson count and percent, and the SOC Analyst topic count.
+  - **Navigation:** `osi-model` is third now; chapter 1 ends at `encapsulation-and-pdus`, and the course ends at `packet-capture-basics`.
+  - **Career and generator specs:** they list the new template topics. `local-networks` is now a level-1 networking foundation, so a networking gap inserts it too, as the D62 rule intends.
+- **Browser check** (Edge, dev server, a throwaway learner): all 14 new lessons at 1280 in light and 390 in dark render every block, with no unavailable notice, no page overflow and no console errors (28 of 28). The first run tripped the API's 120-requests-a-minute limit by loading 14 lessons back to back; the affected lesson passed alone.
+
+**Deploy notes (Part A):**
+- Migrations: not applicable (content only).
+- Release task: done. `cybercompass:release` imports the course, the topics and the careers like any content change; an admin-edited lesson would be skipped (D19), not overwritten.
+- Configuration, edge, storage and jobs: not applicable.
+- Budgets: the course page budgets are checked in Part B, with the map.
+- Production parity: not yet; checked at the end of F4.
 - Owner action when deploying: nothing.
 
 ## Follow-ups (not scheduled in a phase)
