@@ -53,7 +53,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Health** (D60): `content:check-graphs`, run by `cybercompass:release` after the import as warnings and in CI through Pest.
 - **Shapes:** 10, listed in `MapSchemas::SHAPES`; adding one is described in CONTENT_AUTHORING_GUIDE §4d.
 - **Renderer** (Part B, DESIGN_SYSTEM "Course map"):
-  - `features/course-map`: `layout.ts` holds the pure rules (placement, focus room, related and dimmed, keys); `CourseMap` draws; `FocusPanel` loads on first use; `ArchitectureView` is shared with the admin preview.
+  - `features/course-map`: `layout.ts` holds the pure rules (placement, focus room, related and dimmed, keys); `CourseMap` draws, and the focused lesson's node grows in place (`layoutGrid` per-item size); `ExpandedLesson` (its inside) loads on first use; `ArchitectureView` is shared with the admin preview.
   - The shapes are in `lib/graph/shapes`. Keep `sizes.ts` and `glyphs.ts` free of the layouts, so the overview bundle stays small.
 - **Admin panels:** `ArchitecturePanel`, inside the lesson details, and `CourseGraphPanel`, on `/admin/courses`.
 - **Testing:** `cybercompass:e2e-course-map install|remove` (local and testing only) gives a test map on Applied Cryptography. Playwright installs it in global setup and removes it in teardown. After installing by hand, the public course page can show the old version for up to 60 seconds.

@@ -10,23 +10,19 @@ import { goTo, useCompassPageItems } from "@/features/compass/page-items";
 import { SHAPE_BOX, fitBox } from "@/lib/graph/shapes/sizes";
 import { pressed } from "@/lib/shortcuts/registry";
 import { cn } from "@/lib/utils";
-import { GOAL, layoutCourseMap, moveFrom, nodeState, type NodeState } from "../layout";
+import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
+import { GOAL, NODE, expandedSize, layoutCourseMap, moveFrom, nodeState, type NodeState } from "../layout";
 import type { CourseMapData, MapEdge } from "../types";
 import { EdgeLegend, EDGE_STYLE, EdgeMarkers } from "./edge-style";
 import { ShapeGlyph } from "./shape-glyph";
 
-const FocusPanel = dynamic(() => import("./focus-panel"), {
-  ssr: false,
-  loading: () => <div className="h-full rounded-card border border-accent bg-paper-2" />,
-});
+const ExpandedLesson = dynamic(() => import("./expanded-lesson"), { ssr: false });
 
-/** The panel around a shape: its header, the shape's box and the detail strip below it. */
-const panelFor = (box: { width: number; height: number }) => ({ width: box.width + 26, height: box.height + 200 });
 
 /**
  * The course map (F3, D57 to D59): lessons as real buttons over static SVG relations, the goal
- * they all contribute to, and a focus mode where the chosen lesson expands into its architecture
- * while everything below moves out of the way. One tab stop; arrow keys follow the relations
+ * they all contribute to, and a focus mode where the chosen lesson's own node grows in place into
+ * its architecture while the other nodes reflow around it (no zoom, no panel). One tab stop; arrow keys follow the relations
  * (lib/shortcuts `courseMap.*`), Enter opens, Escape returns focus to the lesson it opened.
  * The overview renders on the server; focus mode loads on first use.
  */
@@ -44,32 +40,64 @@ export function CourseMap({
   const { data: progress } = useCourseProgress(courseSlug);
   const [focused, setFocused] = useState<string | null>(null);
   const [active, setActive] = useState<string>(map.lessons[0]?.slug ?? GOAL);
-  const [compact, setCompact] = useState(false);
+  const [boxWidth, setBoxWidth] = useState(Infinity);
   const wrapper = useRef<HTMLDivElement>(null);
   const nodes = useRef(new Map<string, HTMLElement>());
-  const panelHeading = useId();
+  const expandedHeading = useId();
+  const [parts, setParts] = useState<Map<string, Rect>>(new Map());
 
   useEffect(() => {
     const el = wrapper.current;
     if (!el || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(([entry]) => setCompact(entry.contentRect.width < SHAPE_BOX.wide.width + 60));
+    const observer = new ResizeObserver(([entry]) => setBoxWidth(entry.contentRect.width));
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  const footprint = compact ? SHAPE_BOX.compact : SHAPE_BOX.wide;
   const focusedLesson = map.lessons.find((l) => l.slug === focused);
+  const fit = (footprint: { width: number; height: number }) =>
+    fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint);
+  const overviewWidth = useMemo(() => layoutCourseMap(map, null, NODE).width, [map]);
+  // The wide footprint when the map still fits its box with it, else the compact one (and the box scrolls sideways).
+  const wide = overviewWidth + expandedSize(fit(SHAPE_BOX.wide)).width - NODE.width <= boxWidth;
+  const footprint = wide ? SHAPE_BOX.wide : SHAPE_BOX.compact;
   const box = useMemo(
-    () =>
-      fitBox(
-        focusedLesson?.shape ?? null,
-        focusedLesson?.nodes.length ?? 0,
-        focusedLesson?.rows?.length ?? 0,
-        footprint,
-      ),
+    () => fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint),
     [focusedLesson, footprint],
   );
-  const layout = useMemo(() => layoutCourseMap(map, focused, panelFor(box)), [map, focused, box]);
+  const layout = useMemo(() => layoutCourseMap(map, focused, expandedSize(box)), [map, focused, box]);
+
+  // Bring the expanded node into view inside the map's own box: only its scrollLeft moves, never the page.
+  useEffect(() => {
+    const el = wrapper.current;
+    const node = focused ? layout.boxes.get(focused) : undefined;
+    if (!el || !node) return;
+    const canvas = el.firstElementChild as HTMLElement | null;
+    const offset = canvas ? canvas.offsetLeft - el.offsetLeft : 0;
+    const left = offset + node.x - 16;
+    const right = offset + node.x + node.width + 16;
+    if (left >= el.scrollLeft && right <= el.scrollLeft + el.clientWidth) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo?.({ left: Math.max(0, right - el.clientWidth > left ? left : right - el.clientWidth), behavior: reduce ? "auto" : "smooth" });
+  }, [focused, layout]);
+  const frame = focused ? layout.boxes.get(focused) : undefined;
+  // Parts that lead to another lesson: an edge from the part to that lesson's node.
+  const partLinks = useMemo(
+    () =>
+      frame && focusedLesson
+        ? focusedLesson.nodes.flatMap((n) => {
+            const r = parts.get(n.id);
+            const to = n.lesson ? layout.boxes.get(n.lesson) : undefined;
+            if (!r || !to) return [];
+            const from = { ...r, x: r.x + frame.x, y: r.y + frame.y };
+            const target = { x: to.x, y: to.y, width: to.width, height: to.nodeHeight };
+            const a = borderPoint(from, centre(target));
+            const b = borderPoint(target, centre(from));
+            return [{ id: n.id, d: `M ${a.x} ${a.y} L ${b.x} ${b.y}` }];
+          })
+        : [],
+    [frame, focusedLesson, parts, layout],
+  );
   const titles = useMemo(() => new Map(map.lessons.map((l) => [l.slug, l.title])), [map]);
 
   useCompassPageItems([
@@ -83,6 +111,7 @@ export function CourseMap({
 
   const open = (slug: string) => {
     if (slug === GOAL) return;
+    setParts(new Map());
     setFocused(slug);
     setActive(slug);
   };
@@ -221,13 +250,6 @@ export function CourseMap({
                 </g>
               );
             })}
-            {focused && layout.focusPanel ? (
-              <path
-                d={`M ${layout.boxes.get(focused)!.x + layout.boxes.get(focused)!.width / 2} ${layout.boxes.get(focused)!.y + layout.boxes.get(focused)!.nodeHeight} V ${layout.focusPanel.y}`}
-                style={{ stroke: "var(--color-accent)" }}
-                strokeWidth={2}
-              />
-            ) : null}
           </svg>
 
           {map.lessons.map((lesson) => {
@@ -250,9 +272,10 @@ export function CourseMap({
                   onKeyDown={(e) => onNodeKey(e, lesson.slug)}
                   className={cn(
                     "absolute top-0 left-0 flex flex-col items-start gap-1 rounded-card border p-3 text-left transition-[transform,border-color,background-color,opacity] duration-[var(--dur-long)] motion-reduce:transition-none",
+                    isFocused && "z-10",
                     nodeClass(state),
                   )}
-                  style={{ width: b.width, height: b.nodeHeight, transform: `translate(${b.x}px, ${b.y}px)` }}
+                  style={{ width: NODE.width, height: b.nodeHeight, transform: `translate(${b.x}px, ${b.y}px)` }}
                 >
                   <span className="flex w-full items-start gap-2">
                     {lesson.shape ? (
@@ -301,24 +324,38 @@ export function CourseMap({
                     .filter(Boolean)
                     .join(". ")}
                 </span>
-                {isFocused && layout.focusPanel ? (
+                {isFocused ? (
+                  // The node itself, grown in place; its title card is the button above, painted on top.
                   <div
                     role="region"
-                    aria-labelledby={panelHeading}
-                    className="absolute"
-                    style={{
-                      left: layout.focusPanel.x,
-                      top: layout.focusPanel.y,
-                      width: layout.focusPanel.width,
-                      height: layout.focusPanel.height,
-                    }}
+                    aria-labelledby={expandedHeading}
+                    className="absolute rounded-card border-2 border-accent bg-paper-2 transition-[opacity] duration-[var(--dur-long)] motion-reduce:transition-none starting:opacity-0"
+                    style={{ left: b.x, top: b.y, width: b.width, height: b.height }}
                   >
-                    <FocusPanel
+                    {/* Under the parts (they are opaque) and over the node's own background: a part's edge to the lesson it leads to. */}
+                    <svg className="pointer-events-none absolute inset-0 overflow-visible" width={b.width} height={b.height} aria-hidden>
+                      {partLinks.map((l) => (
+                        <path
+                          key={l.id}
+                          d={l.d}
+                          transform={`translate(${-b.x} ${-b.y})`}
+                          fill="none"
+                          strokeWidth={1.5}
+                          strokeDasharray="4 3"
+                          markerEnd="url(#cm-solid)"
+                          style={{ stroke: "var(--color-accent)" }}
+                        />
+                      ))}
+                    </svg>
+                    <ExpandedLesson
                       lesson={lesson}
                       titles={titles}
                       box={box}
-                      headingId={panelHeading}
+                      width={b.width}
+                      card={{ width: NODE.width, height: b.nodeHeight }}
+                      headingId={expandedHeading}
                       onClose={close}
+                      onParts={setParts}
                       onFocusLesson={(slug) => (
                         open(slug),
                         requestAnimationFrame(() => nodes.current.get(slug)?.focus())
@@ -329,6 +366,7 @@ export function CourseMap({
               </div>
             );
           })}
+
 
           <div
             ref={(el) => void (el ? nodes.current.set(GOAL, el) : nodes.current.delete(GOAL))}

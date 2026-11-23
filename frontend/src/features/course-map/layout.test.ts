@@ -30,6 +30,7 @@ const MAP: CourseMapData = {
   ],
 };
 const PANEL = { width: 624, height: 480 };
+const EXPANDED = PANEL;
 
 describe("placeLessons", () => {
   it("places lessons automatically in columns by relation depth, in course order", () => {
@@ -96,16 +97,24 @@ describe("layoutCourseMap", () => {
     expect(layout.contributes.map((c) => c.from)).toEqual(["a", "b", "c", "d", "e"]);
   });
 
-  it("makes room for the focused lesson: everything below moves down, nothing covers the panel", () => {
-    const overview = layoutCourseMap(MAP, null, PANEL);
-    const focus = layoutCourseMap(MAP, "b", PANEL);
-    const panel = focus.focusPanel!;
-    expect(panel.y).toBeGreaterThan(focus.boxes.get("b")!.y + focus.boxes.get("b")!.nodeHeight);
-    expect(focus.boxes.get("b")).toEqual(overview.boxes.get("b"));
-    expect(focus.boxes.get("c")!.y).toBe(overview.boxes.get("c")!.y + PANEL.height + 18);
-    for (const [id, box] of focus.boxes) expect(overlaps(box, panel), `${id} covers the panel`).toBe(false);
-    expect(focus.width).toBeGreaterThanOrEqual(PANEL.width);
-    expect(focus.height).toBeGreaterThan(overview.height + PANEL.height);
+  it("grows the focused node in place and reflows the rest around it, right and down, without overlaps", () => {
+    const overview = layoutCourseMap(MAP, null, EXPANDED);
+    const focus = layoutCourseMap(MAP, "b", EXPANDED);
+    const at = (l: typeof overview, id: string) => l.boxes.get(id)!;
+
+    // b keeps its corner and grows; its title card (nodeHeight) keeps the node's height.
+    expect(at(focus, "b")).toMatchObject({ x: at(overview, "b").x, y: at(overview, "b").y, ...EXPANDED, nodeHeight: at(overview, "b").nodeHeight });
+    // Later columns move right, later rows move down; the column before stays where it was.
+    expect(at(focus, "d").x).toBe(at(overview, "d").x + EXPANDED.width - at(overview, "b").width);
+    expect(at(focus, "c").y).toBeGreaterThan(at(focus, "b").y + EXPANDED.height);
+    expect(at(focus, "e").y).toBeGreaterThan(at(overview, "e").y);
+    expect(at(focus, "a")).toEqual(at(overview, "a"));
+    expect(at(focus, GOAL).x).toBeGreaterThan(at(overview, GOAL).x);
+
+    const boxes = [...focus.boxes];
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
+    expect(focus.width).toBeGreaterThan(overview.width);
   });
 
   it("draws contributions only from the ends of chains when the course is large", () => {

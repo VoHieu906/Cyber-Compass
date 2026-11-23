@@ -1,4 +1,5 @@
-import { textWidth, wrapLabel, type Point } from "../layout";
+import type { Point } from "../layout";
+import { textWidth, wrapLabel } from "../text";
 
 /*
  * Shared geometry of the shape layouts (F3, D59). Everything here is pure: sizes come from the

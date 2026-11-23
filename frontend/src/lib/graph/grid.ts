@@ -11,6 +11,9 @@ export type GridItem = {
   col: number;
   /** Child rows drawn under the node (0 when collapsed). */
   children: number;
+  /** Overrides the item's whole size (an expanded node, F3 course map); its column widens and its row grows to fit, so the other items reflow around it. */
+  width?: number;
+  height?: number;
 };
 
 export type GridMetrics = {
@@ -41,8 +44,8 @@ export type GridLayout = {
   height: number;
 };
 
-export function itemHeight(item: Pick<GridItem, "children">, m: GridMetrics): number {
-  return m.nodeHeight + (item.children > 0 ? m.childGap + item.children * m.childHeight : 0);
+export function itemHeight(item: Pick<GridItem, "children" | "height">, m: GridMetrics): number {
+  return item.height ?? m.nodeHeight + (item.children > 0 ? m.childGap + item.children * m.childHeight : 0);
 }
 
 export function layoutGrid(items: GridItem[], rowCount: number, colCount: number, m: GridMetrics): GridLayout {
@@ -53,7 +56,13 @@ export function layoutGrid(items: GridItem[], rowCount: number, colCount: number
     cellHeight.set(key, (used === undefined ? 0 : used + m.itemGap) + itemHeight(item, m));
   }
 
-  const columns = Array.from({ length: colCount }, (_, c) => ({ x: m.left + c * (m.colWidth + m.colGap) }));
+  const colWidths = Array.from({ length: colCount }, (_, c) => Math.max(m.colWidth, ...items.filter((i) => i.col === c).map((i) => i.width ?? 0)));
+  const columns: { x: number }[] = [];
+  let x = m.left;
+  for (const w of colWidths) {
+    columns.push({ x });
+    x += w + m.colGap;
+  }
   const rows: { y: number; height: number }[] = [];
   let y = m.top;
   for (let r = 0; r < rowCount; r++) {
@@ -69,7 +78,7 @@ export function layoutGrid(items: GridItem[], rowCount: number, colCount: number
     const key = `${item.row}:${item.col}`;
     const offset = cursor.get(key) ?? 0;
     const height = itemHeight(item, m);
-    placed.set(item.id, { x: columns[item.col].x, y: rows[item.row].y + offset, width: m.colWidth, height, nodeHeight: m.nodeHeight });
+    placed.set(item.id, { x: columns[item.col].x, y: rows[item.row].y + offset, width: item.width ?? m.colWidth, height, nodeHeight: m.nodeHeight });
     cursor.set(key, offset + height + m.itemGap);
   }
 
@@ -77,7 +86,7 @@ export function layoutGrid(items: GridItem[], rowCount: number, colCount: number
     items: placed,
     columns,
     rows,
-    width: m.left + colCount * m.colWidth + Math.max(0, colCount - 1) * m.colGap,
+    width: m.left + colWidths.reduce((a, b) => a + b, 0) + Math.max(0, colCount - 1) * m.colGap,
     height: rowCount ? y - m.rowGap : m.top,
   };
 }
@@ -92,9 +101,9 @@ function curve(x1: number, y1: number, x2: number, y2: number): string {
  * Free horizontal channels through a column: above its first item, in each gap between items,
  * and below its last. An edge that skips a column runs through one of these, never behind a node.
  */
-function channels(layout: GridLayout, col: number, colWidth: number): number[] {
+function channels(layout: GridLayout, col: number): number[] {
   const x = layout.columns[col].x;
-  const spans = [...layout.items.values()].filter((b) => b.x === x && b.width === colWidth).map((b) => [b.y, b.y + b.height] as const).sort((a, b) => a[0] - b[0]);
+  const spans = [...layout.items.values()].filter((b) => b.x === x).map((b) => [b.y, b.y + b.height] as const).sort((a, b) => a[0] - b[0]);
   if (!spans.length) return [];
   const free = [spans[0][0] - 8];
   for (let i = 1; i < spans.length; i++) if (spans[i][0] > spans[i - 1][1]) free.push((spans[i - 1][1] + spans[i][0]) / 2);
@@ -122,12 +131,14 @@ export function gridEdgePath(from: GridBox, to: GridBox, layout?: GridLayout, bo
   let at: [number, number] = [left.x + left.width, ly];
   for (const [i, column] of (layout?.columns ?? []).entries()) {
     if (column.x <= left.x || column.x >= right.x) continue;
-    const free = channels(layout!, i, left.width);
+    const free = channels(layout!, i);
     if (!free.length) continue;
     const target = (at[1] + ry) / 2;
     const y = free.reduce((best, ch) => (Math.abs(ch - target) < Math.abs(best - target) ? ch : best));
-    segments.push({ from: at, to: [column.x, y], straight: false }, { from: [column.x, y], to: [column.x + left.width, y], straight: true });
-    at = [column.x + left.width, y];
+    // The skipped column's own width: an expanded item can make it wider than the nodes at either end.
+    const width = Math.max(...[...layout!.items.values()].filter((b) => b.x === column.x).map((b) => b.width));
+    segments.push({ from: at, to: [column.x, y], straight: false }, { from: [column.x, y], to: [column.x + width, y], straight: true });
+    at = [column.x + width, y];
   }
   segments.push({ from: at, to: [right.x, ry], straight: false });
 

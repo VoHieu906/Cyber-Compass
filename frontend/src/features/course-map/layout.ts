@@ -1,9 +1,10 @@
 import { gridEdgePath, layoutGrid, type GridBox, type GridMetrics } from "@/lib/graph/grid";
+import { textWidth } from "@/lib/graph/text";
 import type { CourseMapData, MapEdge } from "./types";
 
 /*
  * Pure layout and state of the course map (F3, D59): where each lesson sits, how the focused
- * lesson's architecture makes room, which lessons relate to the focused one, and where the arrow
+ * lesson grows in place and the rest reflows around it, which lessons relate to the focused one, and where the arrow
  * keys go. Rendering is CourseMap's; nothing here touches the DOM, so the server and the browser
  * draw the same overview and every rule is unit-tested.
  */
@@ -28,8 +29,17 @@ const METRICS: GridMetrics = {
 const LANE_HEADER = 108;
 const SIDE = 96;
 const GOAL_SIZE = { width: 236, height: 132 };
-/** The expanded architecture's panel below the focused lesson. */
-export const FOCUS_GAP = 18;
+
+/** Where the parts sit inside the expanded node, below the title card. */
+export const EXPANDED = { pad: 12, header: 120, gap: 16, detail: 84, actions: 360 };
+
+/** The expanded node's size for a shape box: title card on top, the shape, the detail strip. */
+export function expandedSize(box: { width: number; height: number }, card: { width: number } = NODE) {
+  return {
+    width: Math.max(box.width + 2 * EXPANDED.pad, card.width + EXPANDED.actions),
+    height: EXPANDED.header + EXPANDED.gap + box.height + EXPANDED.detail,
+  };
+}
 
 export type Placed = { col: number; row: number };
 
@@ -84,73 +94,44 @@ export function placeLessons(map: Pick<CourseMapData, "layout" | "lanes" | "less
 }
 
 export type MapLayout = {
+  /** Every lesson's box, and the goal's. The focused lesson's box is its whole expanded footprint; `nodeHeight` is its title card. */
   boxes: Map<string, GridBox>;
   edges: (MapEdge & { d: string; labelAt: { x: number; y: number; anchor: "middle" | "end" } })[];
   /** Lighter "contributes to" lines into the goal. */
   contributes: { from: string; d: string }[];
   bands: { label: string; y: number; height: number }[];
-  /** Where the focused lesson's architecture is drawn, below its node. */
-  focusPanel: { x: number; y: number; width: number; height: number } | null;
   width: number;
   height: number;
 };
 
 /**
- * The whole map: lesson boxes, the goal, edge paths and, in focus mode, the panel for the focused
- * lesson's architecture. Everything below the focused node moves down by the panel's height, so
- * the panel never covers a node (the transition animates that move).
+ * The whole map: lesson boxes, the goal and edge paths. In focus mode the focused lesson's own box
+ * grows in place to `expanded` (its title card stays at the top left, its architecture fills the
+ * rest), and the grid reflows around it: its column widens, so later columns move right, and its
+ * row grows, so later rows move down (layoutGrid). No zoom: everything keeps its size.
  */
-export function layoutCourseMap(
-  map: CourseMapData,
-  focused: string | null,
-  panel: { width: number; height: number },
-): MapLayout {
+export function layoutCourseMap(map: CourseMapData, focused: string | null, expanded: { width: number; height: number }): MapLayout {
   const { cells, bands } = placeLessons(map);
-  // Room on the left for edges that bow out of the first column and their labels.
-  const left = bands.length ? LANE_HEADER : SIDE;
+  // Room on the left for edges that bow out of the first column, and for the longest label beside such a bow.
+  const sameColumnLabel = Math.max(
+    0,
+    ...map.edges.filter((e) => e.label && cells.get(e.from)?.col === 0 && cells.get(e.to)?.col === 0).map((e) => textWidth(e.label!, 11) + 24),
+  );
+  const left = Math.max(bands.length ? LANE_HEADER : SIDE, sameColumnLabel);
   const cols = Math.max(0, ...[...cells.values()].map((c) => c.col)) + 1;
   const rows = Math.max(0, ...[...cells.values()].map((c) => c.row)) + 1;
   const grid = layoutGrid(
-    [...cells].map(([id, c]) => ({ id, row: c.row, col: c.col, children: 0 })),
+    [...cells].map(([id, c]) => ({ id, row: c.row, col: c.col, children: 0, ...(id === focused ? expanded : {}) })),
     rows,
     cols + 1,
     { ...METRICS, left },
   );
   const boxes = new Map(grid.items);
-  const goalHeight = GOAL_SIZE.height;
-  boxes.set(GOAL, {
-    x: grid.columns[cols].x,
-    y: Math.max(0, (grid.height - goalHeight) / 2),
-    width: GOAL_SIZE.width,
-    height: goalHeight,
-    nodeHeight: goalHeight,
-  });
+  const goal = { x: grid.columns[cols].x, y: Math.max(0, (grid.height - GOAL_SIZE.height) / 2), width: GOAL_SIZE.width, height: GOAL_SIZE.height, nodeHeight: GOAL_SIZE.height };
+  boxes.set(GOAL, goal);
+  const width = grid.width - NODE.width + GOAL_SIZE.width;
+  const height = Math.max(grid.height, GOAL_SIZE.height);
 
-  let width = Math.max(grid.width - NODE.width + GOAL_SIZE.width, focused ? panel.width : 0);
-  let height = Math.max(grid.height, goalHeight);
-  let focusPanel: MapLayout["focusPanel"] = null;
-  const target = focused ? boxes.get(focused) : undefined;
-  if (target) {
-    const top = target.y + target.nodeHeight + FOCUS_GAP;
-    const shift = panel.height + FOCUS_GAP;
-    for (const [id, b] of boxes) if (id !== GOAL && b.y >= top - FOCUS_GAP) boxes.set(id, { ...b, y: b.y + shift });
-    width = Math.max(width, panel.width);
-    focusPanel = {
-      x: Math.max(0, Math.min(target.x + target.width / 2 - panel.width / 2, width - panel.width)),
-      y: top,
-      width: panel.width,
-      height: panel.height,
-    };
-    height += shift;
-    const goal = boxes.get(GOAL)!;
-    if (goal.x < focusPanel.x + focusPanel.width && goal.y + goal.height > top)
-      boxes.set(GOAL, { ...goal, y: top + shift });
-    height = Math.max(height, boxes.get(GOAL)!.y + goalHeight);
-  }
-  const threshold = target ? target.y + target.nodeHeight : Infinity;
-  const grow = target ? panel.height + FOCUS_GAP : 0;
-
-  const shifted = { ...grid, items: boxes };
   const edges = map.edges
     .filter((e) => boxes.has(e.from) && boxes.has(e.to))
     .map((e) => {
@@ -158,23 +139,21 @@ export function layoutCourseMap(
       const b = boxes.get(e.to)!;
       const y = (a.y + a.nodeHeight / 2 + b.y + b.nodeHeight / 2) / 2;
       const sameColumn = a.x === b.x;
+      const leftBox = a.x < b.x ? a : b;
       // Between the columns for edges across them; beside the bow (gridEdgePath bows 28 to the left) within one.
       const labelAt = sameColumn
         ? { x: a.x - 10, y: Math.min(a.y, b.y) + NODE.height * 0.75, anchor: "end" as const }
         : {
-            x: Math.min(a.x, b.x) + NODE.width + METRICS.colGap / 2,
-            y: Math.abs(a.x - b.x) > NODE.width + METRICS.colGap ? (a.x < b.x ? a : b).y + NODE.height / 2 : y,
+            x: leftBox.x + leftBox.width + METRICS.colGap / 2,
+            y: Math.abs(a.x - b.x) > leftBox.width + METRICS.colGap ? leftBox.y + NODE.height / 2 : y,
             anchor: "middle" as const,
           };
-      return { ...e, d: gridEdgePath(a, b, shifted), labelAt };
+      return { ...e, d: gridEdgePath(a, b, grid), labelAt };
     });
   const outgoing = new Set(map.edges.filter((e) => ORDERING.has(e.type)).map((e) => e.from));
   // Every lesson contributes; with many lessons only the last of each chain draws the line.
   const contributors = map.lessons.length > 8 ? map.lessons.filter((l) => !outgoing.has(l.slug)) : map.lessons;
-  const contributes = contributors.map((l) => ({
-    from: l.slug,
-    d: gridEdgePath(boxes.get(l.slug)!, boxes.get(GOAL)!, shifted),
-  }));
+  const contributes = contributors.map((l) => ({ from: l.slug, d: gridEdgePath(boxes.get(l.slug)!, goal, grid) }));
 
   return {
     boxes,
@@ -183,11 +162,8 @@ export function layoutCourseMap(
     bands: bands.map((b) => {
       const top = grid.rows[b.row].y;
       const last = grid.rows[b.row + b.rows - 1];
-      const bottom = last.y + last.height;
-      if (top >= threshold) return { label: b.label, y: top + grow, height: bottom - top };
-      return { label: b.label, y: top, height: bottom - top + (bottom > threshold ? grow : 0) };
+      return { label: b.label, y: top, height: last.y + last.height - top };
     }),
-    focusPanel,
     width,
     height,
   };

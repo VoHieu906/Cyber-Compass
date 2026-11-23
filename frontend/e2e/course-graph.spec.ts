@@ -25,6 +25,7 @@ test.describe("course map", () => {
     await page.keyboard.press("ArrowLeft");
     await expect(hashing).toBeFocused();
 
+    const tlsBefore = (await map.getByRole("button", { name: /How TLS protects/ }).boundingBox())!;
     await page.keyboard.press("Enter");
     const panel = page.getByRole("region", { name: /Hashing and password storage: how it is built/ });
     await expect(panel).toBeVisible();
@@ -39,6 +40,12 @@ test.describe("course map", () => {
     const tls = map.getByRole("button", { name: /How TLS protects/ });
     await expect(tls).toHaveAttribute("data-state", "dimmed");
     await expect(tls).toBeVisible();
+    // The node grew in place, inside the map, and the lesson to its right moved right to make room.
+    const frame = (await panel.boundingBox())!;
+    const card = (await hashing.boundingBox())!;
+    expect(Math.abs(frame.x - card.x)).toBeLessThan(2);
+    expect(Math.abs(frame.y - card.y)).toBeLessThan(2);
+    await expect.poll(async () => (await tls.boundingBox())!.x).toBeGreaterThan(tlsBefore.x + 100);
 
     await panel.getByRole("button", { name: "Unique salt" }).click();
     const read = panel.getByRole("link", { name: "Read this in the lesson" });

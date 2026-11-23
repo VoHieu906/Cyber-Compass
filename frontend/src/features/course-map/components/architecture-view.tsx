@@ -1,8 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useMemo, useRef, type KeyboardEvent } from "react";
-import type { Box } from "@/lib/graph/shapes/geometry";
+import { useEffect, useId, useMemo, useRef, type KeyboardEvent } from "react";
+import type { Point } from "@/lib/graph/layout";
+import { borderPoint, type Box, type Rect } from "@/lib/graph/shapes/geometry";
 import { layoutShape } from "@/lib/graph/shapes/registry";
 import type { Architecture } from "@/lib/graph/shapes/schemas";
 import { pressed } from "@/lib/shortcuts/registry";
@@ -20,12 +21,18 @@ export function ArchitectureView({
   selected,
   onSelect,
   label,
+  anchor,
+  onLayout,
 }: {
   architecture: Architecture & { shape: NonNullable<Architecture["shape"]> };
   box: Box;
   selected: string | null;
   onSelect: (id: string) => void;
   label: string;
+  /** The main lesson node, in this box's coordinates: every part is linked back to it (course map focus mode). */
+  anchor?: Point;
+  /** Reports where the parts sit, for edges drawn outside this box. */
+  onLayout?: (parts: Map<string, Rect>) => void;
 }) {
   const t = useTranslations("courseMap");
   const marker = `arch-arrow-${useId().replace(/:/g, "")}`;
@@ -38,6 +45,11 @@ export function ArchitectureView({
       ),
     [architecture, box],
   );
+  const report = useRef(onLayout);
+  useEffect(() => {
+    report.current = onLayout;
+  });
+  useEffect(() => report.current?.(layout.nodes), [layout]);
   const buttons = useRef(new Map<string, HTMLButtonElement>());
   const ids = architecture.nodes.map((n) => n.id);
   const active = selected ?? ids[0];
@@ -58,7 +70,7 @@ export function ArchitectureView({
 
   return (
     <div role="group" aria-label={label} className="relative mx-auto" style={{ width: box.width, height: box.height }}>
-      <svg width={box.width} height={box.height} className="absolute inset-0" aria-hidden>
+      <svg width={box.width} height={box.height} className="absolute inset-0 overflow-visible" aria-hidden>
         <defs>
           <marker
             id={marker}
@@ -105,6 +117,22 @@ export function ArchitectureView({
             </text>
           );
         })}
+        {anchor
+          ? [...layout.nodes.values()].map((r, i) => {
+              // To the nearest point of the part; the opaque parts hide any stretch behind another part.
+              const to = borderPoint(r, anchor);
+              return (
+                <path
+                  key={`a${i}`}
+                  d={`M ${anchor.x} ${anchor.y} L ${to.x} ${to.y}`}
+                  fill="none"
+                  strokeWidth={1}
+                  strokeDasharray="2 4"
+                  style={{ stroke: "var(--color-accent)", opacity: 0.55 }}
+                />
+              );
+            })
+          : null}
         {layout.edges.map((e, i) => (
           <g key={i}>
             <path

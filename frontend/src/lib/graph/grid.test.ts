@@ -110,3 +110,19 @@ describe("gridEdgePath", () => {
     expect(d.endsWith("110 45")).toBe(true);
   });
 });
+
+describe("layoutGrid with an expanded item (F3)", () => {
+  it("widens its column and grows its row, so items to the right and below reflow around it", () => {
+    const items = [
+      { id: "a", row: 0, col: 0, children: 0 },
+      { id: "b", row: 1, col: 0, children: 0 },
+      { id: "c", row: 0, col: 1, children: 0 },
+    ];
+    const before = layoutGrid(items, 2, 2, m);
+    const after = layoutGrid(items.map((i) => (i.id === "a" ? { ...i, width: 300, height: 200 } : i)), 2, 2, m);
+    expect(after.items.get("a")).toMatchObject({ x: 10, y: 20, width: 300, height: 200, nodeHeight: 50 });
+    expect(after.items.get("c")!.x).toBe(before.items.get("c")!.x + 200);
+    expect(after.items.get("b")!.y).toBe(before.items.get("b")!.y + 150);
+    expect(after.width).toBe(before.width + 200);
+  });
+});
