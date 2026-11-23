@@ -14,7 +14,7 @@ export const GOAL = "@goal";
 /** Relations that order lessons left to right in the automatic layout. */
 const ORDERING = new Set(["requires", "builds-on", "feeds-into"]);
 
-export const NODE = { width: 224, height: 120 };
+export const NODE = { width: 224, height: 132 };
 const METRICS: GridMetrics = {
   left: 0,
   top: 0,
@@ -31,7 +31,7 @@ const SIDE = 96;
 const GOAL_SIZE = { width: 236, height: 132 };
 
 /** Where the parts sit inside the expanded node, below the title card. */
-export const EXPANDED = { pad: 12, header: 120, gap: 16, detail: 84, actions: 360 };
+export const EXPANDED = { pad: 12, header: NODE.height, gap: 16, detail: 84, actions: 360 };
 
 /** The expanded node's size for a shape box: title card on top, the shape, the detail strip. */
 export function expandedSize(box: { width: number; height: number }, card: { width: number } = NODE) {

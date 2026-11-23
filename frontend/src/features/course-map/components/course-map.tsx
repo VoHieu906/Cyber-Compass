@@ -157,12 +157,12 @@ export function CourseMap({
       <p className="sr-only" aria-live="polite">
         {focusedLesson ? t("focused", { title: focusedLesson.title }) : ""}
       </p>
-      <div ref={wrapper} className="overflow-x-auto rounded-card border border-rule bg-paper-3 p-4">
+      <div ref={wrapper} className="overflow-x-auto rounded-control bg-paper-3 p-4">
         <div
           role="group"
           aria-label={t("label", { course: courseTitle })}
           onClick={onCanvasClick}
-          className="relative mx-auto transition-[height] duration-[var(--dur-long)] motion-reduce:transition-none"
+          className="relative mx-auto"
           style={{ width: layout.width, height: layout.height }}
         >
           <svg width={layout.width} height={layout.height} className="absolute inset-0 overflow-visible" aria-hidden>
@@ -176,7 +176,6 @@ export function CourseMap({
                   height={b.height + 16}
                   rx={8}
                   style={{ fill: "var(--color-paper)", stroke: "var(--color-rule)" }}
-                  className="transition-[y,height] duration-[var(--dur-long)] motion-reduce:transition-none"
                 />
                 <text x={12} y={b.y + 14} fontSize={12} style={{ fill: "var(--color-ink-2)", fontWeight: 600 }}>
                   {b.label}
@@ -289,7 +288,7 @@ export function CourseMap({
                     ) : null}
                     <span
                       className={cn(
-                        "line-clamp-2 flex-1 leading-snug font-medium",
+                        "line-clamp-3 flex-1 leading-snug font-medium",
                         state === "dimmed" ? "text-muted" : "text-ink",
                       )}
                     >
