@@ -167,6 +167,82 @@ A **post** is a long read outside the courses: an explainer, a deep dive, a stor
 - **In content files.** `backend/database/seeders/content/posts/<slug>.php` returns one post: `slug`, `title`, `summary`, `tags`, `published_at`, optional `cover`, and `sections` in the same `[type, heading, payload]` format as lessons. `content:import` loads it with the lesson rules: everything validated first, a post edited in the admin console is skipped unless `--force`, section identities come from the post slug and the heading (renaming a heading gives a block a new identity), and a post removed from the files is archived. `content:export <slug> --post` writes the live post back. `cybercompass:release` imports posts like everything else.
 - **Images from files** (D56). Where a `media` block or a cover expects an uploaded image, a file can write `['file' => 'posts/media/<slug>/<name>.png', 'alt' => 'What the image shows']`, a path under `database/seeders/content`. The import re-encodes it to WebP through the upload pipeline (PNG, JPEG, WebP or GIF; SVG is refused like uploads, so render SVG artwork to PNG first), names it after its path and bytes (an unchanged file is reused, a changed one becomes a new image) and export writes the reference back. Only original artwork: no logos or copied images.
 
+## 4d. Course maps (F3)
+
+The **course map** sits at the top of a course page. Its rule: **each lesson solves one problem; together the lessons solve the course's big problem.** It shows how the lessons connect and how their knowledge is built differently (ARCHITECTURE D57 to D60).
+
+### Writing a course map
+
+- **The big problem** (`problem`, up to 200 characters) is one sentence a learner would recognise as worth solving: "Move data between two machines that have never met", not "Networking fundamentals".
+- **One problem per lesson** (the lesson's architecture `problem`, up to 140 characters). Name the problem, not the topic: "Store passwords so a stolen database does not reveal them", not "Hashing".
+- **Relations** between lessons have a type, and the line style says which:
+
+  | Type | Use when |
+  |---|---|
+  | `requires` | B cannot be understood without A |
+  | `builds-on` | B extends A, though it can be read alone |
+  | `feeds-into` | A's output is B's input (a result, a tool, a dataset) |
+  | `contrasts-with` | the two are best understood against each other |
+  | `parallel-to` | independent tracks at the same level |
+
+  Add a short `label` (up to 24 characters) when the type alone does not say why. Every lesson also contributes to the big problem; that line is drawn for you.
+- **Layout.** `auto` places lessons in columns by how deep they sit in the relations, which suits a chain or converging branches. Use `manual` (`placement` with `col` 0 to 7 and `row` 0 to 9, and optional `lanes` for parallel tracks) only when the arrangement itself teaches something, such as a hub or two lanes.
+
+### Choosing a shape
+
+A lesson's **shape** shows how its knowledge is built. As with blocks, **never force it**: a lesson with no clear structure keeps `shape => null` and still shows its problem. Across a course, different shapes should mean the knowledge really differs.
+
+| Shape | The knowledge is… | Example |
+|---|---|---|
+| `layers` | ordered levels, each resting on the one below (first is top) | the TCP/IP model |
+| `onion` | rings around a core, where an attacker must pass each (first is the core) | defence in depth |
+| `stack` | last in, first out (first is the bottom) | the call stack, nested function frames |
+| `queue` | first in, first out (first is the front) | a log pipeline buffer, a print queue |
+| `pipeline` | stages, each turning its input into the next stage's input | password → salt → slow hash → stored digest |
+| `cycle` | a loop that returns to its start (at least 3 stages) | incident response, the DHCP lease |
+| `hub` | a centre with independent spokes (first is the centre) | a SIEM and its log sources |
+| `tree` | a hierarchy with one root (`parent` on each other node) | DNS, a file system |
+| `mesh` | a network with no single centre (`x`, `y` from 0 to 100) | peers in a segmented network |
+| `matrix` | a small grid (`rows` 1 to 4, `cols` 2 or 3, `cell` [row, col]); two columns compare two sides | symmetric vs asymmetric; likelihood × impact |
+
+Sub-nodes (2 to 12, fewer for some shapes) have an `id`, a short `label` (up to 40 characters), an optional `note` (up to 240) shown in focus mode, an optional `section` (the block that teaches it) and an optional `lesson` (another lesson of the same course it leads to). `edges` between sub-nodes are optional; ordered shapes draw their order themselves. In the editor, "Fill from block" starts the sub-nodes from a layer stack, flow, tree, topology or comparison in the same lesson.
+
+### In content files
+
+```php
+// on the course
+'graph' => [
+    'version' => 1,
+    'problem' => 'Protect data in storage and in transit.',
+    'layout' => 'auto',
+    'edges' => [['from' => 'hashing-and-passwords', 'to' => 'tls-overview', 'type' => 'feeds-into']],
+],
+// on a lesson
+'architecture' => [
+    'version' => 1,
+    'problem' => 'Store passwords so a stolen database does not reveal them.',
+    'shape' => 'pipeline',
+    'nodes' => [
+        ['id' => 'input', 'label' => 'Password', 'section' => 'what-a-hash-does'],
+        ['id' => 'slow', 'label' => 'Slow hash', 'section' => 'passwords-need-slow-hashes'],
+    ],
+    'edges' => [],
+],
+```
+
+`section` names a block by its key (the heading as a slug) or, for admin-made blocks, by UUID; export writes the key back whenever it can. The import refuses the whole run if a map names a lesson outside its course file, a section that does not exist, or breaks a shape's rules, and reports unplaced, unconnected and problem-less lessons as warnings.
+
+### Maintaining a course map
+
+- **Adding a lesson.** It appears on the map at once, placed automatically and unconnected. The admin panel and the import list it as `unplaced` (manual layout) and `unconnected`; give it a place and its relations.
+- **Archiving, unpublishing or deleting a lesson.** Learners stop seeing its node, relations and the links to it immediately (the server drops them). The panel lists the leftovers as `dangling` and `link_outside`; clean them up when convenient. Nothing blocks saving.
+- **Moving a lesson to another course.** Its relations in the old map disappear for learners and show as `dangling` there; its architecture moves with it, minus links to lessons of the old course, which are removed when the move is saved.
+- **Removing a block a sub-node points at.** Saving the lesson is refused at that sub-node until you clear or change the reference. Renaming a heading in the editor keeps the link (it follows the UUID); in a content file a renamed heading is a new block, so update the `section` key too.
+- **Who owns a map.** A map edited in the admin is saved at once and owned by the database: `content:import` skips it (unless `--force`) and `content:export` writes it back. Every save is in the panel's history and can be restored, before or after.
+- **Health check.** `php artisan content:check-graphs` validates every stored map and architecture and lists the warnings; it fails on errors. It runs in CI on the seed content and, as warnings only, at the end of every `cybercompass:release`.
+- **Adding a shape.** One entry in `MapSchemas::SHAPES`, `Content/CourseMap/schemas/shapes/<shape>.json`, `<shape>.valid.json` and `<shape>.invalid.json` in `Content/CourseMap/fixtures` (the valid one at the shape's maximum size), the shape's layout and glyph in `frontend/src/lib/graph/shapes` with its layout test, and a row in the table above. Pest and Vitest both fail until every shape has its schema and fixtures.
+- **Changing a shape's schema.** Bump `MapVersions::CURRENT` and add a step that turns the old version into the new one. Content files, drafts, revisions and admin saves are upgraded as they are read; run `php artisan content:check-graphs --upgrade` once after deploying to rewrite the stored rows, then update the content files (an export does it).
+
 ## 5. Before you publish
 
 - [ ] The lesson reads well with every visual skipped.

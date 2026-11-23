@@ -2,21 +2,22 @@
 
 Where the project stands and what the next phase needs to know. This page only points to the docs that hold the detail. Start with the reading order in the root [CLAUDE.md](../CLAUDE.md).
 
-## Current state (2026-11-22)
+## Current state (2026-11-23)
 
 - **The initial build (v1), Phases 1 to 7, is complete.** Phase 7 closed with Parts A to G: the E2E suite, CI, the security review ([SECURITY_REVIEW.md](SECURITY_REVIEW.md)), performance ([PERFORMANCE.md](PERFORMANCE.md)), the responsive, accessibility and Hallmark sweep, the production build and the AWS guide and templates ([DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md)). Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Deployment is not roadmap work (D54).** The owner deploys on their own schedule with DEPLOYMENT_AWS.md and `infrastructure/aws/`. Nothing has been run against AWS yet.
 - **Work after v1 is the [Feature track](IMPLEMENTATION_ROADMAP.md#feature-track):** stable ids `F<n>`, commits `type(scope): summary (F<n> Part X)`, and every feature passes [the gate](IMPLEMENTATION_ROADMAP.md#the-gate) including the deploy-ready gate, reported under "Deploy notes".
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
-- **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type). **Next:** no feature is planned; a new one starts with the CLAUDE.md §5 impact check as F3.
-- **Tests:** 723 Pest, 393 Vitest and 30 Playwright end-to-end tests. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
+- **F3 (Course map) is in progress** (D57 to D60): Part A (data, validation, import and export, API, health check) is done; Part B (renderer, focus mode, admin panels) is next; Part C (map content) waits for F4 (expanding Networking Fundamentals).
+- **Tests:** 779 Pest, 393 Vitest and 30 Playwright end-to-end tests (after F3 Part A). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D56) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D60) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |
@@ -42,6 +43,15 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Performance guards:** `QueryBudgetTest` (a new hot endpoint gets a budget there) and `performance.spec.ts` (budgets per route, enforced in CI). A module that uses zod at runtime imports `@/lib/zod-config` (the CSP forbids zod's eval probe); never re-export `z` from another module, which defeats tree-shaking.
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
+
+## F3: course map (Part A, 2026-11-23)
+
+- **Data** (D57): `course_graphs` (one map per course) and `lesson_architectures` (the published architecture; drafts and revisions carry it in the lesson snapshot under `architecture`). Lessons are named by slug, sections by UUID (by key in content files).
+- **One validator:** `Content\CourseMap\MapSchemas` with `schemas/` and shared `fixtures/`; the zod mirror arrives in Part B and must agree on every fixture. Versions go through `MapVersions` (procedure in CONTENT_AUTHORING_GUIDE §4d).
+- **Readers** get the map inside `GET /courses/{slug}` (`graph`), built by `CourseMap::forLearners` from the published lessons the endpoint loads: never filter it on the client. Completion comes from `/courses/{slug}/progress`.
+- **Admin** (D58): `GET/PUT /admin/content/courses/{id}/graph` and `POST …/graph/restore/{audit_id}`; saved live, audited with the whole map, `lock_version`, and an admin save makes imports skip the map unless `--force`.
+- **Health** (D60): `content:check-graphs`, run by `cybercompass:release` after the import as warnings and in CI through Pest.
+- **Shapes:** 10, listed in `MapSchemas::SHAPES`; adding one is described in CONTENT_AUTHORING_GUIDE §4d.
 
 ## F1: compass menu and keyboard shortcuts (formerly Phase 7.5, 2026-11-22)
 

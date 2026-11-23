@@ -98,7 +98,7 @@ Passwords: 8 to 128 characters, at least one letter and one number.
 | | Method | Path |
 |---|---|---|
 | 🔓 | GET | `/courses` (q, filter[domain], filter[difficulty], filter[favorited] for signed-in viewers, sort = newest, title, -title, difficulty, -difficulty, duration, -duration; page, per_page default 6). Signed-in viewers get `is_favorited`. ✅ Phase 3 |
-| 🔓 | GET | `/courses/{slug}` (chapters, lessons, objectives, skills, prerequisites, up to 3 related). The same for every viewer. ✅ Phase 3 |
+| 🔓 | GET | `/courses/{slug}` (chapters, lessons, objectives, skills, prerequisites, up to 3 related, and `graph`: the course map or null, F3). The same for every viewer. ✅ Phase 3 |
 | 🔒 | GET | `/courses/{slug}/progress` (enrolled, favorited, completed/total lessons, percent, next lesson, status of each lesson). ✅ Phase 3 |
 | 🔒 | POST/DELETE | `/courses/{slug}/favorite` (idempotent). ✅ Phase 3 |
 | 🔒 | POST | `/courses/{slug}/enroll` (idempotent: 201 the first time, then 200). ✅ Phase 3 |
@@ -296,9 +296,12 @@ Another learner's notification id answers 404. Ids are UUIDs.
 | 🛡 | POST | `/admin/content/courses/{id}/chapters` (title; added at the end) | ✅ B |
 | 🛡 | PATCH | `/admin/content/chapters/{id}` (title) | ✅ B |
 | 🛡 | PUT | `/admin/content/courses/{id}/chapters/order` (chapter_ids: every chapter once) · `/admin/content/chapters/{id}/lessons/order` (lesson_ids: every lesson once). Applied at once; reordered lessons become admin-owned, so imports keep the order. 422 if the set differs. | ✅ B |
+| 🛡 | GET | `/admin/content/courses/{id}/graph` (the course map panel, F3, D58: `graph` or null, `lock_version` (0 without a map), `owned_by_admin`, every lesson of the course with `status`, published `problem` and `shape`, `issues` [{type: unplaced, unconnected, dangling, link_outside, no_problem; lesson; detail?}], `history` of the last 20 map changes {id, action, at, actor, has_before}) | ✅ F3 A |
+| 🛡 | PUT | `/admin/content/courses/{id}/graph` (`graph`, `lock_version`). Saved live and audited (`course_graph.saved`, the whole map before and after); the database then owns the map (imports skip it unless `--force`). Stale lock → 409; 422 keyed `graph.edges.2.type`. References to lessons that are not live are kept and listed in `issues`, never refused | ✅ F3 A |
+| 🛡 | POST | `/admin/content/courses/{id}/graph/restore/{audit_id}` (`lock_version`, `side`: `after` (default) or `before`). Saves that map again (`course_graph.restored`); 422 `entry` for an entry that is not a map change of this course | ✅ F3 A |
 | 🛡 | GET | `/admin/content/lessons` (q on title/slug, filter[course], filter[chapter], filter[status], filter[has_draft]; sort -updated_at (default), course, title; section_count, visual_count, last edited by/at) | ✅ B |
 | 🛡 | POST | `/admin/content/lessons` (chapter_id, title, slug). 201; a `draft` lesson at the end of the chapter, invisible to learners | ✅ B |
-| 🛡 | GET | `/admin/content/lessons/{id}` (`working_copy` = draft if any else live, `preview_sections` serialized exactly like the learner endpoint, `lock_version` (0 without a draft), `has_unpublished_changes`, `slug_editable`, `can_delete`, topics) | ✅ B |
+| 🛡 | GET | `/admin/content/lessons/{id}` (`working_copy` = draft if any else live, `preview_sections` serialized exactly like the learner endpoint, `lock_version` (0 without a draft), `has_unpublished_changes`, `slug_editable`, `can_delete`, topics; F3: `working_copy.architecture` (null when none) and `architecture_issues`, the lesson slugs its sub-nodes link to that are not live in its course) | ✅ B |
 | 🛡 | PUT | `/admin/content/lessons/{id}/draft` (whole working copy + lock_version). Sections without `id` get a UUID; ids of other lessons or duplicates → 422; stale lock → 409 `conflict`. Errors keyed like the body: `sections.3.payload.items.0`, in plain words | ✅ B |
 | 🛡 | DELETE | `/admin/content/lessons/{id}/draft`. 422 for a never-published lesson (delete it instead) | ✅ B |
 | 🛡 | POST | `/admin/content/lessons/{id}/publish` (lock_version, note?). Re-validates; needs a summary and ≥1 section; writes revision n+1; a chapter change appends at the end of the new chapter; republishes archived lessons | ✅ B |
@@ -313,6 +316,19 @@ Content routes are exempt from the `TrimStrings` and `ConvertEmptyStringsToNull`
 Audit entry shape: `{ id, action, actor: {id, name} | null, subject: {type, id, label}, changes, created_at }`. `actor` is null for the `cybercompass:make-admin` command.
 
 **Login change:** a suspended account gets 422 with `errors.email = auth.suspended`, only after the correct password; a wrong password still gets `auth.failed`. Successful logins set `last_login_at`. Any request from a session that belongs to a suspended user is answered 401.
+
+**Course map (F3, D57):** `graph` on `GET /courses/{slug}` is
+
+```json
+{ "problem": "…", "layout": "auto|manual", "lanes": [{ "id": "a", "label": "…" }],
+  "lessons": [{ "slug": "…", "title": "…", "placement": { "col": 0, "row": 0, "lane": "a" } | null,
+                "problem": "…" | null, "shape": "pipeline" | null, "rows": null, "cols": null,
+                "nodes": [{ "id": "…", "label": "…", "note?": "…", "section?": "<uuid>", "lesson?": "<slug>", "parent?": "…", "x?": 0, "y?": 0, "cell?": [0, 1] }],
+                "edges": [{ "from": "…", "to": "…", "label?": "…" }] }],
+  "edges": [{ "from": "<slug>", "to": "<slug>", "type": "requires|builds-on|feeds-into|contrasts-with|parallel-to", "label?": "…" }] }
+```
+
+Lessons are the course's published lessons in curriculum order; edges, placements and sub-node links to anything else are dropped on the server. A sub-node `section` is the id of a section of that lesson, so `/learn/{slug}#{section}` opens it. A lesson's completion state comes from `/courses/{slug}/progress`, never from the map.
 
 **Lesson change (additive):** `GET /lessons/{slug}` section `id`s are now stable UUIDs (were `section-{position}`). Draft and archived lessons answer 404 and are left out of every count, curriculum and roadmap.
 

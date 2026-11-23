@@ -13,8 +13,9 @@ flowchart LR
     P6 --> P7[7 Quality + deploy readiness]
   end
   P7 --> F1[F1 Compass + shortcuts]
-  F1 --> F2[F2 Blog, planned]
-  F2 --> FN[F3 ...]
+  F1 --> F2[F2 Blog]
+  F2 --> F3[F3 Course map]
+  F3 --> F4[F4 Networking Fundamentals, expanded]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -383,6 +384,53 @@ A public blog beside Courses, Assessment and Labs. Posts are built from the same
 **Deploy notes (Part B):** content only. `cybercompass:release` imports the post and uploads its two images to `uploads_disk` (D56, checked on `docker-compose.prod.yml` in Part A). No migration, variable, route or budget change. Owner action when deploying: nothing.
 
 **F2 complete (2026-11-22).**
+
+### F3: Course map (in progress, 2026-11-23)
+
+A map at the top of every course page: each lesson node solves one problem, and together they solve the course's big problem. Typed relations between lessons, and a focus mode where a lesson expands in place into its own architecture (layers, onion, stack, queue, pipeline, cycle, hub, tree, mesh or matrix) with links to the sections that teach each part. Decisions D57 to D60.
+
+**Impact check (CLAUDE.md §5, 2026-11-23), answered by the owner:**
+- **Duplicate, decided (D59):** shapes overlap the `layer-stack`, `flow`, `tree`, `topology` and `comparison` blocks. Architectures keep their own small data and share the layout code; the editor's "Fill from block" copies labels and section links once. `contrast` merges into `matrix` (10 shapes).
+- **Duplicate, decided (D59):** the learner-facing name is "Course map", beside the existing "Knowledge map" (`/roadmap/map`).
+- **Conflict, decided (D59, extends D27):** focus mode is a layout transition, not a viewBox zoom; no pan or zoom canvas.
+- **Conflict, decided (D58):** the importer always rewrote courses; a map saved in the admin is now owned by the database. Maps are saved live with audit-based restore and optimistic locking rather than on the block-document core, which is built around sections.
+- **Conflict, decided (D57):** a section a sub-node names is protected by validating the architecture inside the lesson snapshot, not by a `SectionWriter` hook.
+- **Conflict, decided (D60):** the health check runs after the import in `cybercompass:release`; preflight stays configuration-only.
+- **Reused, not rebuilt:** `/courses/{slug}/progress` for completion, `lib/graph` (`layoutGrid`, `gridEdgePath`, `layoutGraph`, `edgePath`, `wrapLabel`), section UUID anchors in the reader, the section key resolution of exercises, the lesson snapshot pipeline, the shortcut registry's fixed actions, the D50 WAF and TrimStrings coverage of `/admin/content/`, the existing page and query budgets.
+- **Shift:** Part C (map content for the seven other courses) waits for F4, which expands Networking Fundamentals and gives it its map.
+
+**Parts (each gated and reported):**
+- **Part A:** data model, validation, import and export, API, health check.
+- **Part B:** renderer, shapes, focus mode, keyboard and outline, compass item, admin panels, Vitest and Playwright.
+- **Part C:** map content for every course except Networking Fundamentals. **Waiting for F4.**
+
+**Part A exit, verified (2026-11-23):**
+- **Delivered:**
+  - **Tables:** `course_graphs` and `lesson_architectures`.
+  - **Validation:** `Content\CourseMap\MapSchemas` (`course-graph.json`, `architecture.json`, one schema per shape in `schemas/shapes/`, shared fixtures in `fixtures/`), `MapVersions` (version upgrades) and `CourseMap` (the learner payload, filtered to published lessons, and the issues list).
+  - **Lesson snapshot:** `architecture` is validated against the snapshot's own sections. Links to another course are dropped on save, and publishing writes the live row.
+  - **Import and export:** the importer reads `graph` and `architecture` (sections by key or UUID), skips admin-owned maps unless `--force`, removes maps that left the file and warns about unplaced, unconnected and problem-less lessons. The exporter writes section keys back.
+  - **API:** `graph` on `GET /courses/{slug}`; the admin panel API (show, save with lock and audit, restore before or after); `architecture_issues` on the admin lesson.
+  - **Health check:** `content:check-graphs` (`--warn-only`, `--upgrade`), run by `cybercompass:release` after the import.
+- **Tests:** 779 Pest (56 new):
+  - every shape's valid fixture at its maximum size and its invalid fixture, and a guard that every shape has its schema and fixtures
+  - reference rules (ids, edges, sections, tree roots and loops, matrix cells, shape-only fields), versions and budgets
+  - import, serving, visibility for archived and draft lessons, new and moved lessons, refused files and warnings, the export round trip with section keys, removal from the file
+  - the admin panel: issues, live save, 409, ownership against the import, `--force`, restore, admin-only access
+  - the lesson snapshot: draft, publish, revisions; a referenced section refused until cleared; old revisions
+  - the health check, and a query budget showing a 7-lesson map adds no query
+- **Checked:** Pint is clean.
+
+**Deploy notes (Part A):**
+- Migrations: done. One additive migration (two new tables); the previous release never reads them.
+- Release task: done. `cybercompass:release` migrates, imports maps and architectures from the content files (none yet), then runs `content:check-graphs --warn-only`. Checked on `docker-compose.prod.yml` (migrate, import, the check with 0 errors, `graph` served as null).
+- Configuration: not applicable (no new variable).
+- Edge: done. The admin routes are under `/api/v1/admin/content/`, already covered by the D50 WAF exclusion, the TrimStrings exemption and the admin middleware; `RouteInventoryTest` passes. No new public route: the map is part of `GET /courses/{slug}`. No new origin.
+- Storage and jobs: not applicable.
+- Budgets: done. `GET /courses/{slug}` keeps its budget of 16 queries with or without a map (a 7-lesson map with full architectures adds none and stays under 40 KB of JSON). The page weight is measured in Part B.
+- Production parity: done for the API (above). CI runs after the commit.
+- Docs: no change to DEPLOYMENT_AWS.md.
+- Owner action when deploying: nothing.
 
 ## Follow-ups (not scheduled in a phase)
 

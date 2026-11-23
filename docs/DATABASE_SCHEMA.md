@@ -118,6 +118,10 @@ Plus the Laravel defaults `password_reset_tokens` and `sessions`.
 **lesson_media** (✅ Phase 3.5 B): `uuid` unique (also the file name), `path` (`lesson-media/{uuid}.webp` on `uploads_disk`), `source` varchar(255) null (F2, D56: the content-file image it was imported from, relative to `database/seeders/content`; null for uploads), `alt` varchar(250) required, `width`, `height`, `size_bytes`, `uploaded_by` FK users null. Always WebP (re-encoded on upload and on import). `media` blocks store only `{media: uuid, caption}`; the serializer resolves url/alt/size on read. Shared by lessons and blog posts (covers and `media` blocks).
 **lesson_revisions** (Phase 3.5): `lesson_id` FK cascade, `version` int, `snapshot` JSON, `note` varchar(300) null, `created_by` FK users null, `created_at`. Unique (`lesson_id`,`version`). One row per publish.
 
+**course_graphs** (✅ F3, D57, D58): `course_id` unique FK cascade, `graph` JSON (`{version, problem, layout, lanes?, placement?, edges}`, lessons named by slug; contract in `Content/CourseMap/schemas/course-graph.json`), `lock_version` int default 1, `updated_by` FK users null (null on delete; set by an admin save, which makes the database the map's owner for imports), timestamps. History is the audit log (`course_graph.saved`, `course_graph.restored` with the whole map before and after).
+
+**lesson_architectures** (✅ F3, D57): `lesson_id` unique FK cascade, `architecture` JSON (`{version, problem, shape, nodes, edges, rows?, cols?}`; `architecture.json` plus `shapes/<shape>.json`), timestamps. The published architecture only, written by publishing and the importer; drafts and revisions carry it in their snapshot under `architecture` (a snapshot without the key has none). Sub-node `section` values are UUIDs of that lesson's own sections. Separate tables rather than JSON columns so `SELECT *` lesson queries never carry them.
+
 ### Blog (✅ F2, D55)
 
 Twins of the lesson tables, for posts that are never part of a course. All four migrations are additive.
