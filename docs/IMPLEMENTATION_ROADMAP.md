@@ -385,7 +385,7 @@ A public blog beside Courses, Assessment and Labs. Posts are built from the same
 
 **F2 complete (2026-11-22).**
 
-### F3: Course map (Parts A and B done; Part C waiting for F4, 2026-11-23)
+### F3: Course map (Parts A and B done and closed out; Part C waiting for F4, 2026-11-23)
 
 A map at the top of every course page: each lesson node solves one problem, and together they solve the course's big problem. Typed relations between lessons, and a focus mode where a lesson expands in place into its own architecture (layers, onion, stack, queue, pipeline, cycle, hub, tree, mesh or matrix) with links to the sections that teach each part. Decisions D57 to D60.
 
@@ -465,8 +465,25 @@ A map at the top of every course page: each lesson node solves one problem, and 
 
 **Page weight, `/courses/[slug]` (production build, `performance.spec.ts` enforced):** 198 KB of JavaScript and 1 API request with the test map (`/courses/applied-cryptography`), against a budget of 250 KB and 2 requests; `/courses/networking-fundamentals`, which has no map, is also 198 KB. Public pages measured about 190 KB before F3, so the overview costs about 8 KB on every course page. Focus mode (the panel, the layouts and zod) loads on first use. The new route has its own budget entry.
 
+**Close-out before F4 (2026-11-23), commits ad870d2, 22f2b6e, c97a519:**
+- **Focus mode, self-check against the brief: it did not match.** The architecture opened in a separate panel below the node and only the nodes below moved. Rebuilt: the focused lesson's own node grows in place into its architecture.
+  - Its title card stays at the top left, with the shape's name and the actions beside it.
+  - The parts sit inside the node in the lesson's shape, each with a dotted line back to the card; a part that leads to another lesson has an arrow to that lesson's node.
+  - The grid reflows around the node in both directions: `layoutGrid` takes a per-item size, so its column widens and its row grows.
+  - Unrelated lessons stay dimmed. There is no card, panel, drawer, zoom or scaling, and the page never scrolls; when the map is wider than its box, the box scrolls sideways to show the node.
+  - Label sizing moved to `lib/graph/text.ts`, so the overview never loads dagre.
+  - `e2e/course-graph.spec.ts` now checks that the node grows at its own corner and that the lesson to its right moves right.
+- **CI found one failure, now fixed:** a MySQL deadlock in the database cache. Two parallel requests of one admin both created the rate limiter's row, and one got a 500 (seen in `security.spec.ts`). `App\Support\Cache\RetryingDatabaseStore` retries a write MySQL picked as the deadlock victim (codes 1213 and 1205, three attempts) and is registered as the `database` cache driver; unit tests cover it. This race existed since D6. CI is green on 22f2b6e and c97a519.
+- **Production images** (`docker-compose.prod.yml`, rebuilt from c97a519): migrate, content import and `content:check-graphs` with 0 errors; the full Playwright suite with budgets enforced, 33 of 33.
+- **Hallmark sloplint**, run from the skill's scripts with `puppeteer-core` installed in the session scratchpad and Edge as `CHROME_PATH`:
+  - **Static pass** (course map, shapes, both admin panels, the CSS) found 5 FAIL. Lesson cards sat inside a `rounded-card` box (the map area is now a `rounded-control` surface, like lesson graph boxes), and the canvas height and lane bands animated layout properties (they now change instantly). Now 0 FAIL; 4 REFLEX remain, all accepted earlier: the `paper-2` and `accent-ink` tokens, and no `:disabled` style on parts that are never disabled.
+  - **Render tier** on `/courses/applied-cryptography` found 1 FAIL: lesson titles were cut at two lines. Nodes are now 132px tall with three-line titles, and the course page is clean (0 FAIL, 0 REFLEX, 0 WARN).
+  - The admin screens need a login, which sloplint cannot do, so they had the static pass only.
+- **Tests:** 785 Pest, 478 Vitest and 33 Playwright tests.
+
 **Known limits:**
 - **Moving between nodes:** relation paths animate only in Chromium; elsewhere they jump.
+- **Wide maps:** an expanded node widens its column. A map wider than its box scrolls sideways inside the box: at 1280 the three-lesson test map does when a lesson is open, and a large map will in the overview too (F4 Part B looks at node sizes).
 - **Mesh layout:** it separates touching nodes with a few relaxation passes, so a very crowded author layout can still touch (a `shortcut:` comment marks it).
 - **Edge labels:** a label for an edge that skips columns sits in the first gap after its source.
 - **Caching:** the course page's 60-second public cache delays a map change on the page, as it does for every course change.
@@ -475,11 +492,11 @@ A map at the top of every course page: each lesson node solves one problem, and 
 **Deploy notes (Part B):**
 - Migrations: not applicable (none in Part B).
 - Release task: done. No new seed content; `cybercompass:e2e-course-map` refuses to run outside local and testing.
-- Configuration: not applicable.
+- Configuration: not applicable. The `database` cache driver now retries deadlocked writes, with no setting to change.
 - Edge: done. No new origin, route or path prefix; the admin panel API is the Part A route under `/api/v1/admin/content/`. CSP: the map uses inline style attributes for positions, which D42 already allows, and `security.spec.ts` passes.
 - Storage and jobs: not applicable.
 - Budgets: done (above). No new dependency.
-- Production parity: done on the production build (`next build` and `next start`) with the full Playwright suite enforced. Not rerun on `docker-compose.prod.yml` for Part B: no backend runtime change beyond the panel field, and the API was checked there in Part A. CI has not run: nothing is pushed.
+- Production parity: done. The full Playwright suite with budgets enforced passes on `docker-compose.prod.yml` (production images rebuilt from c97a519): 33 of 33, `/courses/[slug]` at 199 KB of JavaScript and 1 API request. CI is green on 22f2b6e and c97a519.
 - Docs: no change to DEPLOYMENT_AWS.md.
 - Owner action when deploying: nothing.
 

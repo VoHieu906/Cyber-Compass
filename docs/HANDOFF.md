@@ -10,7 +10,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
 - **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4 (expanding Networking Fundamentals), which comes next.
-- **Tests:** 782 Pest, 477 Vitest and 33 Playwright end-to-end tests (after F3 Part B). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **Tests:** 785 Pest, 478 Vitest and 33 Playwright end-to-end tests (after the F3 close-out). CI green on c97a519. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -58,6 +58,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Admin panels:** `ArchitecturePanel`, inside the lesson details, and `CourseGraphPanel`, on `/admin/courses`.
 - **Testing:** `cybercompass:e2e-course-map install|remove` (local and testing only) gives a test map on Applied Cryptography. Playwright installs it in global setup and removes it in teardown. After installing by hand, the public course page can show the old version for up to 60 seconds.
 - **Lesson anchors:** `DocumentLayout` scrolls to `#<section uuid>` once a lesson renders (lessons load on the client).
+- **Cache deadlocks:** the `database` cache driver is `App\Support\Cache\RetryingDatabaseStore` (registered in `AppServiceProvider`), which retries writes MySQL picks as deadlock victims (parallel first requests of one user racing on the rate limiter row).
+- **Hallmark sloplint:** run `~/.claude/skills/hallmark/scripts/sloplint.mjs` copied into a folder with `puppeteer-core` installed, with `CHROME_PATH` set to Edge; `--scope app` and `--url` for the render tier (it cannot log in, so admin screens get the static pass).
 
 ## F1: compass menu and keyboard shortcuts (formerly Phase 7.5, 2026-11-22)
 
