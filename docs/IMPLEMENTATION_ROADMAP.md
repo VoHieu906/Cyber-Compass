@@ -385,7 +385,7 @@ A public blog beside Courses, Assessment and Labs. Posts are built from the same
 
 **F2 complete (2026-11-22).**
 
-### F3: Course map (in progress, 2026-11-23)
+### F3: Course map (Parts A and B done; Part C waiting for F4, 2026-11-23)
 
 A map at the top of every course page: each lesson node solves one problem, and together they solve the course's big problem. Typed relations between lessons, and a focus mode where a lesson expands in place into its own architecture (layers, onion, stack, queue, pipeline, cycle, hub, tree, mesh or matrix) with links to the sections that teach each part. Decisions D57 to D60.
 
@@ -429,6 +429,57 @@ A map at the top of every course page: each lesson node solves one problem, and 
 - Storage and jobs: not applicable.
 - Budgets: done. `GET /courses/{slug}` keeps its budget of 16 queries with or without a map (a 7-lesson map with full architectures adds none and stays under 40 KB of JSON). The page weight is measured in Part B.
 - Production parity: done for the API (above). CI runs after the commit.
+- Docs: no change to DEPLOYMENT_AWS.md.
+- Owner action when deploying: nothing.
+
+**Part B exit, verified (2026-11-23):**
+- **Delivered:**
+  - **Shapes** (`lib/graph/shapes`): the zod mirror (`schemas.ts`), ten pure layouts (`layouts.ts`, on shared `geometry.ts`), glyphs, `fitBox` heights and the registry.
+  - **Course map** (`features/course-map`): `layout.ts`, a pure function for automatic and manual placement, lanes, the room the focused lesson's panel needs, related and dimmed lessons, and arrow-key moves; `CourseMap`; `FocusPanel`, loaded on first use; `ArchitectureView`, shared with the admin preview; the legend; and the outline, which is the view below `md` and the text version above it.
+  - **Course page:** the map sits at the top of `/courses/[slug]` and renders nothing for a course without one. The compass item is "Course map", and the keys are the fixed actions `courseMap.*`, listed in Settings → Keyboard shortcuts.
+  - **Admin:** an Architecture panel in the lesson editor (problem, shape picker, parts with block and lesson links and shape fields, connections, "Fill from block", live preview, a warning for links to removed blocks, server errors at each part) and a Course map panel on `/admin/courses` (problem, layout, lanes, placement table, typed relations, issues, live preview, save with the lock, history with restore before or after). The panel response now includes each lesson's published architecture.
+  - **Test fixture:** `cybercompass:e2e-course-map install|remove` (local and testing only) puts a small test map on Applied Cryptography for Playwright and browser checks. It never touches a real map and is not seed content.
+- **Changed from the plan:** trees use a small tidy layout of their own instead of dagre, so focus mode never loads dagre (D59 updated). The panel heading reads "{title}: how it is built".
+- **Found and fixed during the checks:**
+  - **Section links.** A link to `/learn/<slug>#<section>` did not scroll: the lesson loads after the page, so the browser's own jump found nothing. `DocumentLayout` now scrolls to the address's section once the document renders, which fixes every lesson anchor, not only map links.
+  - **Accessibility sweep, two serious findings:** a node's description sat inside its button, so the name did not match the visible text (it now sits beside the button), and outline links at phone width were under 24px (24px line boxes now).
+  - **Layout:** problem text clipped in the nodes, edge labels sat under the panel or over a node, and short shapes left the panel mostly empty (`fitBox`).
+  - **Overview bundle:** the overview imported the layout registry for one constant (`SHAPE_BOX` moved to `sizes.ts`).
+- **Tests:** 782 Pest (3 new, for the fixture command), 477 Vitest (84 new), 33 Playwright (3 new). The Vitest tests cover:
+  - every shape from one node to its maximum in both footprints and in its fitted box, plus the details of each shape
+  - zod against the shared fixtures
+  - automatic and manual layout, lanes and the room for the panel
+  - relations, dim state and keys
+  - the map component (one tab stop, arrow keys, open and Escape with focus returned, parts, links)
+  - the outline
+  - "Fill from block" for every fillable block fixture
+  - both admin panels: draft architecture, removed block, save with the lock, 409, restore, empty course
+
+  `e2e/course-graph.spec.ts` covers a guest working the map by keyboard (parts, the dimmed lesson, the section link, Escape), a learner following a part to its section, and the phone outline.
+- **Checked:** tsc, ESLint, Prettier (touched files) and Pint are clean. Hallmark sloplint was not run: its tooling lived in an earlier session's scratchpad.
+- **Browser check** (Edge, production build and dev server):
+  - **Course page:** the overview at 1280 and 1920 in light and dark; focus on each of the three fixture shapes (pipeline, matrix, layers); a dimmed lesson; a part's note and link; the phone outline at 390; reduced motion (instant changes).
+  - **Admin:** the Course map panel (automatic and manual with the placement table, live preview) and the Architecture panel (parts, block links, preview).
+  - No console errors other than the guest's expected 401 from `/me`, and no page overflow.
+  - Full-section captures taller than the viewport can show the panel area blank in headless Edge; the same panel captured at viewport size renders correctly (the same caveat as 3D blocks).
+
+**Page weight, `/courses/[slug]` (production build, `performance.spec.ts` enforced):** 198 KB of JavaScript and 1 API request with the test map (`/courses/applied-cryptography`), against a budget of 250 KB and 2 requests; `/courses/networking-fundamentals`, which has no map, is also 198 KB. Public pages measured about 190 KB before F3, so the overview costs about 8 KB on every course page. Focus mode (the panel, the layouts and zod) loads on first use. The new route has its own budget entry.
+
+**Known limits:**
+- **Moving between nodes:** relation paths animate only in Chromium; elsewhere they jump.
+- **Mesh layout:** it separates touching nodes with a few relaxation passes, so a very crowded author layout can still touch (a `shortcut:` comment marks it).
+- **Edge labels:** a label for an edge that skips columns sits in the first gap after its source.
+- **Caching:** the course page's 60-second public cache delays a map change on the page, as it does for every course change.
+- **Editing:** there is no drag-and-drop editor (D27 lists it as a revisit trigger; follow-up).
+
+**Deploy notes (Part B):**
+- Migrations: not applicable (none in Part B).
+- Release task: done. No new seed content; `cybercompass:e2e-course-map` refuses to run outside local and testing.
+- Configuration: not applicable.
+- Edge: done. No new origin, route or path prefix; the admin panel API is the Part A route under `/api/v1/admin/content/`. CSP: the map uses inline style attributes for positions, which D42 already allows, and `security.spec.ts` passes.
+- Storage and jobs: not applicable.
+- Budgets: done (above). No new dependency.
+- Production parity: done on the production build (`next build` and `next start`) with the full Playwright suite enforced. Not rerun on `docker-compose.prod.yml` for Part B: no backend runtime change beyond the panel field, and the API was checked there in Part A. CI has not run: nothing is pushed.
 - Docs: no change to DEPLOYMENT_AWS.md.
 - Owner action when deploying: nothing.
 

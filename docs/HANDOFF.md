@@ -9,8 +9,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Work after v1 is the [Feature track](IMPLEMENTATION_ROADMAP.md#feature-track):** stable ids `F<n>`, commits `type(scope): summary (F<n> Part X)`, and every feature passes [the gate](IMPLEMENTATION_ROADMAP.md#the-gate) including the deploy-ready gate, reported under "Deploy notes".
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
-- **F3 (Course map) is in progress** (D57 to D60): Part A (data, validation, import and export, API, health check) is done; Part B (renderer, focus mode, admin panels) is next; Part C (map content) waits for F4 (expanding Networking Fundamentals).
-- **Tests:** 779 Pest, 393 Vitest and 30 Playwright end-to-end tests (after F3 Part A). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4 (expanding Networking Fundamentals), which comes next.
+- **Tests:** 782 Pest, 477 Vitest and 33 Playwright end-to-end tests (after F3 Part B). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -44,7 +44,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
-## F3: course map (Part A, 2026-11-23)
+## F3: course map (Parts A and B, 2026-11-23)
 
 - **Data** (D57): `course_graphs` (one map per course) and `lesson_architectures` (the published architecture; drafts and revisions carry it in the lesson snapshot under `architecture`). Lessons are named by slug, sections by UUID (by key in content files).
 - **One validator:** `Content\CourseMap\MapSchemas` with `schemas/` and shared `fixtures/`; the zod mirror arrives in Part B and must agree on every fixture. Versions go through `MapVersions` (procedure in CONTENT_AUTHORING_GUIDE §4d).
@@ -52,6 +52,12 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Admin** (D58): `GET/PUT /admin/content/courses/{id}/graph` and `POST …/graph/restore/{audit_id}`; saved live, audited with the whole map, `lock_version`, and an admin save makes imports skip the map unless `--force`.
 - **Health** (D60): `content:check-graphs`, run by `cybercompass:release` after the import as warnings and in CI through Pest.
 - **Shapes:** 10, listed in `MapSchemas::SHAPES`; adding one is described in CONTENT_AUTHORING_GUIDE §4d.
+- **Renderer** (Part B, DESIGN_SYSTEM "Course map"):
+  - `features/course-map`: `layout.ts` holds the pure rules (placement, focus room, related and dimmed, keys); `CourseMap` draws; `FocusPanel` loads on first use; `ArchitectureView` is shared with the admin preview.
+  - The shapes are in `lib/graph/shapes`. Keep `sizes.ts` and `glyphs.ts` free of the layouts, so the overview bundle stays small.
+- **Admin panels:** `ArchitecturePanel`, inside the lesson details, and `CourseGraphPanel`, on `/admin/courses`.
+- **Testing:** `cybercompass:e2e-course-map install|remove` (local and testing only) gives a test map on Applied Cryptography. Playwright installs it in global setup and removes it in teardown. After installing by hand, the public course page can show the old version for up to 60 seconds.
+- **Lesson anchors:** `DocumentLayout` scrolls to `#<section uuid>` once a lesson renders (lessons load on the client).
 
 ## F1: compass menu and keyboard shortcuts (formerly Phase 7.5, 2026-11-22)
 

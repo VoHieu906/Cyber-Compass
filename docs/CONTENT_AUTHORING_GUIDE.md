@@ -207,6 +207,11 @@ A lesson's **shape** shows how its knowledge is built. As with blocks, **never f
 
 Sub-nodes (2 to 12, fewer for some shapes) have an `id`, a short `label` (up to 40 characters), an optional `note` (up to 240) shown in focus mode, an optional `section` (the block that teaches it) and an optional `lesson` (another lesson of the same course it leads to). `edges` between sub-nodes are optional; ordered shapes draw their order themselves. In the editor, "Fill from block" starts the sub-nodes from a layer stack, flow, tree, topology or comparison in the same lesson.
 
+### In the admin console
+
+- **Course map:** Admin → Courses, choose the course, then the Course map panel at the bottom: the big problem, the layout (with lanes and a placement table when manual) and the relations, with a live preview of what learners see. Saving applies at once; History restores any earlier version, before or after a change.
+- **Architecture:** in the lesson editor, the Architecture panel under the details: the problem, the shape, the parts (each with the block that teaches it and, optionally, a lesson it leads to) and their connections, with a live preview. It is part of the lesson, so it is saved as a draft, previewed and published with the rest.
+
 ### In content files
 
 ```php
@@ -240,7 +245,7 @@ Sub-nodes (2 to 12, fewer for some shapes) have an `id`, a short `label` (up to 
 - **Removing a block a sub-node points at.** Saving the lesson is refused at that sub-node until you clear or change the reference. Renaming a heading in the editor keeps the link (it follows the UUID); in a content file a renamed heading is a new block, so update the `section` key too.
 - **Who owns a map.** A map edited in the admin is saved at once and owned by the database: `content:import` skips it (unless `--force`) and `content:export` writes it back. Every save is in the panel's history and can be restored, before or after.
 - **Health check.** `php artisan content:check-graphs` validates every stored map and architecture and lists the warnings; it fails on errors. It runs in CI on the seed content and, as warnings only, at the end of every `cybercompass:release`.
-- **Adding a shape.** One entry in `MapSchemas::SHAPES`, `Content/CourseMap/schemas/shapes/<shape>.json`, `<shape>.valid.json` and `<shape>.invalid.json` in `Content/CourseMap/fixtures` (the valid one at the shape's maximum size), the shape's layout and glyph in `frontend/src/lib/graph/shapes` with its layout test, and a row in the table above. Pest and Vitest both fail until every shape has its schema and fixtures.
+- **Adding a shape.** One entry in `MapSchemas::SHAPES`, `Content/CourseMap/schemas/shapes/<shape>.json`, `<shape>.valid.json` and `<shape>.invalid.json` in `Content/CourseMap/fixtures` (the valid one at the shape's maximum size), the shape's layout (`layouts.ts`), glyph (`glyphs.ts`) and height rule (`sizes.ts`) in `frontend/src/lib/graph/shapes`, its entry in `SHAPES` and `SHAPE_LIMITS` (`schemas.ts`), its name and meaning in the `courseMap.shapes` and `courseMap.shapeHelp` messages (en and vi), and a row in the table above. Pest and Vitest both fail until every shape has its schema and fixtures.
 - **Changing a shape's schema.** Bump `MapVersions::CURRENT` and add a step that turns the old version into the new one. Content files, drafts, revisions and admin saves are upgraded as they are read; run `php artisan content:check-graphs --upgrade` once after deploying to rewrite the stored rows, then update the content files (an export does it).
 
 ## 5. Before you publish
