@@ -12,6 +12,7 @@ import {
   nodeState,
   placeLessons,
   relatedTo,
+  detailHeight,
   routePartLinks,
 } from "./layout";
 import type { CourseMapData, MapLesson } from "./types";
@@ -250,5 +251,21 @@ describe("part links in focus mode", () => {
     const t0 = performance.now();
     for (let i = 0; i < 10; i++) routePartLinks(panel, NODE, parts, links);
     expect((performance.now() - t0) / 10).toBeLessThan(16);
+  });
+});
+
+describe("the focus panel's detail strip", () => {
+  it("is as tall as what it shows, so no empty band is left", () => {
+    const width = 624;
+    expect(detailHeight("Short problem?", true, width)).toBe(FRAME.detail);
+    expect(detailHeight(null, false, width)).toBe(FRAME.pad);
+    const one = detailHeight("How do packets cross networks?", false, width);
+    const two = detailHeight(
+      "How does a packet cross networks that nobody controls end to end, and who decides the way?".repeat(2),
+      false,
+      width,
+    );
+    expect(one).toBeLessThan(two);
+    expect(two).toBeLessThan(FRAME.detail);
   });
 });

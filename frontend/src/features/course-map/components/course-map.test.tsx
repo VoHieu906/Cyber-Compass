@@ -138,7 +138,8 @@ describe("CourseMap", () => {
     await user.click(within(panel).getByRole("button", { name: "Slow hash" }));
     await user.click(within(panel).getByRole("button", { name: "Go to Encryption" }));
     expect(await screen.findByRole("region", { name: "Encryption: how it is built" })).toHaveTextContent(
-      "no particular shape",
+      // A lesson without a shape shows its problem in the node; no shape description, no placeholder hint.
+      "Share secrets with strangers.",
     );
     expect(node("Hashing")).toHaveAttribute("data-state", "related");
   });

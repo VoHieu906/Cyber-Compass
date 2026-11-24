@@ -30,6 +30,7 @@ import {
   expandedSize,
   layoutCourseMap,
   moveFrom,
+  detailHeight,
   nodeState,
   routePartLinks,
   type NodeState,
@@ -71,6 +72,7 @@ export function CourseMap({
   const expandedHeading = useId();
   const [parts, setParts] = useState<Map<string, Rect>>(new Map());
   const [hotPart, setHotPart] = useState<string | null>(null);
+  const [selectedPart, setSelectedPart] = useState<string | null>(null);
   // The problem tooltip: after a short pause on hover (no flicker while the pointer crosses the map), or on keyboard focus.
   const [tip, setTip] = useState<{ slug: string; rect: DOMRect } | null>(null);
   const tipTimer = useRef<number | undefined>(undefined);
@@ -122,9 +124,15 @@ export function CourseMap({
       ),
     [focusedLesson, footprint],
   );
+  // The detail strip shows the chosen part, else the problem (lessons with a shape; without one the problem fills the node).
+  const detail = detailHeight(
+    focusedLesson?.shape ? focusedLesson.problem : null,
+    !!selectedPart,
+    expandedSize(box, node).width,
+  );
   const layout = useMemo(
-    () => layoutCourseMap(map, focused, expandedSize(box, node), narrow),
-    [map, focused, box, node, narrow],
+    () => layoutCourseMap(map, focused, expandedSize(box, node, detail), narrow),
+    [map, focused, box, node, narrow, detail],
   );
 
   // Bring the expanded node into view inside the map's own box: only its scrollLeft moves, never the page.
@@ -158,8 +166,8 @@ export function CourseMap({
         },
       ];
     });
-    return routePartLinks(frame, { width: layout.node.width, height: frame.nodeHeight }, parts, links);
-  }, [frame, focusedLesson, parts, layout]);
+    return routePartLinks(frame, { width: layout.node.width, height: frame.nodeHeight }, parts, links, detail);
+  }, [frame, focusedLesson, parts, layout, detail]);
   const partLinkProps = (id: string) => ({
     fill: "none",
     strokeWidth: id === hotPart ? 2.25 : 1.5,
@@ -189,6 +197,7 @@ export function CourseMap({
     hideTip();
     setParts(new Map());
     setHotPart(null);
+    setSelectedPart(null);
     setFocused(slug);
     setActive(slug);
   };
@@ -453,6 +462,9 @@ export function CourseMap({
                       onClose={close}
                       onParts={setParts}
                       onHotPart={setHotPart}
+                      selected={selectedPart}
+                      onSelect={setSelectedPart}
+                      detail={detail}
                       onFocusLesson={(slug) => (
                         open(slug),
                         requestAnimationFrame(() => nodes.current.get(slug)?.focus())

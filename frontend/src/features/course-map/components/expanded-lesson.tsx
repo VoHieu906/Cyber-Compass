@@ -3,7 +3,7 @@
 import { ArrowRight, BookOpen, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Box, Rect } from "@/lib/graph/shapes/geometry";
 import { architectureSchema } from "@/lib/graph/shapes/schemas";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,9 @@ export default function ExpandedLesson({
   onFocusLesson,
   onParts,
   onHotPart,
+  selected,
+  onSelect,
+  detail,
 }: {
   lesson: MapLesson;
   titles: Map<string, string>;
@@ -41,9 +44,13 @@ export default function ExpandedLesson({
   onParts: (parts: Map<string, Rect>) => void;
   /** The part under the pointer or keyboard focus. */
   onHotPart: (id: string | null) => void;
+  /** The chosen part: the map sizes the detail strip for it (detailHeight). */
+  selected: string | null;
+  onSelect: (id: string) => void;
+  /** The detail strip's height. */
+  detail: number;
 }) {
   const t = useTranslations("courseMap");
-  const [selected, setSelected] = useState<string | null>(null);
   const parsed = useMemo(
     () =>
       lesson.shape
@@ -70,23 +77,14 @@ export default function ExpandedLesson({
 
   return (
     <>
+      {/* Beside the title card, centred on it: only the two actions (the shape is on the card's glyph and in its description). */}
       <div
-        className="absolute top-0 right-0 flex flex-col items-end gap-2 p-3 text-right"
-        style={{ left: card.width + 12 }}
+        className="absolute top-0 right-0 flex items-center justify-end px-3"
+        style={{ left: card.width + 12, height: card.height }}
       >
         <h3 id={headingId} className="sr-only">
           {t("parts", { title: lesson.title })}
         </h3>
-        <p className="text-sm text-ink-2">
-          {lesson.shape ? (
-            <>
-              <span className="font-medium text-ink">{t(`shapes.${lesson.shape}`)}</span>:{" "}
-              {t(`shapeHelp.${lesson.shape}`)}
-            </>
-          ) : (
-            t("noShape")
-          )}
-        </p>
         {/* Icon-only actions: the name is the aria-label, and a small tooltip shows it on hover and keyboard focus. */}
         <div className="flex justify-end gap-2">
           <Link
@@ -119,7 +117,7 @@ export default function ExpandedLesson({
             architecture={architecture}
             box={box}
             selected={selected}
-            onSelect={setSelected}
+            onSelect={onSelect}
             label={t("parts", { title: lesson.title })}
             onHot={onHotPart}
             onLayout={(rects) =>
@@ -135,8 +133,8 @@ export default function ExpandedLesson({
 
       <div
         aria-live="polite"
-        className="absolute right-3 bottom-3 left-3 border-t border-rule pt-2 text-sm"
-        style={{ height: EXPANDED.detail - 16 }}
+        className={cn("absolute right-3 bottom-3 left-3 text-sm", detail > EXPANDED.pad && "border-t border-rule pt-2")}
+        style={{ height: Math.max(0, detail - 16) }}
       >
         {part ? (
           <div className="flex flex-col gap-1.5">
@@ -166,17 +164,12 @@ export default function ExpandedLesson({
               ) : null}
             </div>
           </div>
-        ) : lesson.shape ? (
-          // Until a part is chosen: the lesson's problem (the node no longer shows it, and touch has no hover) and the hint.
-          <div className="flex flex-col gap-1">
-            {lesson.problem ? (
-              <p className="line-clamp-2">
-                <span className="font-medium text-ink">{t("problemLabel")}</span>{" "}
-                <span className="text-ink-2">{lesson.problem}</span>
-              </p>
-            ) : null}
-            <p className="text-muted">{t("pickPart")}</p>
-          </div>
+        ) : lesson.shape && lesson.problem ? (
+          // Until a part is chosen: the lesson's problem (the node no longer shows it, and touch has no hover).
+          <p className="line-clamp-2">
+            <span className="font-medium text-ink">{t("problemLabel")}</span>{" "}
+            <span className="text-ink-2">{lesson.problem}</span>
+          </p>
         ) : null}
       </div>
     </>

@@ -39,13 +39,30 @@ const SIDE = 96;
 const GOAL_SIZE = { width: 236, height: 132 };
 
 /** Where the parts sit inside the expanded node, below the title card. */
-export const EXPANDED = { pad: 12, header: NODE.height, gap: 16, detail: 84, actions: 360 };
+/** `detail` is the strip's full height (a chosen part); `actions` the room beside the title card for the two icon actions. */
+export const EXPANDED = { pad: 12, header: NODE.height, gap: 16, detail: 84, actions: 136 };
+
+/**
+ * The detail strip's height: a chosen part's label, note and links; before that the lesson's
+ * problem in the lines it needs (one or two, estimated from its length, as the layout never reads
+ * the DOM); with neither, only the node's bottom padding.
+ */
+export function detailHeight(problem: string | null, partChosen: boolean, width: number): number {
+  if (partChosen) return EXPANDED.detail;
+  if (!problem) return EXPANDED.pad;
+  const lines = Math.min(2, Math.ceil((textWidth(problem, 14) + 96) / (width - 2 * EXPANDED.pad)));
+  return 28 + 20 * lines;
+}
 
 /** The expanded node's size for a shape box: title card on top, the shape, the detail strip. */
-export function expandedSize(box: { width: number; height: number }, card: { width: number } = NODE) {
+export function expandedSize(
+  box: { width: number; height: number },
+  card: { width: number } = NODE,
+  detail: number = EXPANDED.detail,
+) {
   return {
     width: Math.max(box.width + 2 * EXPANDED.pad, card.width + EXPANDED.actions),
-    height: EXPANDED.header + EXPANDED.gap + box.height + EXPANDED.detail,
+    height: EXPANDED.header + EXPANDED.gap + box.height + detail,
   };
 }
 
@@ -64,6 +81,7 @@ export function routePartLinks(
   card: { width: number; height: number },
   parts: Map<string, Rect>,
   links: { id: string; key: string; to: Rect }[],
+  detail: number = EXPANDED.detail,
 ): { id: string; inner: string; outer: string; fallback: boolean }[] {
   const shift = (r: Rect): Rect => ({ ...r, x: r.x + RING, y: r.y + RING });
   const rects = new Map<string, Rect>([...parts].map(([id, r]) => [`p:${id}`, shift(r)]));
@@ -77,15 +95,16 @@ export function routePartLinks(
       height: EXPANDED.header,
     }),
   );
-  rects.set(
-    "strip",
-    shift({
-      x: EXPANDED.pad,
-      y: panel.height - EXPANDED.detail + 4,
-      width: panel.width - 2 * EXPANDED.pad,
-      height: EXPANDED.detail - 16,
-    }),
-  );
+  if (detail > EXPANDED.pad)
+    rects.set(
+      "strip",
+      shift({
+        x: EXPANDED.pad,
+        y: panel.height - detail + 4,
+        width: panel.width - 2 * EXPANDED.pad,
+        height: detail - 16,
+      }),
+    );
   // One exit per target lesson, in the ring, on the side of the node facing it.
   for (const l of links) {
     const c = centre(l.to);
