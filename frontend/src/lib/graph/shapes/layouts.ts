@@ -1,16 +1,6 @@
 import type { Point } from "../layout";
-import {
-  PAD,
-  boxAround,
-  boxIn,
-  bracket,
-  centre,
-  connect,
-  overlaps,
-  type Box,
-  type PlacedSub,
-  type Rect,
-} from "./geometry";
+import { PAD, boxAround, boxIn, centre, connect, overlaps, type Box, type PlacedSub } from "./geometry";
+import { routeEdges } from "./route";
 import type { ShapeId, SubNode } from "./schemas";
 
 /*
@@ -37,6 +27,8 @@ export type ShapeEdge = {
   directed: boolean;
   /** Part of the shape itself (order, spokes, parents), not an authored sub-edge. */
   implicit: boolean;
+  /** No clean route around the other parts: drawn beneath them. */
+  fallback?: boolean;
 };
 
 export type Marker = "push" | "pop" | "front" | "back" | "core" | "outer";
@@ -54,25 +46,19 @@ type Layout = (input: ShapeInput, box: Box) => ShapeLayout;
 const GAP = 6;
 const MARKER = 20;
 
-function authored(
-  input: ShapeInput,
-  nodes: Map<string, PlacedSub>,
-  route: (a: Rect, b: Rect) => { d: string; mid: Point } = connect,
-): ShapeEdge[] {
-  return input.edges
-    .filter((e) => nodes.has(e.from) && nodes.has(e.to))
-    .map((e) => {
-      const { d, mid } = route(nodes.get(e.from)!, nodes.get(e.to)!);
-      return {
-        from: e.from,
-        to: e.to,
-        d,
-        label: e.label,
-        labelAt: e.label ? mid : undefined,
-        directed: true,
-        implicit: false,
-      };
-    });
+/** Authored sub-edges, routed around the other parts with their ends spread along each side (route.ts). */
+function authored(input: ShapeInput, nodes: Map<string, PlacedSub>, box: Box): ShapeEdge[] {
+  const edges = input.edges.filter((e) => nodes.has(e.from) && nodes.has(e.to) && e.from !== e.to);
+  return routeEdges(nodes, edges, box).map((r, i) => ({
+    from: r.from,
+    to: r.to,
+    d: r.d,
+    label: edges[i].label,
+    labelAt: edges[i].label ? r.mid : undefined,
+    directed: true,
+    implicit: false,
+    fallback: r.fallback,
+  }));
 }
 
 function chain(ids: string[], nodes: Map<string, PlacedSub>, closed = false): ShapeEdge[] {
@@ -98,7 +84,7 @@ const layers: Layout = (input, box) => {
       boxIn(node.label, { x: PAD, y: top + i * (h + GAP), width, height: h }, h >= 40 ? 2 : 1),
     ]),
   );
-  return { nodes, edges: authored(input, nodes, (a, b) => bracket(a, b, box.width - PAD)), decorations: [] };
+  return { nodes, edges: authored(input, nodes, box), decorations: [] };
 };
 
 /** LIFO: first at the bottom, last on top, pushed and popped at the open top. */
@@ -118,7 +104,7 @@ const stack: Layout = (input, box) => {
   const topY = bottom - n * h - (n - 1) * GAP;
   return {
     nodes,
-    edges: authored(input, nodes, (a, b) => bracket(a, b, box.width - PAD)),
+    edges: authored(input, nodes, box),
     decorations: [
       {
         kind: "path",
@@ -158,7 +144,7 @@ const queue: Layout = (input, box) => {
   const last = nodes.get(input.nodes[input.nodes.length - 1].id)!;
   return {
     nodes,
-    edges: authored(input, nodes),
+    edges: authored(input, nodes, box),
     decorations: [
       { kind: "marker", key: "front", x: first.x, y: first.y - 8, anchor: "start" },
       { kind: "marker", key: "back", x: last.x + last.width, y: last.y - 8, anchor: "end" },
@@ -176,7 +162,7 @@ const pipeline: Layout = (input, box) => {
         input.nodes.map((n) => n.id),
         nodes,
       ),
-      ...authored(input, nodes),
+      ...authored(input, nodes, box),
     ],
     decorations: [],
   };
@@ -209,7 +195,7 @@ const cycle: Layout = (input, box) => {
         nodes,
         n > 2,
       ),
-      ...authored(input, nodes),
+      ...authored(input, nodes, box),
     ],
     decorations: [],
   };
@@ -235,7 +221,7 @@ const hub: Layout = (input, box) => {
     directed: false,
     implicit: true,
   }));
-  return { nodes, edges: [...edges, ...authored(input, nodes)], decorations: [] };
+  return { nodes, edges: [...edges, ...authored(input, nodes, box)], decorations: [] };
 };
 
 /** Concentric rings: the first node is the core, the last the outermost ring; labels sit on each ring's top. */
@@ -266,7 +252,7 @@ const onion: Layout = (input, box) => {
   decorations.push({ kind: "marker", key: "core", x: cx + coreRx + 6, y: cy + coreRy, anchor: "start" });
   if (n > 1)
     decorations.push({ kind: "marker", key: "outer", x: cx + rxMax * 0.72, y: cy + ryMax * 0.82, anchor: "start" });
-  return { nodes, edges: authored(input, nodes), decorations };
+  return { nodes, edges: authored(input, nodes, box), decorations };
 };
 
 /** A hierarchy: depth by parent, leaves spread evenly in author order, parents over their children. */
@@ -324,7 +310,7 @@ const tree: Layout = (input, box) => {
         implicit: true,
       };
     });
-  return { nodes, edges: [...edges, ...authored(input, nodes)], decorations: [] };
+  return { nodes, edges: [...edges, ...authored(input, nodes, box)], decorations: [] };
 };
 
 /** A free network at the author's positions (0 to 100 on each axis), nudged apart where boxes would touch. */
@@ -355,7 +341,7 @@ const mesh: Layout = (input, box) => {
     if (!moved) break;
   }
   const nodes = new Map(input.nodes.map((node, i) => [node.id, rects[i]]));
-  return { nodes, edges: authored(input, nodes), decorations: [] };
+  return { nodes, edges: authored(input, nodes, box), decorations: [] };
 };
 
 /** A small grid with column headers on top and row headers on the left; each node fills its cell. */
@@ -393,7 +379,7 @@ const matrix: Layout = (input, box) => {
       ];
     }),
   );
-  return { nodes, edges: authored(input, nodes), decorations };
+  return { nodes, edges: authored(input, nodes, box), decorations };
 };
 
 export const LAYOUTS: Record<ShapeId, Layout> = {

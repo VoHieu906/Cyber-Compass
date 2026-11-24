@@ -1,9 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useMemo, useRef, type KeyboardEvent } from "react";
-import type { Point } from "@/lib/graph/layout";
-import { borderPoint, type Box, type Rect } from "@/lib/graph/shapes/geometry";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import type { Box, Rect } from "@/lib/graph/shapes/geometry";
 import { layoutShape } from "@/lib/graph/shapes/registry";
 import type { Architecture } from "@/lib/graph/shapes/schemas";
 import { pressed } from "@/lib/shortcuts/registry";
@@ -12,7 +11,9 @@ import { cn } from "@/lib/utils";
 /**
  * A lesson's architecture drawn in its shape (F3, D59): decorations and connectors as static SVG,
  * sub-nodes as real buttons over it (D27). Arrow keys move between the parts in their order; the
- * caller shows what the chosen part does. Used by the course map's focus mode and by the admin
+ * caller shows what the chosen part does. Relations between parts are routed around the other
+ * parts (lib/graph/shapes/route.ts); hovering or focusing a part keeps its own relations and the
+ * parts at their other ends at full strength and dims the rest. Used by the course map's focus mode and by the admin
  * Architecture panel's live preview, so authors see exactly what learners get.
  */
 export function ArchitectureView({
@@ -21,18 +22,18 @@ export function ArchitectureView({
   selected,
   onSelect,
   label,
-  anchor,
   onLayout,
+  onHot,
 }: {
   architecture: Architecture & { shape: NonNullable<Architecture["shape"]> };
   box: Box;
   selected: string | null;
   onSelect: (id: string) => void;
   label: string;
-  /** The main lesson node, in this box's coordinates: every part is linked back to it (course map focus mode). */
-  anchor?: Point;
   /** Reports where the parts sit, for edges drawn outside this box. */
   onLayout?: (parts: Map<string, Rect>) => void;
+  /** The part under the pointer or keyboard focus, for edges drawn outside this box. */
+  onHot?: (id: string | null) => void;
 }) {
   const t = useTranslations("courseMap");
   const marker = `arch-arrow-${useId().replace(/:/g, "")}`;
@@ -50,6 +51,27 @@ export function ArchitectureView({
     report.current = onLayout;
   });
   useEffect(() => report.current?.(layout.nodes), [layout]);
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production")
+      for (const e of layout.edges.filter((e) => e.fallback))
+        console.debug(`[course map] no clean route for ${e.from} -> ${e.to}; drawn beneath the parts`);
+  }, [layout]);
+  // Hover wins over keyboard focus while the pointer is on a part.
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [focusedPart, setFocusedPart] = useState<string | null>(null);
+  const hot = hovered ?? focusedPart;
+  const hotRef = useRef(onHot);
+  useEffect(() => {
+    hotRef.current = onHot;
+  });
+  useEffect(() => hotRef.current?.(hot), [hot]);
+  const near = useMemo(
+    () =>
+      hot
+        ? new Set([hot, ...layout.edges.flatMap((e) => (e.from === hot ? [e.to] : e.to === hot ? [e.from] : []))])
+        : null,
+    [hot, layout],
+  );
   const buttons = useRef(new Map<string, HTMLButtonElement>());
   const ids = architecture.nodes.map((n) => n.id);
   const active = selected ?? ids[0];
@@ -72,17 +94,23 @@ export function ArchitectureView({
     <div role="group" aria-label={label} className="relative mx-auto" style={{ width: box.width, height: box.height }}>
       <svg width={box.width} height={box.height} className="absolute inset-0 overflow-visible" aria-hidden>
         <defs>
-          <marker
-            id={marker}
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="7"
-            markerHeight="7"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 0 L 10 5 L 0 10 z" style={{ fill: "var(--color-muted)" }} />
-          </marker>
+          {(["line", "hot"] as const).map((kind) => (
+            <marker
+              key={kind}
+              id={`${marker}-${kind}`}
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path
+                d="M 0 0 L 10 5 L 0 10 z"
+                style={{ fill: kind === "hot" ? "var(--color-accent)" : "var(--color-ink-2)" }}
+              />
+            </marker>
+          ))}
         </defs>
         {layout.decorations.map((d, i) => {
           if (d.kind === "ellipse")
@@ -117,50 +145,44 @@ export function ArchitectureView({
             </text>
           );
         })}
-        {anchor
-          ? [...layout.nodes.values()].map((r, i) => {
-              // To the nearest point of the part; the opaque parts hide any stretch behind another part.
-              const to = borderPoint(r, anchor);
-              return (
-                <path
-                  key={`a${i}`}
-                  d={`M ${anchor.x} ${anchor.y} L ${to.x} ${to.y}`}
-                  fill="none"
-                  strokeWidth={1}
-                  strokeDasharray="2 4"
-                  style={{ stroke: "var(--color-accent)", opacity: 0.55 }}
-                />
-              );
-            })
-          : null}
-        {layout.edges.map((e, i) => (
-          <g key={i}>
-            <path
-              d={e.d}
-              fill="none"
-              style={{ stroke: e.implicit ? "var(--color-rule-2)" : "var(--color-muted)" }}
-              strokeWidth={e.implicit ? 1.25 : 1.5}
-              strokeDasharray={e.implicit ? undefined : "5 3"}
-              markerEnd={e.directed ? `url(#${marker})` : undefined}
-            />
-            {e.label && e.labelAt ? (
-              <text
-                x={e.labelAt.x}
-                y={e.labelAt.y - 7}
-                textAnchor="middle"
-                fontSize={11}
+        {layout.edges.map((e, i) => {
+          const lit = hot !== null && (e.from === hot || e.to === hot);
+          return (
+            <g
+              key={i}
+              data-edge={`${e.from}>${e.to}`}
+              data-state={hot === null ? undefined : lit ? "lit" : "dim"}
+              className="[transition:opacity_var(--dur-micro)] motion-reduce:transition-none"
+              style={{ opacity: hot !== null && !lit ? 0.3 : 1 }}
+            >
+              <path
+                d={e.d}
+                fill="none"
                 style={{
-                  fill: "var(--color-muted)",
-                  paintOrder: "stroke",
-                  stroke: "var(--color-paper-2)",
-                  strokeWidth: 4,
+                  stroke: lit ? "var(--color-accent)" : e.implicit ? "var(--color-rule-2)" : "var(--color-ink-2)",
                 }}
-              >
-                {e.label}
-              </text>
-            ) : null}
-          </g>
-        ))}
+                strokeWidth={(e.implicit ? 1.25 : 1.5) + (lit ? 0.75 : 0)}
+                markerEnd={e.directed ? `url(#${marker}-${lit ? "hot" : "line"})` : undefined}
+              />
+              {e.label && e.labelAt ? (
+                <text
+                  x={e.labelAt.x}
+                  y={e.labelAt.y - 7}
+                  textAnchor="middle"
+                  fontSize={11}
+                  style={{
+                    fill: lit ? "var(--color-ink)" : "var(--color-ink-2)",
+                    paintOrder: "stroke",
+                    stroke: "var(--color-paper-2)",
+                    strokeWidth: 4,
+                  }}
+                >
+                  {e.label}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
       </svg>
       {architecture.nodes.map((node) => {
         const r = layout.nodes.get(node.id)!;
@@ -174,8 +196,14 @@ export function ArchitectureView({
             aria-pressed={isSelected}
             onClick={() => onSelect(node.id)}
             onKeyDown={(e) => onKeyDown(e, node.id)}
+            onPointerEnter={() => setHovered(node.id)}
+            onPointerLeave={() => setHovered(null)}
+            onFocus={() => setFocusedPart(node.id)}
+            onBlur={() => setFocusedPart(null)}
+            data-state={near ? (near.has(node.id) ? "lit" : "dim") : undefined}
             className={cn(
-              "absolute flex items-center justify-center overflow-hidden rounded-control border px-2 text-center text-[12px] leading-[14px] text-ink transition-colors duration-[var(--dur-micro)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
+              "absolute flex items-center justify-center overflow-hidden rounded-control border px-2 text-center text-[12px] leading-[14px] text-ink transition-[color,background-color,border-color,opacity] duration-[var(--dur-micro)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none",
+              near && !near.has(node.id) && "opacity-30",
               isSelected ? "border-accent bg-accent-soft" : "border-rule-2 bg-paper-2 hover:border-ink-2",
               node.section || node.note || node.lesson ? "cursor-pointer" : "",
             )}

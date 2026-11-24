@@ -68,14 +68,3 @@ export function connect(a: Rect, b: Rect): { d: string; mid: Point } {
   const q = borderPoint(b, centre(a));
   return { d: `M ${p.x} ${p.y} L ${q.x} ${q.y}`, mid: { x: (p.x + q.x) / 2, y: (p.y + q.y) / 2 } };
 }
-
-/** A connector bowing out to the right of stacked bands, so it never crosses the bands between. */
-export function bracket(a: Rect, b: Rect, right: number, depth = 14): { d: string; mid: Point } {
-  const ya = a.y + a.height / 2;
-  const yb = b.y + b.height / 2;
-  const x = Math.min(right, Math.max(a.x + a.width, b.x + b.width) + depth);
-  return {
-    d: `M ${a.x + a.width} ${ya} C ${x} ${ya}, ${x} ${yb}, ${b.x + b.width} ${yb}`,
-    mid: { x: x - depth / 4, y: (ya + yb) / 2 },
-  };
-}

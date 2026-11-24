@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { overlaps } from "@/lib/graph/shapes/geometry";
-import { GOAL, NARROW_NODE, NODE, layoutCourseMap, moveFrom, nodeState, placeLessons, relatedTo } from "./layout";
+import { overlaps, type Rect } from "@/lib/graph/shapes/geometry";
+import { layoutShape } from "@/lib/graph/shapes/registry";
+import {
+  EXPANDED as FRAME,
+  GOAL,
+  NARROW_NODE,
+  NODE,
+  expandedSize,
+  layoutCourseMap,
+  moveFrom,
+  nodeState,
+  placeLessons,
+  relatedTo,
+  routePartLinks,
+} from "./layout";
 import type { CourseMapData, MapLesson } from "./types";
 
 const lesson = (slug: string, extra: Partial<MapLesson> = {}): MapLesson => ({
@@ -103,7 +116,12 @@ describe("layoutCourseMap", () => {
     const at = (l: typeof overview, id: string) => l.boxes.get(id)!;
 
     // b keeps its corner and grows; its title card (nodeHeight) keeps the node's height.
-    expect(at(focus, "b")).toMatchObject({ x: at(overview, "b").x, y: at(overview, "b").y, ...EXPANDED, nodeHeight: at(overview, "b").nodeHeight });
+    expect(at(focus, "b")).toMatchObject({
+      x: at(overview, "b").x,
+      y: at(overview, "b").y,
+      ...EXPANDED,
+      nodeHeight: at(overview, "b").nodeHeight,
+    });
     // Later columns move right, later rows move down; the column before stays where it was.
     expect(at(focus, "d").x).toBe(at(overview, "d").x + EXPANDED.width - at(overview, "b").width);
     expect(at(focus, "c").y).toBeGreaterThan(at(focus, "b").y + EXPANDED.height);
@@ -113,7 +131,8 @@ describe("layoutCourseMap", () => {
 
     const boxes = [...focus.boxes];
     for (let i = 0; i < boxes.length; i++)
-      for (let j = i + 1; j < boxes.length; j++) expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
+      for (let j = i + 1; j < boxes.length; j++)
+        expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
     expect(focus.width).toBeGreaterThan(overview.width);
   });
 
@@ -147,7 +166,8 @@ describe("layoutCourseMap", () => {
     const focus = layoutCourseMap(MAP, "b", EXPANDED, true);
     const boxes = [...focus.boxes];
     for (let i = 0; i < boxes.length; i++)
-      for (let j = i + 1; j < boxes.length; j++) expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
+      for (let j = i + 1; j < boxes.length; j++)
+        expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
     expect(focus.boxes.get(GOAL)!.width).toBeGreaterThan(goal.width);
   });
 });
@@ -174,5 +194,61 @@ describe("focus state and keys", () => {
     expect(moveFrom(MAP, "c", "ArrowDown")).toBe("d");
     expect(moveFrom(MAP, "a", "ArrowUp")).toBe("a");
     expect(moveFrom(MAP, GOAL, "ArrowLeft")).toBe("e");
+  });
+});
+
+describe("part links in focus mode", () => {
+  // The OSI model: seven layers, five of them leading to other lessons around the expanded node.
+  const box = { width: 600, height: 340 };
+  const panel = expandedSize(box);
+  const area = { x: (panel.width - box.width) / 2, y: FRAME.header + FRAME.gap };
+  const shape = layoutShape(
+    "layers",
+    { nodes: [7, 6, 5, 4, 3, 2, 1].map((n) => ({ id: `l${n}`, label: `${n} Layer` })), edges: [] },
+    box,
+  );
+  const parts = new Map<string, Rect>(
+    [...shape.nodes].map(([id, r]) => [id, { ...r, x: r.x + area.x, y: r.y + area.y }]),
+  );
+  const at = (x: number, y: number): Rect => ({ x, y, width: NODE.width, height: NODE.height });
+  const links = [
+    { id: "l1", key: "ethernet", to: at(-300, panel.height + 80) },
+    { id: "l2", key: "switching", to: at(40, panel.height + 80) },
+    { id: "l3", key: "ip", to: at(panel.width + 72, 200) },
+    { id: "l4", key: "tcp", to: at(panel.width + 72, panel.height + 80) },
+    { id: "l7", key: "apps", to: at(panel.width + 72, -200) },
+  ];
+
+  it("leaves every part without crossing another part, the title card or the detail strip", () => {
+    const routes = routePartLinks(panel, NODE, parts, links);
+    expect(routes.filter((r) => r.fallback).map((r) => r.id)).toEqual([]);
+    const card = { x: 0, y: 0, ...NODE };
+    const strip = {
+      x: FRAME.pad,
+      y: panel.height - FRAME.detail + 4,
+      width: panel.width - 24,
+      height: FRAME.detail - 16,
+    };
+    for (const r of routes) {
+      const n = r.inner.match(/-?\d+(\.\d+)?/g)!.map(Number);
+      const pts = Array.from({ length: n.length / 2 }, (_, i) => ({ x: n[2 * i], y: n[2 * i + 1] }));
+      for (let i = 1; i < pts.length; i++) {
+        const seg = {
+          x: Math.min(pts[i - 1].x, pts[i].x),
+          y: Math.min(pts[i - 1].y, pts[i].y),
+          width: Math.abs(pts[i].x - pts[i - 1].x) || 0.01,
+          height: Math.abs(pts[i].y - pts[i - 1].y) || 0.01,
+        };
+        for (const [id, rect] of [...parts, ["card", card] as const, ["strip", strip] as const])
+          if (id !== r.id) expect(overlaps(seg, rect), `${r.id} crosses ${id}`).toBe(false);
+      }
+    }
+  });
+
+  it("routes them within a frame budget", () => {
+    routePartLinks(panel, NODE, parts, links);
+    const t0 = performance.now();
+    for (let i = 0; i < 10; i++) routePartLinks(panel, NODE, parts, links);
+    expect((performance.now() - t0) / 10).toBeLessThan(16);
   });
 });

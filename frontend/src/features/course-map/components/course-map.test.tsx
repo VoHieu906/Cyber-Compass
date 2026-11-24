@@ -155,7 +155,9 @@ describe("CourseMapOutline", () => {
   });
 
   it("reads every relation as a sentence about the lesson it is listed under", () => {
-    renderWithProviders(<CourseMapOutline map={{ ...MAP, edges: [...MAP.edges, { from: "crypto", to: "tls", type: "requires" }] }} />);
+    renderWithProviders(
+      <CourseMapOutline map={{ ...MAP, edges: [...MAP.edges, { from: "crypto", to: "tls", type: "requires" }] }} />,
+    );
     const item = (title: string) => screen.getByRole("link", { name: title }).closest("li")!;
     // Stored Encryption → TLS: "TLS requires Encryption", while "Encryption feeds into TLS".
     expect(within(item("TLS")).getByText("requires Encryption")).toBeInTheDocument();

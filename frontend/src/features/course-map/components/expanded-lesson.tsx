@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { Box, Rect } from "@/lib/graph/shapes/geometry";
 import { architectureSchema } from "@/lib/graph/shapes/schemas";
+import { cn } from "@/lib/utils";
 import { EXPANDED } from "../layout";
 import type { MapLesson } from "../types";
 import { ArchitectureView } from "./architecture-view";
 
 /**
  * The inside of the focused lesson's node (F3 focus mode, D59): its actions beside the title card,
- * its parts in the lesson's shape below it, each linked back to the card, and what the chosen part
- * does. Loaded on first use, so the course page ships only the overview. The architecture is
+ * its parts in the lesson's shape below it, and what the chosen part does. Loaded on first use, so the course page ships only the overview. The architecture is
  * parsed with the zod mirror first; a malformed one shows a notice instead of breaking the page.
  */
 export default function ExpandedLesson({
@@ -26,6 +26,7 @@ export default function ExpandedLesson({
   onClose,
   onFocusLesson,
   onParts,
+  onHotPart,
 }: {
   lesson: MapLesson;
   titles: Map<string, string>;
@@ -38,6 +39,8 @@ export default function ExpandedLesson({
   onFocusLesson: (slug: string) => void;
   /** Part rectangles relative to the expanded node, for the edges to linked lessons. */
   onParts: (parts: Map<string, Rect>) => void;
+  /** The part under the pointer or keyboard focus. */
+  onHotPart: (id: string | null) => void;
 }) {
   const t = useTranslations("courseMap");
   const [selected, setSelected] = useState<string | null>(null);
@@ -84,21 +87,28 @@ export default function ExpandedLesson({
             t("noShape")
           )}
         </p>
-        <div className="flex flex-wrap justify-end gap-2">
+        {/* Icon-only actions: the name is the aria-label, and a small tooltip shows it on hover and keyboard focus. */}
+        <div className="flex justify-end gap-2">
           <Link
             href={`/learn/${lesson.slug}`}
-            className="inline-flex items-center gap-1.5 rounded-control bg-accent px-3 py-1.5 text-sm font-medium text-accent-ink hover:opacity-90"
+            aria-label={t("open")}
+            className={cn(ACTION, "bg-accent text-accent-ink hover:opacity-90")}
           >
-            <BookOpen aria-hidden className="size-4" />
-            {t("open")}
+            <BookOpen aria-hidden className="size-5" />
+            <span aria-hidden className={ACTION_TIP}>
+              {t("open")}
+            </span>
           </Link>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 rounded-control border border-rule-2 bg-paper-2 px-3 py-1.5 text-sm text-ink hover:bg-paper-3"
+            aria-label={t("back")}
+            className={cn(ACTION, "border border-rule-2 bg-paper-2 text-ink hover:bg-paper-3")}
           >
-            <X aria-hidden className="size-4" />
-            {t("back")}
+            <X aria-hidden className="size-5" />
+            <span aria-hidden className={ACTION_TIP}>
+              {t("back")}
+            </span>
           </button>
         </div>
       </div>
@@ -111,8 +121,7 @@ export default function ExpandedLesson({
             selected={selected}
             onSelect={setSelected}
             label={t("parts", { title: lesson.title })}
-            // The title card's bottom centre, in the shape box's coordinates: every part links back to it.
-            anchor={{ x: card.width / 2 - areaLeft, y: card.height - areaTop }}
+            onHot={onHotPart}
             onLayout={(rects) =>
               onParts(new Map([...rects].map(([id, r]) => [id, { ...r, x: r.x + areaLeft, y: r.y + areaTop }])))
             }
@@ -162,7 +171,8 @@ export default function ExpandedLesson({
           <div className="flex flex-col gap-1">
             {lesson.problem ? (
               <p className="line-clamp-2">
-                <span className="font-medium text-ink">{t("problemLabel")}</span> <span className="text-ink-2">{lesson.problem}</span>
+                <span className="font-medium text-ink">{t("problemLabel")}</span>{" "}
+                <span className="text-ink-2">{lesson.problem}</span>
               </p>
             ) : null}
             <p className="text-muted">{t("pickPart")}</p>
@@ -172,3 +182,9 @@ export default function ExpandedLesson({
     </>
   );
 }
+
+/** A 40 by 40 icon action; the global focus ring applies. */
+const ACTION = "group relative inline-flex size-10 items-center justify-center rounded-control";
+/** Its name under it, after a short pause on hover, at once on keyboard focus; right-aligned so it stays in the panel. */
+const ACTION_TIP =
+  "pointer-events-none absolute top-full right-0 z-20 mt-1.5 rounded-control border border-rule-2 bg-paper-2 px-2 py-1 text-xs font-normal whitespace-nowrap text-ink opacity-0 shadow-[var(--shadow-overlay)] transition-opacity group-hover:opacity-100 group-hover:delay-300 group-focus-visible:opacity-100 motion-reduce:transition-none";

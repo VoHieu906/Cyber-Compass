@@ -127,8 +127,12 @@ describe("shape details", () => {
 
   it("labels authored sub-edges at their middle and routes layer edges beside the bands", () => {
     const data = { ...input("layers", 4), edges: [{ from: "n0", to: "n3", label: "depends on" }] };
-    const [edge] = layoutShape("layers", data, SHAPE_BOX.wide).edges;
+    const layout = layoutShape("layers", data, SHAPE_BOX.wide);
+    const [edge] = layout.edges;
     expect(edge.labelAt).toBeDefined();
-    expect(edge.d).toContain("C");
+    // Out of the right side of the first band, down the gutter, into the right side of the last.
+    const right = layout.nodes.get("n0")!.x + layout.nodes.get("n0")!.width;
+    expect(edge.labelAt!.x).toBeGreaterThan(right);
+    expect(edge.fallback).toBe(false);
   });
 });

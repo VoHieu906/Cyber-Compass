@@ -24,7 +24,9 @@ export function CourseMapOutline({ map }: { map: CourseMapData }) {
         {map.lessons.map((lesson) => {
           // Each relation reads as a sentence about this lesson: "B requires A" and "B builds on A" are stored A → B.
           const relations = map.edges.flatMap((e) =>
-            (BY_TARGET.has(e.type) ? e.to : e.from) === lesson.slug ? [{ ...e, other: BY_TARGET.has(e.type) ? e.from : e.to }] : [],
+            (BY_TARGET.has(e.type) ? e.to : e.from) === lesson.slug
+              ? [{ ...e, other: BY_TARGET.has(e.type) ? e.from : e.to }]
+              : [],
           );
           return (
             <li key={lesson.slug} className="flex flex-col gap-1.5 border-l-2 border-rule pl-3">

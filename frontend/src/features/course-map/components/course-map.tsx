@@ -3,7 +3,17 @@
 import { Target } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import { statusIcon } from "@/features/catalog/components/curriculum";
 import { useCourseProgress } from "@/features/catalog/hooks";
@@ -12,8 +22,18 @@ import { SHAPE_BOX, fitBox } from "@/lib/graph/shapes/sizes";
 import { wrapLabel } from "@/lib/graph/text";
 import { pressed } from "@/lib/shortcuts/registry";
 import { cn } from "@/lib/utils";
-import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
-import { GOAL, NARROW_NODE, NODE, expandedSize, layoutCourseMap, moveFrom, nodeState, type NodeState } from "../layout";
+import type { Rect } from "@/lib/graph/shapes/geometry";
+import {
+  GOAL,
+  NARROW_NODE,
+  NODE,
+  expandedSize,
+  layoutCourseMap,
+  moveFrom,
+  nodeState,
+  routePartLinks,
+  type NodeState,
+} from "../layout";
 import type { CourseMapData, MapEdge } from "../types";
 import { EdgeLegend, EDGE_STYLE, EdgeMarkers } from "./edge-style";
 import { ShapeGlyph } from "./shape-glyph";
@@ -22,7 +42,6 @@ import { ShapeGlyph } from "./shape-glyph";
 const BOX_AT_1280 = 1104;
 
 const ExpandedLesson = dynamic(() => import("./expanded-lesson"), { ssr: false });
-
 
 /**
  * The course map (F3, D57 to D59): lessons as real buttons over static SVG relations, the goal
@@ -51,6 +70,7 @@ export function CourseMap({
   const nodes = useRef(new Map<string, HTMLElement>());
   const expandedHeading = useId();
   const [parts, setParts] = useState<Map<string, Rect>>(new Map());
+  const [hotPart, setHotPart] = useState<string | null>(null);
   // The problem tooltip: after a short pause on hover (no flicker while the pointer crosses the map), or on keyboard focus.
   const [tip, setTip] = useState<{ slug: string; rect: DOMRect } | null>(null);
   const tipTimer = useRef<number | undefined>(undefined);
@@ -93,7 +113,13 @@ export function CourseMap({
   const wide = overviewWidth + expandedSize(fit(SHAPE_BOX.wide), node).width - node.width <= boxWidth;
   const footprint = wide ? SHAPE_BOX.wide : SHAPE_BOX.compact;
   const box = useMemo(
-    () => fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint),
+    () =>
+      fitBox(
+        focusedLesson?.shape ?? null,
+        focusedLesson?.nodes.length ?? 0,
+        focusedLesson?.rows?.length ?? 0,
+        footprint,
+      ),
     [focusedLesson, footprint],
   );
   const layout = useMemo(
@@ -112,26 +138,41 @@ export function CourseMap({
     const right = offset + node.x + node.width + 16;
     if (left >= el.scrollLeft && right <= el.scrollLeft + el.clientWidth) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    el.scrollTo?.({ left: Math.max(0, right - el.clientWidth > left ? left : right - el.clientWidth), behavior: reduce ? "auto" : "smooth" });
+    el.scrollTo?.({
+      left: Math.max(0, right - el.clientWidth > left ? left : right - el.clientWidth),
+      behavior: reduce ? "auto" : "smooth",
+    });
   }, [focused, layout]);
   const frame = focused ? layout.boxes.get(focused) : undefined;
-  // Parts that lead to another lesson: an edge from the part to that lesson's node.
-  const partLinks = useMemo(
-    () =>
-      frame && focusedLesson
-        ? focusedLesson.nodes.flatMap((n) => {
-            const r = parts.get(n.id);
-            const to = n.lesson ? layout.boxes.get(n.lesson) : undefined;
-            if (!r || !to) return [];
-            const from = { ...r, x: r.x + frame.x, y: r.y + frame.y };
-            const target = { x: to.x, y: to.y, width: to.width, height: to.nodeHeight };
-            const a = borderPoint(from, centre(target));
-            const b = borderPoint(target, centre(from));
-            return [{ id: n.id, d: `M ${a.x} ${a.y} L ${b.x} ${b.y}` }];
-          })
-        : [],
-    [frame, focusedLesson, parts, layout],
-  );
+  // Parts that lead to another lesson: an edge from the part, around the other parts, to that lesson's node.
+  const partLinks = useMemo(() => {
+    if (!frame || !focusedLesson || !parts.size) return [];
+    const links = focusedLesson.nodes.flatMap((n) => {
+      const to = n.lesson && n.lesson !== focusedLesson.slug ? layout.boxes.get(n.lesson) : undefined;
+      if (!parts.has(n.id) || !to) return [];
+      return [
+        {
+          id: n.id,
+          key: n.lesson!,
+          to: { x: to.x - frame.x, y: to.y - frame.y, width: to.width, height: to.nodeHeight },
+        },
+      ];
+    });
+    return routePartLinks(frame, { width: layout.node.width, height: frame.nodeHeight }, parts, links);
+  }, [frame, focusedLesson, parts, layout]);
+  const partLinkProps = (id: string) => ({
+    fill: "none",
+    strokeWidth: id === hotPart ? 2.25 : 1.5,
+    strokeDasharray: "4 3",
+    "data-state": hotPart === null ? undefined : id === hotPart ? "lit" : "dim",
+    className: "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
+    style: { stroke: "var(--color-accent)", opacity: hotPart !== null && id !== hotPart ? 0.3 : 1 },
+  });
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production")
+      for (const l of partLinks.filter((l) => l.fallback))
+        console.debug(`[course map] no clean route for part ${l.id}; drawn beneath the parts`);
+  }, [partLinks]);
   const titles = useMemo(() => new Map(map.lessons.map((l) => [l.slug, l.title])), [map]);
 
   useCompassPageItems([
@@ -147,6 +188,7 @@ export function CourseMap({
     if (slug === GOAL) return;
     hideTip();
     setParts(new Map());
+    setHotPart(null);
     setFocused(slug);
     setActive(slug);
   };
@@ -228,6 +270,20 @@ export function CourseMap({
                 </text>
               </g>
             ))}
+            {/* The rest of each part link, from the expanded node's edge to its lesson: beneath the lesson nodes. */}
+            {frame ? (
+              <g transform={`translate(${frame.x} ${frame.y})`}>
+                {partLinks.map((l) => (
+                  <path
+                    key={l.id}
+                    d={l.outer}
+                    data-link-out={l.id}
+                    markerEnd="url(#cm-solid)"
+                    {...partLinkProps(l.id)}
+                  />
+                ))}
+              </g>
+            ) : null}
             {layout.contributes.map((c) => (
               <path
                 key={c.from}
@@ -316,10 +372,13 @@ export function CourseMap({
                   onFocus={(e) => {
                     setActive(lesson.slug);
                     // Keyboard focus only: a click opens the lesson instead.
-                    if (!isFocused && lesson.problem && e.currentTarget.matches(":focus-visible")) showTip(lesson.slug, e.currentTarget);
+                    if (!isFocused && lesson.problem && e.currentTarget.matches(":focus-visible"))
+                      showTip(lesson.slug, e.currentTarget);
                   }}
                   onBlur={hideTip}
-                  onPointerEnter={(e) => e.pointerType === "mouse" && !isFocused && lesson.problem && showTip(lesson.slug, e.currentTarget)}
+                  onPointerEnter={(e) =>
+                    e.pointerType === "mouse" && !isFocused && lesson.problem && showTip(lesson.slug, e.currentTarget)
+                  }
                   onPointerLeave={hideTip}
                   onKeyDown={(e) => onNodeKey(e, lesson.slug)}
                   className={cn(
@@ -373,19 +432,15 @@ export function CourseMap({
                     className="absolute rounded-card border-2 border-accent bg-paper-2 transition-[opacity] duration-[var(--dur-long)] motion-reduce:transition-none starting:opacity-0"
                     style={{ left: b.x, top: b.y, width: b.width, height: b.height }}
                   >
-                    {/* Under the parts (they are opaque) and over the node's own background: a part's edge to the lesson it leads to. */}
-                    <svg className="pointer-events-none absolute inset-0 overflow-visible" width={b.width} height={b.height} aria-hidden>
+                    {/* Under the parts and over the node's own background: a part's link, from the part to the node's edge. */}
+                    <svg
+                      className="pointer-events-none absolute inset-0 overflow-visible"
+                      width={b.width}
+                      height={b.height}
+                      aria-hidden
+                    >
                       {partLinks.map((l) => (
-                        <path
-                          key={l.id}
-                          d={l.d}
-                          transform={`translate(${-b.x} ${-b.y})`}
-                          fill="none"
-                          strokeWidth={1.5}
-                          strokeDasharray="4 3"
-                          markerEnd="url(#cm-solid)"
-                          style={{ stroke: "var(--color-accent)" }}
-                        />
+                        <path key={l.id} d={l.inner} data-link={l.id} {...partLinkProps(l.id)} />
                       ))}
                     </svg>
                     <ExpandedLesson
@@ -397,6 +452,7 @@ export function CourseMap({
                       headingId={expandedHeading}
                       onClose={close}
                       onParts={setParts}
+                      onHotPart={setHotPart}
                       onFocusLesson={(slug) => (
                         open(slug),
                         requestAnimationFrame(() => nodes.current.get(slug)?.focus())
@@ -407,7 +463,6 @@ export function CourseMap({
               </div>
             );
           })}
-
 
           <div
             ref={(el) => void (el ? nodes.current.set(GOAL, el) : nodes.current.delete(GOAL))}
@@ -430,11 +485,15 @@ export function CourseMap({
               <Target aria-hidden className="size-4" />
               {t("goal")}
             </span>
-            <span className={cn("text-[14px] leading-snug text-ink", narrow ? "line-clamp-2" : "line-clamp-4")}>{map.problem}</span>
+            <span className={cn("text-[14px] leading-snug text-ink", narrow ? "line-clamp-2" : "line-clamp-4")}>
+              {map.problem}
+            </span>
           </div>
         </div>
       </div>
-      {tip ? <ProblemTip rect={tip.rect} title={titles.get(tip.slug) ?? ""} problem={map.lessons.find((l) => l.slug === tip.slug)?.problem ?? ""} /> : null}
+      {tip ? (
+        <ProblemTip rect={tip.rect} problem={map.lessons.find((l) => l.slug === tip.slug)?.problem ?? ""} />
+      ) : null}
       <p className="text-sm text-muted">{t("keysHint")}</p>
       <EdgeLegend
         types={[...new Set(map.edges.map((e) => e.type))]}
@@ -450,9 +509,9 @@ const TIP_DELAY = 300;
  * A lesson's problem beside its node (UI Part 1). Visual only (aria-hidden): screen readers get the
  * problem from the node's description. In a portal, so the map's scroll box never clips it, and
  * kept inside the viewport: above the node, below when there is no room, nudged in from the sides.
- * The full title is repeated, since a long one is clamped on the node.
+ * The problem only: the title is on the node and in its name.
  */
-function ProblemTip({ rect, title, problem }: { rect: DOMRect; title: string; problem: string }) {
+function ProblemTip({ rect, problem }: { rect: DOMRect; problem: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   useLayoutEffect(() => {
@@ -470,11 +529,10 @@ function ProblemTip({ rect, title, problem }: { rect: DOMRect; title: string; pr
       ref={ref}
       aria-hidden
       data-testid="course-map-tip"
-      className="pointer-events-none fixed z-50 flex max-w-[20rem] flex-col gap-1 rounded-control border border-rule-2 bg-paper-2 px-3 py-2 text-sm shadow-[var(--shadow-overlay)]"
+      className="pointer-events-none fixed z-50 max-w-[20rem] rounded-control border border-rule-2 bg-paper-2 px-3 py-2 text-sm text-ink shadow-[var(--shadow-overlay)]"
       style={at ?? { left: 0, top: 0, visibility: "hidden" }}
     >
-      <span className="font-medium text-ink">{title}</span>
-      <span className="text-ink-2">{problem}</span>
+      {problem}
     </div>,
     document.body,
   );

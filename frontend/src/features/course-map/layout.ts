@@ -1,4 +1,6 @@
 import { gridEdgePath, layoutGrid, type GridBox, type GridMetrics } from "@/lib/graph/grid";
+import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
+import { roundedPath, routeEdges } from "@/lib/graph/shapes/route";
 import { textWidth } from "@/lib/graph/text";
 import type { CourseMapData, MapEdge } from "./types";
 
@@ -45,6 +47,68 @@ export function expandedSize(box: { width: number; height: number }, card: { wid
     width: Math.max(box.width + 2 * EXPANDED.pad, card.width + EXPANDED.actions),
     height: EXPANDED.header + EXPANDED.gap + box.height + EXPANDED.detail,
   };
+}
+
+/** The ring outside the expanded node that part links may run along on their way out. */
+const RING = 24;
+
+/**
+ * A focused lesson's part links (a part that leads to another lesson): inside the expanded node,
+ * routed around the other parts, the title card, the actions and the detail strip, out to the
+ * point of the node's edge nearest the lesson (`inner`); from there a straight line to that
+ * lesson's node (`outer`, drawn beneath the lesson nodes). Everything in the expanded node's
+ * coordinates; `to` is the target lesson's box.
+ */
+export function routePartLinks(
+  panel: { width: number; height: number },
+  card: { width: number; height: number },
+  parts: Map<string, Rect>,
+  links: { id: string; key: string; to: Rect }[],
+): { id: string; inner: string; outer: string; fallback: boolean }[] {
+  const shift = (r: Rect): Rect => ({ ...r, x: r.x + RING, y: r.y + RING });
+  const rects = new Map<string, Rect>([...parts].map(([id, r]) => [`p:${id}`, shift(r)]));
+  rects.set("card", shift({ x: 0, y: 0, ...card }));
+  rects.set(
+    "head",
+    shift({
+      x: card.width + EXPANDED.pad,
+      y: 0,
+      width: panel.width - card.width - EXPANDED.pad,
+      height: EXPANDED.header,
+    }),
+  );
+  rects.set(
+    "strip",
+    shift({
+      x: EXPANDED.pad,
+      y: panel.height - EXPANDED.detail + 4,
+      width: panel.width - 2 * EXPANDED.pad,
+      height: EXPANDED.detail - 16,
+    }),
+  );
+  // One exit per target lesson, in the ring, on the side of the node facing it.
+  for (const l of links) {
+    const c = centre(l.to);
+    const x = Math.min(panel.width + RING / 2, Math.max(-RING / 2, c.x));
+    const y = Math.min(panel.height + RING / 2, Math.max(-RING / 2, c.y));
+    rects.set(`x:${l.key}`, shift({ x: x - 8, y: y - 8, width: 16, height: 16 }));
+  }
+  const routes = routeEdges(
+    rects,
+    links.map((l) => ({ from: `p:${l.id}`, to: `x:${l.key}` })),
+    { width: panel.width + 2 * RING, height: panel.height + 2 * RING },
+  );
+  return routes.map((r, i) => {
+    const pts = r.points.map((p) => ({ x: p.x - RING, y: p.y - RING }));
+    const exit = pts[pts.length - 1];
+    const end = borderPoint(links[i].to, exit);
+    return {
+      id: links[i].id,
+      inner: roundedPath(pts),
+      outer: `M ${exit.x} ${exit.y} L ${end.x} ${end.y}`,
+      fallback: r.fallback,
+    };
+  });
 }
 
 export type Placed = { col: number; row: number };
@@ -130,7 +194,9 @@ export function layoutCourseMap(
   // Room on the left for edges that bow out of the first column, and for the longest label beside such a bow.
   const sameColumnLabel = Math.max(
     0,
-    ...map.edges.filter((e) => e.label && cells.get(e.from)?.col === 0 && cells.get(e.to)?.col === 0).map((e) => textWidth(e.label!, 11) + 24),
+    ...map.edges
+      .filter((e) => e.label && cells.get(e.from)?.col === 0 && cells.get(e.to)?.col === 0)
+      .map((e) => textWidth(e.label!, 11) + 24),
   );
   const left = Math.max(bands.length ? LANE_HEADER : SIDE, sameColumnLabel);
   const cols = Math.max(0, ...[...cells.values()].map((c) => c.col)) + 1;
@@ -145,7 +211,13 @@ export function layoutCourseMap(
   // Narrow (D61): the goal is a band under the lessons, and the lines into it run down the gutter right of each column.
   const goal = narrow
     ? { x: left, y: grid.height + BAND.gap, width: grid.width - left, height: BAND.height, nodeHeight: BAND.height }
-    : { x: grid.columns[cols].x, y: Math.max(0, (grid.height - GOAL_SIZE.height) / 2), width: GOAL_SIZE.width, height: GOAL_SIZE.height, nodeHeight: GOAL_SIZE.height };
+    : {
+        x: grid.columns[cols].x,
+        y: Math.max(0, (grid.height - GOAL_SIZE.height) / 2),
+        width: GOAL_SIZE.width,
+        height: GOAL_SIZE.height,
+        nodeHeight: GOAL_SIZE.height,
+      };
   boxes.set(GOAL, goal);
   const width = narrow ? grid.width + metrics.colGap / 2 + 2 : grid.width - NODE.width + GOAL_SIZE.width;
   const height = narrow ? goal.y + goal.height : Math.max(grid.height, GOAL_SIZE.height);

@@ -32,6 +32,25 @@ test.describe("course map", () => {
     await expect(hashing).toHaveAttribute("aria-expanded", "true");
     await expect(panel.getByRole("button", { name: "Unique salt" })).toBeVisible();
     await expect(panel.getByRole("button", { name: /Slow hash/ })).toBeVisible();
+    // No lines from the lesson's own card to its parts; only relations between parts and to other lessons.
+    await expect(panel.locator('path[stroke-dasharray="2 4"]')).toHaveCount(0);
+    // Hovering a part keeps its own relations and neighbours at full strength and dims the rest.
+    await panel.getByRole("button", { name: "Password typed at sign-up" }).hover();
+    await expect(panel.locator('g[data-edge="password>salt"]')).toHaveAttribute("data-state", "lit");
+    await expect(panel.locator('g[data-edge][data-state="dim"]')).toHaveCount(2);
+    await expect(panel.getByRole("button", { name: "Unique salt" })).toHaveAttribute("data-state", "lit");
+    await expect(panel.getByRole("button", { name: /Slow hash/ })).toHaveAttribute("data-state", "dim");
+    await page.mouse.move(0, 0);
+    await expect(panel.locator("g[data-edge][data-state]")).toHaveCount(0);
+    // The actions are icon-only, named, and keep a 40 by 40 target.
+    for (const action of [
+      panel.getByRole("link", { name: "Open lesson" }),
+      panel.getByRole("button", { name: "Back to overview" }),
+    ]) {
+      const size = (await action.boundingBox())!;
+      expect(size.width).toBeGreaterThanOrEqual(40);
+      expect(size.height).toBeGreaterThanOrEqual(40);
+    }
     // The lesson it contrasts with stays as it is; the unrelated one is dimmed, not removed.
     await expect(map.getByRole("button", { name: /Symmetric and asymmetric/ })).toHaveAttribute(
       "data-state",
@@ -57,7 +76,9 @@ test.describe("course map", () => {
     await expect(hashing).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("a lesson's problem shows in a tooltip on hover and on keyboard focus, and Escape closes it", async ({ page }) => {
+  test("a lesson's problem shows in a tooltip on hover and on keyboard focus, and Escape closes it", async ({
+    page,
+  }) => {
     await page.goto(COURSE);
     const map = page.getByRole("group", { name: /Course map of Applied/ });
     const hashing = map.getByRole("button", { name: "Hashing and password storage" });
@@ -73,6 +94,8 @@ test.describe("course map", () => {
       await hashing.hover();
       await expect(tip).toContainText("Store passwords so that a stolen database", { timeout: 1_000 });
     }).toPass();
+    // The problem only: the title is already on the node.
+    await expect(tip).not.toContainText("Hashing and password storage");
     await page.mouse.move(0, 0);
     await expect(tip).toBeHidden();
 
