@@ -8,7 +8,7 @@ PHP, Composer and MySQL run **only in Docker**; nothing PHP-related is installed
 |---|---|
 | Start the stack | `docker compose up -d` |
 | Artisan | `docker compose exec api php artisan <command>` |
-| Tests (Pest, MySQL `cybercompass_testing`) | `docker compose exec api php artisan test` |
+| Tests (Pest, MySQL `cybercompass_testing`) | `docker compose exec api php artisan test` (add `--compact` for short output; never `--parallel`: the database user cannot create ParaTest's databases, see HANDOFF) |
 | Code style | `docker compose exec -u root api ./vendor/bin/pint` |
 | Add a package / generate files | `docker compose exec -u root api composer require <pkg>` / `... php artisan make:<thing>` |
 | OpenAPI (local only) | http://localhost:8000/docs/api |

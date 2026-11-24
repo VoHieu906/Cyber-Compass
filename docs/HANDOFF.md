@@ -2,25 +2,26 @@
 
 Where the project stands and what the next phase needs to know. This page only points to the docs that hold the detail. Start with the reading order in the root [CLAUDE.md](../CLAUDE.md).
 
-## Current state (2026-11-23)
+## Current state (2026-11-24)
 
 - **The initial build (v1), Phases 1 to 7, is complete.** Phase 7 closed with Parts A to G: the E2E suite, CI, the security review ([SECURITY_REVIEW.md](SECURITY_REVIEW.md)), performance ([PERFORMANCE.md](PERFORMANCE.md)), the responsive, accessibility and Hallmark sweep, the production build and the AWS guide and templates ([DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md)). Phase-by-phase results: [IMPLEMENTATION_ROADMAP.md](IMPLEMENTATION_ROADMAP.md).
 - **Deployment is not roadmap work (D54).** The owner deploys on their own schedule with DEPLOYMENT_AWS.md and `infrastructure/aws/`. Nothing has been run against AWS yet.
 - **Work after v1 is the [Feature track](IMPLEMENTATION_ROADMAP.md#feature-track):** stable ids `F<n>`, commits `type(scope): summary (F<n> Part X)`, and every feature passes [the gate](IMPLEMENTATION_ROADMAP.md#the-gate) including the deploy-ready gate, reported under "Deploy notes".
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
-- **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4.
+- **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (maps for the other seven courses) is dropped (D66): only Networking Fundamentals has a map, and a course without one simply shows none.
 - **F5 (Networking exercises) is done:** graded exercises for the 14 lessons F4 added (73 questions), reviewed by an independent subagent; every networking lesson now has an exercise.
 - **Course map UI round after F4 is done** (D64, D65): the problem in a tooltip, spread edge ends and hover highlights, lines routed around every node in focus mode, and one style map for every line with an interactive legend. Details in the roadmap's F4 section.
-- **F4 (Networking Fundamentals, expanded) is done** (D61 to D63): 20 lessons in 5 chapters with three new topics, architectures and the course map, the wide-map layout, and rule-based Course map suggestions for admins. Maps for the other courses are F3 Part C.
-- **Tests:** 807 Pest, 518 Vitest and 36 Playwright end-to-end tests (after F5). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F4 (Networking Fundamentals, expanded) is done** (D61 to D63): 20 lessons in 5 chapters with three new topics, architectures and the course map, the wide-map layout, and rule-based Course map suggestions for admins.
+- **Tests:** 807 Pest, 520 Vitest and 36 Playwright end-to-end tests (after the queue frame, 2026-11-24).
+- **Running Pest:** `php artisan test --compact`, never `--parallel`. The database user has rights only on `cybercompass` and `cybercompass_testing`, so ParaTest cannot create its per-process databases and a parallel run fails most tests. One such run (2026-11-24) also deleted `database/seeders/content`: `PostImportTest`'s cleanup removed the content root its failed setup never redirected. The test now redirects first and deletes only its own folder; if content files ever show as deleted, restore them with `git checkout -- backend/database/seeders/content` before running anything else. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
 | Topic | Doc |
 |---|---|
 | Session rules, precedence, what is already delivered | [CLAUDE.md](../CLAUDE.md) |
-| Architecture and every decision (D1 to D65) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Architecture and every decision (D1 to D66) | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Assessment scoring and roadmap rules | [ARCHITECTURE §6](ARCHITECTURE.md#6-personalization-engine) |
 | API contract | [API_SPECIFICATION.md](API_SPECIFICATION.md) |
 | Schema | [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) |

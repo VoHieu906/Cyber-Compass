@@ -14,7 +14,7 @@ flowchart LR
   end
   P7 --> F1[F1 Compass + shortcuts]
   F1 --> F2[F2 Blog]
-  F2 --> F3[F3 Course map]
+  F2 --> F3[F3 Course map, Part C dropped]
   F3 --> F4[F4 Networking Fundamentals, expanded]
   F4 --> F5[F5 Networking exercises, done]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
@@ -386,9 +386,9 @@ A public blog beside Courses, Assessment and Labs. Posts are built from the same
 
 **F2 complete (2026-11-22).**
 
-### F3: Course map (Parts A and B done and closed out; Part C waiting for F4, 2026-11-23)
+### F3: Course map (Parts A and B done and closed out, 2026-11-23; Part C dropped, 2026-11-24)
 
-A map at the top of every course page: each lesson node solves one problem, and together they solve the course's big problem. Typed relations between lessons, and a focus mode where a lesson expands in place into its own architecture (layers, onion, stack, queue, pipeline, cycle, hub, tree, mesh or matrix) with links to the sections that teach each part. Decisions D57 to D60.
+A map at the top of a course page (only Networking Fundamentals has one, D66): each lesson node solves one problem, and together they solve the course's big problem. Typed relations between lessons, and a focus mode where a lesson expands in place into its own architecture (layers, onion, stack, queue, pipeline, cycle, hub, tree, mesh or matrix) with links to the sections that teach each part. Decisions D57 to D60.
 
 **Impact check (CLAUDE.md §5, 2026-11-23), answered by the owner:**
 - **Duplicate, decided (D59):** shapes overlap the `layer-stack`, `flow`, `tree`, `topology` and `comparison` blocks. Architectures keep their own small data and share the layout code; the editor's "Fill from block" copies labels and section links once. `contrast` merges into `matrix` (10 shapes).
@@ -398,12 +398,12 @@ A map at the top of every course page: each lesson node solves one problem, and 
 - **Conflict, decided (D57):** a section a sub-node names is protected by validating the architecture inside the lesson snapshot, not by a `SectionWriter` hook.
 - **Conflict, decided (D60):** the health check runs after the import in `cybercompass:release`; preflight stays configuration-only.
 - **Reused, not rebuilt:** `/courses/{slug}/progress` for completion, `lib/graph` (`layoutGrid`, `gridEdgePath`, `layoutGraph`, `edgePath`, `wrapLabel`), section UUID anchors in the reader, the section key resolution of exercises, the lesson snapshot pipeline, the shortcut registry's fixed actions, the D50 WAF and TrimStrings coverage of `/admin/content/`, the existing page and query budgets.
-- **Shift:** Part C (map content for the seven other courses) waits for F4, which expands Networking Fundamentals and gives it its map.
+- **Shift:** Part C (map content for the seven other courses) waited for F4, which expanded Networking Fundamentals and gave it its map. **Dropped by the owner on 2026-11-24 (D66):** only Networking Fundamentals has a map.
 
 **Parts (each gated and reported):**
 - **Part A:** data model, validation, import and export, API, health check.
 - **Part B:** renderer, shapes, focus mode, keyboard and outline, compass item, admin panels, Vitest and Playwright.
-- **Part C:** map content for every course except Networking Fundamentals. **Waiting for F4.**
+- **Part C:** map content for every course except Networking Fundamentals. **Dropped (D66, 2026-11-24).** Courses without a map were checked: the API returns `graph: null`, and each course page loads with no map section, outline or compass item.
 
 **Part A exit, verified (2026-11-23):**
 - **Delivered:**
