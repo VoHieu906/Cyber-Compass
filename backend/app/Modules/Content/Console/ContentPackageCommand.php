@@ -3,9 +3,11 @@
 namespace App\Modules\Content\Console;
 
 use App\Enums\UserRole;
+use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Post;
 use App\Models\User;
+use App\Modules\Content\Packages\CourseOverview;
 use App\Modules\Content\Packages\ImportPackage;
 use App\Modules\Content\Packages\PackageExporter;
 use App\Modules\Content\Packages\PackagePlan;
@@ -22,16 +24,19 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
  *   content:package import <file> --as=<admin email>   writes the drafts (never publishes)
  *   content:package export --lesson=<slug> [--sections=a,b] [--out=<file>]
  *   content:package export --post=<slug> [--sections=a,b] [--out=<file>]
+ *   content:package overview --course=<slug> [--json] [--out=<file>]   what a chatbot reads first (D71)
  */
 final class ContentPackageCommand extends Command
 {
     protected $signature = 'content:package
-        {action : validate, import or export}
+        {action : validate, import, export or overview}
         {file? : The .ccpkg.json or .ccpkg.zip to validate or import}
         {--as= : Email of the admin the import is recorded for}
         {--lesson= : Lesson slug to export}
         {--post= : Post slug to export}
         {--sections= : Export only these section keys (comma separated), as replace operations}
+        {--course= : Course slug for the overview}
+        {--json : The overview as JSON instead of Markdown}
         {--out= : Write the export here instead of printing it}';
 
     protected $description = 'Validate, import or export a content package (lessons, posts, blocks)';
@@ -43,7 +48,8 @@ final class ContentPackageCommand extends Command
                 ? $this->report($planner->plan($package['envelope'], $package['root']))
                 : $this->import($import, $package)),
             'export' => $this->export($exporter),
-            default => $this->refuse('The action is validate, import or export.'),
+            'overview' => $this->overview(),
+            default => $this->refuse('The action is validate, import, export or overview.'),
         };
     }
 
@@ -121,14 +127,29 @@ final class ContentPackageCommand extends Command
             return $this->refuse("Nothing has the slug \"{$slug}\".");
         }
 
-        $json = PackageExporter::json($envelope);
+        return $this->emit(PackageExporter::json($envelope));
+    }
+
+    private function overview(): int
+    {
+        $course = Course::query()->where('slug', (string) $this->option('course'))->first();
+        if (! $course) {
+            return $this->refuse('Give --course=<slug> of an existing course.');
+        }
+        $data = app(CourseOverview::class)->build($course);
+
+        return $this->emit($this->option('json') ? PackageExporter::json($data) : CourseOverview::markdown($data));
+    }
+
+    private function emit(string $text): int
+    {
         if ($out = $this->option('out')) {
-            if (@file_put_contents($out, $json) === false) {
+            if (@file_put_contents($out, $text) === false) {
                 return $this->refuse("Could not write {$out}.");
             }
             $this->info("Wrote {$out}.");
         } else {
-            $this->output->write($json);
+            $this->output->write($text);
         }
 
         return self::SUCCESS;

@@ -49,6 +49,8 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class, 'throttle:admin'])->prefi
     // Content packages (F6, D67, D70). Bodies stay small: package bytes go to S3 by presigned URL in
     // production, and the local part route exists only for a local transfers disk.
     Route::post('packages/check', [PackageController::class, 'check'])->name('packages.check');
+    Route::get('packages/guide', [PackageController::class, 'guide'])->name('packages.guide');
+    Route::get('courses/{course:id}/overview', [PackageController::class, 'overview'])->whereNumber('course')->name('courses.overview');
     Route::get('lessons/{lesson:id}/package', [PackageController::class, 'lesson'])->whereNumber('lesson')->name('lessons.package');
     Route::get('posts/{post:id}/package', [PackageController::class, 'post'])->whereNumber('post')->name('posts.package');
     Route::controller(TransferController::class)->prefix('transfers')->name('transfers.')->group(function () {

@@ -309,6 +309,9 @@ final class PackagePlanner
         // Keys are not stored: the next overview derives them from headings again (D67).
         $derived = ContentImporter::sectionKeys(array_map(fn ($e) => ['type' => (string) ($e['section']['type'] ?? ''), 'heading' => is_string($e['section']['heading'] ?? null) ? trim($e['section']['heading']) : null], $entries));
         foreach ($entries as $i => $entry) {
+            if ($entry['origin'] !== null && ! isset($entry['section']['key'])) {
+                $entries[$i]['key'] = $derived[$i]; // the key the next overview will show for it
+            }
             if ($entry['origin'] !== null && isset($entry['section']['key']) && $entry['section']['key'] !== $derived[$i]) {
                 $plan->warn("{$entry['origin']}.key", "Keys come from headings, so the next overview lists this section as \"{$derived[$i]}\", not \"{$entry['section']['key']}\". Its uuid stays the same.");
             }
@@ -648,9 +651,9 @@ final class PackagePlanner
             }
             $section = $snapshot['sections'][$i] ?? null;
             $blockType = $entry['section']['type'] ?? null;
-            if ($section !== null && is_string($blockType) && $this->blocks->has($blockType)
-                && ($this->blocks->get($blockType)->schema()->{'x-factual'} ?? true) && empty($section['sources'])) {
-                $plan->warn($entry['origin'], 'This '.$blockType.' block states facts but lists no sources.');
+            if ($section !== null && is_string($blockType) && $this->blocks->statesFacts($blockType, $section['payload']) && empty($section['sources'])) {
+                $note = $this->blocks->factualNote($blockType, $section['payload']);
+                $plan->warn($entry['origin'], 'This '.$blockType.' block states facts but lists no sources.'.($note ? " {$note}" : ''));
             }
             foreach ($section['sources'] ?? [] as $j => $source) {
                 if (str_starts_with($source['url'], 'http://')) {

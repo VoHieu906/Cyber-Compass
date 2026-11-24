@@ -1,0 +1,241 @@
+{
+  "format": "cybercompass.content",
+  "format_version": 1,
+  "kind": "lesson-sections",
+  "generator": "Example for the F6 AI authoring guide, written against the 2026-11-24 overview",
+  "target": {
+    "lesson": "osi-model"
+  },
+  "base": {
+    "lesson_fingerprint": "fb8827a5153c6918"
+  },
+  "operations": [
+    {
+      "op": "insert_after",
+      "uuid": "dfaab400-e8fd-5ef0-87fb-5efd5e71214d",
+      "section": {
+        "key": "like-the-postal-system",
+        "type": "callout",
+        "heading": "Like the postal system",
+        "payload": {
+          "tone": "fun-fact",
+          "text": "Layering works like posting a parcel abroad. You write the letter, the post office adds an address label, the airline adds its own tracking tag, and each handler reads only the label meant for them. Nobody at the airport opens your letter, just as a router never reads the web page inside a packet."
+        }
+      }
+    },
+    {
+      "op": "insert_after",
+      "uuid": "1c6a50ea-28ea-5d3e-8916-a44731e938fe",
+      "section": {
+        "key": "devices-and-protocols-by-layer",
+        "type": "comparison",
+        "heading": "Devices and protocols by layer",
+        "payload": {
+          "columns": [
+            "Protocols and formats",
+            "Devices and tools"
+          ],
+          "rows": [
+            {
+              "label": "7 Application",
+              "values": [
+                "HTTP, DNS, SMTP, SSH",
+                "The applications themselves, proxies and web application firewalls"
+              ]
+            },
+            {
+              "label": "6 Presentation",
+              "values": [
+                "Encodings such as UTF-8, image formats; TLS is often placed here",
+                "None of its own: this work happens in software on the hosts"
+              ]
+            },
+            {
+              "label": "5 Session",
+              "values": [
+                "RPC, the NetBIOS session service",
+                "None of its own: handled by software on the hosts"
+              ]
+            },
+            {
+              "label": "4 Transport",
+              "values": [
+                "TCP, UDP",
+                "Stateful firewalls and load balancers that track ports and connections"
+              ]
+            },
+            {
+              "label": "3 Network",
+              "values": [
+                "IPv4, IPv6, ICMP",
+                "Routers and layer 3 switches"
+              ]
+            },
+            {
+              "label": "2 Data link",
+              "values": [
+                "Ethernet, Wi-Fi (IEEE 802.11), ARP on IPv4 networks",
+                "Switches, wireless access points and network interface cards"
+              ]
+            },
+            {
+              "label": "1 Physical",
+              "values": [
+                "Electrical, optical and radio signalling",
+                "Cables, fibre, hubs, repeaters and transceivers"
+              ]
+            }
+          ]
+        },
+        "sources": [
+          {
+            "label": "ITU-T X.200: Open Systems Interconnection, basic reference model",
+            "url": "https://www.itu.int/rec/T-REC-X.200",
+            "kind": "rfc",
+            "note": "The ITU-T text of ISO/IEC 7498-1."
+          },
+          {
+            "label": "RFC 1122: Requirements for Internet Hosts, Communication Layers",
+            "url": "https://www.rfc-editor.org/rfc/rfc1122",
+            "kind": "rfc"
+          },
+          {
+            "label": "RFC 1812: Requirements for IP Version 4 Routers",
+            "url": "https://www.rfc-editor.org/rfc/rfc1812",
+            "kind": "rfc"
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert_before",
+      "uuid": "f8127264-682c-51f7-8376-8a37ce1aac13",
+      "section": {
+        "key": "finding-the-layer-of-an-attack",
+        "type": "prose",
+        "heading": "Finding the layer of an attack",
+        "payload": {
+          "text": "To place an attack on the model, ask what the attacker tampers with:\n\n- the signal on the wire or in the air: layer 1\n- frames and local (MAC) addresses: layer 2\n- packets and IP addresses: layer 3\n- ports and connections: layer 4\n- sessions and encryption: layers 5 and 6\n- the application's own data and logic: layer 7\n\nThe defence usually works at the same layer. A firewall that only checks IP addresses and ports (layers 3 and 4) lets a SQL injection through, because the attack sits in layer 7 data that such a firewall never reads. That is why defenders stack controls at several layers, which is called **defence in depth**."
+        },
+        "sources": [
+          {
+            "label": "ITU-T X.200: Open Systems Interconnection, basic reference model",
+            "url": "https://www.itu.int/rec/T-REC-X.200",
+            "kind": "rfc"
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert_before",
+      "uuid": "f8127264-682c-51f7-8376-8a37ce1aac13",
+      "section": {
+        "key": "attacks-and-defences-by-layer",
+        "type": "comparison",
+        "heading": "Attacks and defences by layer",
+        "payload": {
+          "columns": [
+            "Example attack",
+            "Defence at the same layer"
+          ],
+          "rows": [
+            {
+              "label": "7 Application",
+              "values": [
+                "SQL injection: input changes a database query",
+                "Parameterised queries and input validation"
+              ]
+            },
+            {
+              "label": "6 Presentation",
+              "values": [
+                "TLS stripping: a machine in the middle keeps the victim on plain HTTP",
+                "HTTPS only, with HTTP Strict Transport Security (HSTS)"
+              ]
+            },
+            {
+              "label": "5 Session",
+              "values": [
+                "Session hijacking with a stolen session token",
+                "Secure, HttpOnly cookies and a new session ID after login"
+              ]
+            },
+            {
+              "label": "4 Transport",
+              "values": [
+                "SYN flood: half-open connections fill a server's table",
+                "SYN cookies and rate limits"
+              ]
+            },
+            {
+              "label": "3 Network",
+              "values": [
+                "IP spoofing: packets with a forged source address",
+                "Ingress filtering at the network edge (BCP 38)"
+              ]
+            },
+            {
+              "label": "2 Data link",
+              "values": [
+                "ARP spoofing: fake ARP replies redirect local traffic",
+                "Switches that check ARP replies against known addresses"
+              ]
+            },
+            {
+              "label": "1 Physical",
+              "values": [
+                "Tapping or jamming the cable or radio",
+                "Locked wiring closets, controlled access and fibre links"
+              ]
+            }
+          ]
+        },
+        "sources": [
+          {
+            "label": "OWASP SQL Injection Prevention Cheat Sheet",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+            "kind": "docs"
+          },
+          {
+            "label": "RFC 6797: HTTP Strict Transport Security (HSTS)",
+            "url": "https://www.rfc-editor.org/rfc/rfc6797",
+            "kind": "rfc"
+          },
+          {
+            "label": "OWASP Session Management Cheat Sheet",
+            "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+            "kind": "docs"
+          },
+          {
+            "label": "RFC 4987: TCP SYN Flooding Attacks and Common Mitigations",
+            "url": "https://www.rfc-editor.org/rfc/rfc4987",
+            "kind": "rfc"
+          },
+          {
+            "label": "RFC 2827 (BCP 38): Network Ingress Filtering",
+            "url": "https://www.rfc-editor.org/rfc/rfc2827",
+            "kind": "rfc"
+          },
+          {
+            "label": "RFC 826: An Ethernet Address Resolution Protocol",
+            "url": "https://www.rfc-editor.org/rfc/rfc826",
+            "kind": "rfc",
+            "note": "ARP replies carry no authentication, which is what spoofing abuses."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert_before",
+      "uuid": "f8127264-682c-51f7-8376-8a37ce1aac13",
+      "section": {
+        "type": "callout",
+        "heading": null,
+        "payload": {
+          "tone": "recap",
+          "text": "Think of every attack as tampering with one layer's envelope. Find the envelope the attacker touched, and you know which layer to defend first, and which defences (a firewall, TLS, a switch setting) can see the attack at all."
+        }
+      }
+    }
+  ]
+}

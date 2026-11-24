@@ -121,10 +121,35 @@ it('trims a calculator starting value and drops an empty one', function () {
         ->and($clean[1]['payload'])->toBe(['tool' => 'chmod']);
 });
 
-it('declares in every block schema whether the block states facts (D69)', function () {
+it('declares in every block schema whether the block states facts, as a boolean or a condition (D69)', function () {
     foreach (BlockRegistry::default()->all() as $key => $block) {
-        expect($block->schema()->{'x-factual'} ?? null)->toBeBool("{$key} has no x-factual");
+        $rule = $block->schema()->{'x-factual'} ?? null;
+        if (is_bool($rule)) {
+            continue;
+        }
+        expect($rule)->toBeObject("{$key} has no x-factual")
+            ->and($rule->property ?? null)->toBeString("{$key}: x-factual needs a property")
+            ->and($rule->in ?? null)->toBeArray()->not->toBeEmpty()
+            // Every value the condition names is one the schema allows, and notes only name those values.
+            ->and(array_diff($rule->in, $block->schema()->properties->{$rule->property}->enum ?? $rule->in))->toBe([])
+            ->and(array_diff(array_keys((array) ($rule->notes ?? [])), $rule->in))->toBe([]);
     }
+});
+
+it('says whether a section states facts: always, never, or when a property has one of some values', function () {
+    $registry = BlockRegistry::default();
+
+    expect($registry->statesFacts('prose', ['text' => 'x']))->toBeTrue()
+        ->and($registry->statesFacts('code', ['code' => 'ls']))->toBeFalse()
+        ->and($registry->statesFacts('callout', ['text' => 'x', 'tone' => 'warning']))->toBeTrue()
+        ->and($registry->statesFacts('callout', ['text' => 'x', 'tone' => 'fun-fact']))->toBeTrue()
+        ->and($registry->statesFacts('callout', ['text' => 'x', 'tone' => 'recap']))->toBeFalse()
+        ->and($registry->statesFacts('callout', ['text' => 'x', 'tone' => 'tip']))->toBeFalse()
+        ->and($registry->statesFacts('callout', ['text' => 'x']))->toBeFalse()
+        ->and($registry->statesFacts('marquee', []))->toBeTrue()
+        ->and($registry->factualNote('callout', ['tone' => 'fun-fact']))->toContain('analogy')
+        ->and($registry->factualNote('callout', ['tone' => 'info']))->toBeNull()
+        ->and($registry->factualNote('prose', ['text' => 'x']))->toBeNull();
 });
 
 /*

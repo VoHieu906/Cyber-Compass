@@ -1273,7 +1273,10 @@
       "exportReady": "{documents, plural, one {# document} other {# documents}} and {images, plural, one {# image} other {# images}}.",
       "downloadZip": "Download {name}",
       "readyToApply": "Checked. Review the changes below, then apply them to drafts.",
-      "moreErrors": "…and {count, plural, one {# more error} other {# more errors}}. Fix these first; checking again lists the rest."
+      "moreErrors": "…and {count, plural, one {# more error} other {# more errors}}. Fix these first; checking again lists the rest.",
+      "exportOverview": "Export course overview",
+      "overviewJson": "as JSON",
+      "downloadGuide": "Download AI guide"
     }
   },
   "assessment": {

@@ -1273,7 +1273,10 @@
       "exportReady": "{documents} tài liệu và {images} hình ảnh.",
       "downloadZip": "Tải {name}",
       "readyToApply": "Đã kiểm tra. Hãy xem các thay đổi bên dưới, rồi áp dụng vào bản nháp.",
-      "moreErrors": "…và {count} lỗi khác. Hãy sửa các lỗi trên trước; kiểm tra lại sẽ liệt kê phần còn lại."
+      "moreErrors": "…và {count} lỗi khác. Hãy sửa các lỗi trên trước; kiểm tra lại sẽ liệt kê phần còn lại.",
+      "exportOverview": "Xuất tổng quan khóa học",
+      "overviewJson": "dạng JSON",
+      "downloadGuide": "Tải hướng dẫn cho AI"
     }
   },
   "assessment": {

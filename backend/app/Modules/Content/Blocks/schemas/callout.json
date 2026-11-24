@@ -1,7 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "callout",
-  "x-factual": true,
+  "x-factual": {
+    "property": "tone",
+    "in": ["info", "warning", "fun-fact"],
+    "notes": { "fun-fact": "An analogy needs no source, so you may ignore this; an anecdote (how something came about) needs one." }
+  },
   "type": "object",
   "required": ["text", "tone"],
   "additionalProperties": false,

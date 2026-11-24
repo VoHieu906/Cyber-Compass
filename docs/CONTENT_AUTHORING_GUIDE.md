@@ -145,7 +145,7 @@ docker compose exec api php artisan content:package import path/to/file.ccpkg.js
 docker compose exec api php artisan content:package export --lesson=osi-model --sections=the-seven-layers
 ```
 
-A section is named by its `key` (the heading as a slug) or its `uuid`; renaming a heading changes the key, never the uuid. The format and the AI authoring guide are in [content-format](content-format/README.md) (from F6 Part E).
+A section is named by its `key` (the heading as a slug) or its `uuid`; renaming a heading changes the key, never the uuid. The format, the AI authoring guide for chatbots and a worked example are in [content-format](content-format/README.md); **Export course overview** and **Download AI guide** on Admin → Courses give a chatbot what it needs.
 
 ## 4a. Exercises (graded, Phase 5)
 

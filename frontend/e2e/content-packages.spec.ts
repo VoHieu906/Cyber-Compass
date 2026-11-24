@@ -37,6 +37,22 @@ test.describe("content packages", () => {
     await expect(page).toHaveURL(/\?course=\d+/);
     await expect(page.getByText("Hardening basics")).toBeVisible();
 
+    // 0. What a chatbot reads first: the course overview and the AI guide, from the course page.
+    const read = async (name: string) => {
+      const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name }).click()]);
+      const chunks: Buffer[] = [];
+      for await (const chunk of await download.createReadStream()) chunks.push(chunk as Buffer);
+      return { file: download.suggestedFilename(), text: Buffer.concat(chunks).toString("utf8") };
+    };
+    const overview = await read("Export course overview");
+    expect(overview.file).toBe("system-hardening.overview.md");
+    expect(overview.text).toContain(`# Course overview: ${COURSE}`);
+    expect(overview.text).toContain("Hardening basics");
+    expect(overview.text).toContain("| # | key | uuid | type | heading | gist | sources |");
+    const guide = await read("Download AI guide");
+    expect(guide.file).toBe("AI_AUTHORING_GUIDE.md");
+    expect(guide.text).toContain("Give a **`key` only to a new section.**");
+
     // 1. A new lesson as a zip: a real image, long text through $file, and 9 MB of filler so the
     //    upload needs two 8 MB parts through the API (the local transfers disk).
     const lesson = envelope(

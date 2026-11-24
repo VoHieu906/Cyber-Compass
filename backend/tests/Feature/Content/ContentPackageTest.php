@@ -291,12 +291,19 @@ describe('operations on an existing lesson', function () {
             ['op' => 'append', 'section' => ['type' => 'prose', 'payload' => ['text' => 'A fact.']]],
             ['op' => 'append', 'section' => ['type' => 'knowledge-check', 'payload' => BlockRegistry::default()->get('knowledge-check')->example()]],
             ['op' => 'append', 'section' => ['type' => 'prose', 'payload' => ['text' => 'y'], 'sources' => [['label' => 'Old page', 'url' => 'http://example.com', 'kind' => 'other']]]],
+            ['op' => 'append', 'section' => ['type' => 'callout', 'payload' => ['text' => 'Said another way.', 'tone' => 'recap']]],
+            ['op' => 'append', 'section' => ['type' => 'callout', 'payload' => ['text' => 'Like an assembly line.', 'tone' => 'fun-fact']]],
+            ['op' => 'append', 'section' => ['type' => 'callout', 'payload' => ['text' => 'Port 22 is SSH.', 'tone' => 'info']]],
         ]], ['lesson' => 'osi-model']));
         $paths = collect($plan->warnings)->pluck('path');
+        $funFact = collect($plan->warnings)->firstWhere('path', 'operations.4.section')['message'] ?? '';
 
         expect($plan->valid())->toBeTrue()
-            ->and($paths)->toContain('operations.0.section', 'operations.2.section.sources.0.url')
-            ->and($paths)->not->toContain('operations.1.section');
+            ->and($paths)->toContain('operations.0.section', 'operations.2.section.sources.0.url', 'operations.4.section', 'operations.5.section')
+            // A knowledge check never states facts, and a recap restates.
+            ->and($paths)->not->toContain('operations.1.section')
+            ->and($paths)->not->toContain('operations.3.section')
+            ->and($funFact)->toContain('An analogy needs no source')->toContain('an anecdote');
     });
 
     it('puts source errors on the section', function () {

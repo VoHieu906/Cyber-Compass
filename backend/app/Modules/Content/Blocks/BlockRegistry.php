@@ -83,6 +83,34 @@ final class BlockRegistry
     }
 
     /**
+     * Whether a section states facts and so should cite sources (D68, D69). The block's schema says
+     * so in `x-factual`: true, false, or a condition on one payload property,
+     * `{"property": "tone", "in": ["info", "warning"], "notes": {"<value>": "..."}}`. No type is
+     * named here, so a new block type only declares its own rule. A type without one counts as factual.
+     */
+    public function statesFacts(string $type, array $payload): bool
+    {
+        $rule = $this->factualRule($type);
+
+        return is_bool($rule) ? $rule : in_array($payload[$rule->property] ?? null, (array) $rule->in, true);
+    }
+
+    /** The schema's note for this payload, when its rule has one (why a fun fact may need no source). */
+    public function factualNote(string $type, array $payload): ?string
+    {
+        $rule = $this->factualRule($type);
+        $value = is_bool($rule) ? null : ($payload[$rule->property] ?? null);
+
+        return is_string($value) ? ($rule->notes->{$value} ?? null) : null;
+    }
+
+    /** @return bool|object the schema's `x-factual` */
+    public function factualRule(string $type): bool|object
+    {
+        return $this->has($type) ? ($this->get($type)->schema()->{'x-factual'} ?? true) : true;
+    }
+
+    /**
      * Validates an ordered list of sections ({type, heading?, payload}) and returns them
      * normalized. Errors are keyed like the admin API's request body:
      * "sections.3.payload.items.0", so the editor can point at the exact block and field.

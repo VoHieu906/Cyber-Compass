@@ -360,6 +360,8 @@ All under `/admin/content/` (admin only: `auth:sanctum`, `EnsureAdmin`, `throttl
 |---|---|---|---|
 | 🛡 | POST | `/admin/content/packages/check` | `{json}`: validate-only preview of pasted JSON (at most 2 MB; larger gets 422 telling the admin to upload a file); stores nothing. Returns the report below |
 | 🛡 | GET | `/admin/content/lessons/{id}/package`, `/admin/content/posts/{id}/package` | The working copy as a `.ccpkg.json` attachment; `?sections=a,b` exports only those sections (keys or uuids) as `replace` operations. Audited (`lesson.package_exported`, `post.package_exported`) |
+| 🛡 | GET | `/admin/content/courses/{id}/overview` | The course overview for chatbots (D71) as a Markdown attachment, or `?format=json`. Audited (`course.overview_exported`) |
+| 🛡 | GET | `/admin/content/packages/guide` | `AI_AUTHORING_GUIDE.md` as shipped with the release |
 | 🛡 | POST | `/admin/content/transfers` | `{file_name (.json or .zip), size (≤ 250 MB)}` → 201 with `upload: {mode: s3 \| chunked, part_bytes, parts[{number, url}]}`. On S3 the browser PUTs each part to its presigned `url` and keeps the `ETag` header |
 | 🛡 | PUT | `/admin/content/transfers/{id}/parts/{n}` | Chunked mode only (raw body of exactly `part_bytes`, the last part the rest); 404 on S3 |
 | 🛡 | POST | `/admin/content/transfers/{id}/complete` | `{parts?: [{number, etag}]}` (S3). Checks the size, then queues validation: `status` `validating` → `ready` with `report` |

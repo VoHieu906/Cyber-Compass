@@ -1,14 +1,15 @@
 "use client";
 
-import { Check, FileDown, FileUp, Pencil, Plus, X } from "lucide-react";
+import { BookOpen, Check, FileDown, FileText, FileUp, Pencil, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useId, useState } from "react";
 import { Alert } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { controlClasses } from "@/components/ui/input";
 import { useErrorMessage } from "@/features/auth/use-error-message";
+import { aiGuideUrl, courseOverviewUrl } from "@/features/content-packages/api";
 import { ExportDialog } from "@/features/content-packages/components/export-dialog";
 import { ImportDialog } from "@/features/content-packages/components/import-dialog";
 import { moveItem } from "../editor-state";
@@ -281,12 +282,29 @@ function ChapterTitle({ chapterId, position, title }: { chapterId: number; posit
   );
 }
 
-/** Content packages for a whole course (F6): new lessons into its chapters, or every lesson out as a zip. */
+/**
+ * Content packages for a whole course (F6): what a chatbot reads first (the overview and the AI
+ * guide), new lessons into its chapters, and every lesson out as a zip.
+ */
 function CoursePackages({ course, onApplied }: { course: AdminCourse; onApplied: () => void }) {
   const t = useTranslations("content.packages");
   const [open, setOpen] = useState<"import" | "export" | null>(null);
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap items-center gap-2">
+      <a href={courseOverviewUrl(course.id)} className={buttonVariants({ variant: "secondary", size: "sm" })}>
+        <FileText aria-hidden />
+        {t("exportOverview")}
+      </a>
+      <a
+        href={courseOverviewUrl(course.id, "json")}
+        className="text-sm text-muted underline underline-offset-4 hover:text-ink"
+      >
+        {t("overviewJson")}
+      </a>
+      <a href={aiGuideUrl()} className={buttonVariants({ variant: "secondary", size: "sm" })}>
+        <BookOpen aria-hidden />
+        {t("downloadGuide")}
+      </a>
       <Button variant="secondary" size="sm" onClick={() => setOpen("import")}>
         <FileUp aria-hidden />
         {t("importLessons")}

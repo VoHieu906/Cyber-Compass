@@ -29,6 +29,13 @@ export const startExport = (subject: ExportSubject) => api.post<Transfer>(`${bas
 
 export const exportDownloadUrl = (id: number) => api.get<{ url: string }>(`${base}/transfers/${id}/download`);
 
+/** The course overview a chatbot reads first (D71): Markdown, or the same data as JSON. */
+export const courseOverviewUrl = (courseId: number, format: "md" | "json" = "md") =>
+  `${env.apiUrl}${base}/courses/${courseId}/overview${format === "json" ? "?format=json" : ""}`;
+
+/** The AI authoring guide shipped with this release. */
+export const aiGuideUrl = () => `${env.apiUrl}${base}/packages/guide`;
+
 /**
  * A lesson's or post's working copy as a .ccpkg.json download (optionally only some sections, by uuid).
  * A plain link: the browser sends the session cookie and the API answers with an attachment.
