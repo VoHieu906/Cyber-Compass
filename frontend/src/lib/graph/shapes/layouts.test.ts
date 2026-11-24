@@ -93,6 +93,69 @@ describe("shape details", () => {
     ]);
   });
 
+  describe("queue frame", () => {
+    const frame = (n: number) => {
+      const box = fitBox("queue", n, 0, SHAPE_BOX.wide);
+      const layout = layoutShape("queue", input("queue", n), box);
+      const paths = layout.decorations.flatMap((d) => (d.kind === "path" ? [d.d] : []));
+      const markers = layout.decorations.flatMap((d) => (d.kind === "marker" ? [d] : []));
+      // The coordinates of every point a path passes through (arc radii and flags dropped).
+      const xs = paths.flatMap((d) =>
+        [...d.matchAll(/[MLH] ([\d.-]+)|A [\d.]+ [\d.]+ 0 0 1 ([\d.-]+)/g)].map((m) => +(m[1] ?? m[2])),
+      );
+      return { box, layout, paths, markers, xs };
+    };
+    // A vee is three points; a rail is a straight run (one row) or a bend (two rows).
+    const vees = (paths: string[]) => paths.filter((d) => /^M [\d.-]+ [\d.-]+ L [\d.-]+ [\d.-]+ L /.test(d));
+
+    it("puts one row in a tube open at both ends, vees pointing to the front", () => {
+      const { box, layout, paths, markers, xs } = frame(4);
+      const rails = paths.filter((d) => /^M [\d.-]+ [\d.-]+ H [\d.-]+$/.test(d));
+      expect(rails).toHaveLength(2);
+      const ys = rails.map((d) => +d.split(" ")[2]);
+      for (const r of layout.nodes.values()) {
+        expect(Math.min(...ys)).toBeLessThan(r.y);
+        expect(Math.max(...ys)).toBeGreaterThan(r.y + r.height);
+      }
+      // 3 gaps, a vee on each rail; each opens to the right, so its tip (the middle point) is leftmost.
+      const v = vees(paths);
+      expect(v).toHaveLength(6);
+      for (const d of v) {
+        const [end, tip] = [...d.matchAll(/[ML] ([\d.-]+)/g)].map((m) => +m[1]);
+        expect(tip).toBeLessThan(end);
+      }
+      expect(paths).toHaveLength(rails.length + v.length);
+      expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
+      expect(Math.max(...xs)).toBeLessThanOrEqual(box.width);
+      expect(markers.map((m) => [m.key, m.anchor])).toEqual([
+        ["front", "start"],
+        ["back", "end"],
+      ]);
+    });
+
+    it("bends the tube round to a second row that runs back towards the entry", () => {
+      const n = SHAPE_REGISTRY.queue.limits.max;
+      expect(n).toBeGreaterThan(5);
+      const { box, layout, paths, markers, xs } = frame(n);
+      const at = (i: number) => layout.nodes.get(`n${i}`)!;
+      const perRow = Math.ceil(n / 2);
+      // First row left to right, second row right to left, below it.
+      expect(at(0).x).toBeLessThan(at(perRow - 1).x);
+      expect(at(perRow).x).toBeGreaterThan(at(n - 1).x);
+      expect(at(perRow).y).toBeGreaterThan(at(0).y + at(0).height);
+      const bends = paths.filter((d) => d.includes(" A "));
+      expect(bends).toHaveLength(2);
+      expect(paths).toHaveLength(bends.length + vees(paths).length);
+      expect(Math.min(...xs)).toBeGreaterThanOrEqual(0);
+      expect(Math.max(...xs)).toBeLessThanOrEqual(box.width);
+      // The bend's outer wall clears the last slot of the first row.
+      expect(Math.max(...xs)).toBeGreaterThan(at(perRow - 1).x + at(perRow - 1).width);
+      const back = markers.find((m) => m.key === "back")!;
+      expect(back.y).toBeGreaterThan(at(n - 1).y + at(n - 1).height);
+      expect(back.y + 6).toBeLessThanOrEqual(box.height);
+    });
+  });
+
   it("nests onion rings from the core outwards and spokes from the hub centre", () => {
     const rings = layoutShape("onion", input("onion", 4), SHAPE_BOX.wide).decorations.filter(
       (d) => d.kind === "ellipse",

@@ -20,7 +20,7 @@ export function fitBox(shape: ShapeId | null, count: number, rows: number, box: 
       case "pipeline":
         return count > 5 ? 200 : 110;
       case "queue":
-        return count > 5 ? 220 : 130;
+        return count > 5 ? 236 : 130;
       case "layers":
         return 16 + count * 52;
       case "stack":

@@ -116,38 +116,111 @@ const stack: Layout = (input, box) => {
   };
 };
 
-/** Items in reading order on one row, or two rows when there are more than five. */
-function lanes(input: ShapeInput, box: Box, reserveTop: number): Map<string, PlacedSub> {
+/**
+ * Items in reading order on one row, or two rows when there are more than five. `snake` runs the
+ * second row right to left, so a track can bend round from the end of the first.
+ */
+function lanes(input: ShapeInput, box: Box, reserveTop: number, inset = 0, snake = false): Map<string, PlacedSub> {
   const n = input.nodes.length;
   const rows = n > 5 ? 2 : 1;
   const perRow = Math.ceil(n / rows);
-  const width = (box.width - 2 * PAD - (perRow - 1) * 18) / perRow;
+  const width = (box.width - 2 * (PAD + inset) - (perRow - 1) * 18) / perRow;
   const rowH = 58;
   const rowGap = 34;
   const top = reserveTop + (box.height - reserveTop - (rows * rowH + (rows - 1) * rowGap)) / 2;
   return new Map(
     input.nodes.map((node, i) => {
       const row = Math.floor(i / perRow);
-      const col = i % perRow;
+      const col = snake && row % 2 ? perRow - 1 - (i % perRow) : i % perRow;
       return [
         node.id,
-        boxIn(node.label, { x: PAD + col * (width + 18), y: top + row * (rowH + rowGap), width, height: rowH }, 3),
+        boxIn(
+          node.label,
+          { x: PAD + inset + col * (width + 18), y: top + row * (rowH + rowGap), width, height: rowH },
+          3,
+        ),
       ];
     }),
   );
 }
 
-/** FIFO: the front (dequeued first) on the left, the back (enqueued last) on the right. */
+const SLOT = 6; // the frame's clearance around a slot
+const END = 12; // how far an open end runs past the end slot
+const BEND = 14; // corner radius of the bend round to the second row
+
+/** A small vee on the frame at (x, y), pointing left (-1) or right (1): the way items move. */
+const chevron = (x: number, y: number, dir: number): Decoration => ({
+  kind: "path",
+  d: `M ${x - dir * 3} ${y - 5} L ${x + dir * 3} ${y} L ${x - dir * 3} ${y + 5}`,
+});
+
+/** Midpoints of the gaps between neighbouring slots. */
+const gaps = (row: PlacedSub[]) => {
+  const s = [...row].sort((a, b) => a.x - b.x);
+  return s.slice(1).map((r, i) => (s[i].x + s[i].width + r.x) / 2);
+};
+
+/**
+ * The queue's frame, drawn in the shape-frame style like the stack's bracket (never a relation
+ * line): the slots sit in a tube open at both ends, with vees on its rails pointing the way items
+ * move, towards the front. A second row bends round from the end of the first.
+ */
+function queueFrame([r0, r1]: PlacedSub[][]): Decoration[] {
+  const t0 = r0[0].y - SLOT;
+  const b0 = r0[0].y + r0[0].height + SLOT;
+  const l0 = r0[0].x - END;
+  const right = Math.max(...r0.map((r) => r.x + r.width));
+  const out: Decoration[] = [];
+  const vees = (row: PlacedSub[], ys: number[], dir: number) =>
+    gaps(row).forEach((x) => ys.forEach((y) => out.push(chevron(x, y, dir))));
+  if (!r1) {
+    out.push(
+      { kind: "path", d: `M ${l0} ${t0} H ${right + END}` },
+      { kind: "path", d: `M ${l0} ${b0} H ${right + END}` },
+    );
+  } else {
+    const t1 = r1[0].y - SLOT;
+    const b1 = r1[0].y + r1[0].height + SLOT;
+    const l1 = Math.min(...r1.map((r) => r.x)) - END;
+    const inner = (t1 - b0) / 2;
+    const wall = right + inner + 12;
+    out.push(
+      {
+        kind: "path",
+        d: `M ${l0} ${t0} H ${wall - BEND} A ${BEND} ${BEND} 0 0 1 ${wall} ${t0 + BEND} V ${b1 - BEND} A ${BEND} ${BEND} 0 0 1 ${wall - BEND} ${b1} H ${l1}`,
+      },
+      { kind: "path", d: `M ${l0} ${b0} H ${right} A ${inner} ${inner} 0 0 1 ${right} ${t1} H ${l1}` },
+    );
+    vees(r1, [t1, b1], 1);
+  }
+  vees(r0, [t0, b0], -1);
+  return out;
+}
+
+/** FIFO: the front (dequeued first) at the left of the first row, the back (enqueued last) at the end of the track. */
 const queue: Layout = (input, box) => {
-  const nodes = lanes(input, box, MARKER);
-  const first = nodes.get(input.nodes[0].id)!;
-  const last = nodes.get(input.nodes[input.nodes.length - 1].id)!;
+  const n = input.nodes.length;
+  // Room for the open ends, and for the bend when there is a second row.
+  const nodes = lanes(input, box, MARKER, n > 5 ? 20 : 6, true);
+  const perRow = n > 5 ? Math.ceil(n / 2) : n;
+  const placed = input.nodes.map((node) => nodes.get(node.id)!);
+  const rows = [placed.slice(0, perRow), placed.slice(perRow)].filter((r) => r.length);
+  const first = placed[0];
+  const t0 = first.y - SLOT;
+  const back = rows[1]
+    ? {
+        x: Math.min(...rows[1].map((r) => r.x)) - END,
+        y: rows[1][0].y + rows[1][0].height + SLOT + 12,
+        anchor: "start" as const,
+      }
+    : { x: Math.max(...placed.map((r) => r.x + r.width)) + END, y: t0 - 8, anchor: "end" as const };
   return {
     nodes,
     edges: authored(input, nodes, box),
     decorations: [
-      { kind: "marker", key: "front", x: first.x, y: first.y - 8, anchor: "start" },
-      { kind: "marker", key: "back", x: last.x + last.width, y: last.y - 8, anchor: "end" },
+      ...queueFrame(rows),
+      { kind: "marker", key: "front", x: first.x - END, y: t0 - 8, anchor: "start" },
+      { kind: "marker", key: "back", ...back },
     ],
   };
 };
