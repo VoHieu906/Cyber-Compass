@@ -19,6 +19,8 @@ A step-by-step guide to running CyberCompass on AWS with the AWS CLI and the JSO
 | 9. Environment variable configuration | [Environment variables](#environment-variables), step 7 |
 | 10. Logs and monitoring | step 14, [Logs](#logs) |
 
+> **Before the first deployment:** features built after this guide was written finished on the development stack only (D72). What they add to the deployment is listed in [IMPLEMENTATION_ROADMAP: Deferred until first deployment](IMPLEMENTATION_ROADMAP.md#deferred-until-first-deployment); work through that list with this guide.
+
 Steps 1 to 15 are the deployment by hand. Steps 16 to 18 are the optional operations tools (deployment from GitHub, the WAF trial, sleep and wake).
 
 ## What you will build

@@ -73,9 +73,10 @@ export async function request<T>(method: Method, path: string, options: RequestO
       : {}),
     ...options.headers,
   };
-  if (options.body !== undefined && !(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  // FormData sets its own multipart type; a Blob is sent as raw bytes (content package parts, F6).
+  const raw = options.body instanceof FormData || options.body instanceof Blob;
+  if (options.body instanceof Blob) headers["Content-Type"] = "application/octet-stream";
+  else if (options.body !== undefined && !raw) headers["Content-Type"] = "application/json";
   if (method !== "GET") {
     const xsrf = readCookie(XSRF_COOKIE);
     if (xsrf) headers["X-XSRF-TOKEN"] = xsrf;
@@ -88,12 +89,7 @@ export async function request<T>(method: Method, path: string, options: RequestO
       headers,
       credentials: "include",
       signal: options.signal,
-      body:
-        options.body === undefined
-          ? undefined
-          : options.body instanceof FormData
-            ? options.body
-            : JSON.stringify(options.body),
+      body: options.body === undefined ? undefined : raw ? (options.body as BodyInit) : JSON.stringify(options.body),
     });
   } catch (cause) {
     if (cause instanceof DOMException && cause.name === "AbortError") throw cause;

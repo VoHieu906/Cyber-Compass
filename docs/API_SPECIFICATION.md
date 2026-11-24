@@ -358,8 +358,8 @@ All under `/admin/content/` (admin only: `auth:sanctum`, `EnsureAdmin`, `throttl
 
 | | Method | Path | Notes |
 |---|---|---|---|
-| 🛡 | POST | `/admin/content/packages/check` | `{json}`: validate-only preview of pasted JSON (≤ 10 MB); stores nothing. Returns the report below |
-| 🛡 | GET | `/admin/content/lessons/{id}/package`, `/admin/content/posts/{id}/package` | The working copy as a `.ccpkg.json` attachment; `?sections=a,b` exports only those keys as `replace` operations. Audited (`lesson.package_exported`, `post.package_exported`) |
+| 🛡 | POST | `/admin/content/packages/check` | `{json}`: validate-only preview of pasted JSON (at most 2 MB; larger gets 422 telling the admin to upload a file); stores nothing. Returns the report below |
+| 🛡 | GET | `/admin/content/lessons/{id}/package`, `/admin/content/posts/{id}/package` | The working copy as a `.ccpkg.json` attachment; `?sections=a,b` exports only those sections (keys or uuids) as `replace` operations. Audited (`lesson.package_exported`, `post.package_exported`) |
 | 🛡 | POST | `/admin/content/transfers` | `{file_name (.json or .zip), size (≤ 250 MB)}` → 201 with `upload: {mode: s3 \| chunked, part_bytes, parts[{number, url}]}`. On S3 the browser PUTs each part to its presigned `url` and keeps the `ETag` header |
 | 🛡 | PUT | `/admin/content/transfers/{id}/parts/{n}` | Chunked mode only (raw body of exactly `part_bytes`, the last part the rest); 404 on S3 |
 | 🛡 | POST | `/admin/content/transfers/{id}/complete` | `{parts?: [{number, etag}]}` (S3). Checks the size, then queues validation: `status` `validating` → `ready` with `report` |
@@ -370,7 +370,7 @@ All under `/admin/content/` (admin only: `auth:sanctum`, `EnsureAdmin`, `throttl
 | 🛡 | GET | `/admin/content/transfers/{id}/download` | `{url}`: a 10-minute presigned S3 link, or locally the API's `…/file` route |
 | 🛡 | DELETE | `/admin/content/transfers/{id}` | Removes the file and the row (409 while a step runs) |
 
-**Report** (`report`): `{kind, generator, valid, errors: {"<package path>": [messages]}, warnings: [{path, message}], documents: [{type, slug, title, id, is_new, chapter, lock_version, fingerprint, changes: [{change: added \| replaced \| removed \| kept, key, uuid, type, heading}]}]}`. Paths name the place in the package (`operations.2.section.payload.text`, `document.minutes`). Applying writes one audit entry per document (`lesson.package_imported`, `post.package_imported`).
+**Report** (`report`): `{kind, generator, valid, errors: {"<package path>": [messages]} (at most 100 messages), more_errors (how many more were found), warnings: [{path, message}], documents: [{type, slug, title, id, is_new, chapter, lock_version, fingerprint, changes: [{change: added \| replaced \| removed \| kept, key, uuid, type, heading}]}]}`. Paths name the place in the package (`operations.2.section.payload.text`, `document.minutes`). Applying writes one audit entry per document (`lesson.package_imported`, `post.package_imported`).
 
 ### Search
 

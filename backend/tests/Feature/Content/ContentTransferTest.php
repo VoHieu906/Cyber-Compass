@@ -251,6 +251,9 @@ it('validates pasted JSON without storing anything', function () {
     asTransferAdmin()->postJson('/api/v1/admin/content/packages/check', ['json' => '{"format": '])
         ->assertOk()->assertJsonPath('data.valid', false);
 
+    asTransferAdmin()->postJson('/api/v1/admin/content/packages/check', ['json' => str_repeat('x', 2 * 1024 * 1024 + 1)])
+        ->assertUnprocessable()->assertJsonPath('errors.json.0', 'Pasted text can be at most 2 MB. Upload the package as a .ccpkg.json file instead.');
+
     expect(ContentTransfer::query()->count())->toBe(0)
         ->and(Lesson::query()->where('slug', 'osi-model')->first()->draft)->toBeNull();
 });

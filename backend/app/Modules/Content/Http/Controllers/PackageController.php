@@ -7,6 +7,7 @@ use App\Models\Lesson;
 use App\Models\Post;
 use App\Modules\Admin\Services\AuditLogger;
 use App\Modules\Content\Packages\PackageExporter;
+use App\Modules\Content\Packages\PackagePlan;
 use App\Modules\Content\Packages\PackagePlanner;
 use App\Modules\Content\Packages\PackageReader;
 use Illuminate\Http\JsonResponse;
@@ -26,12 +27,16 @@ final class PackageController extends Controller
     {
         Gate::authorize('create', Lesson::class);
         $request->validate(['json' => ['required', 'string']]);
+        $max = (int) config('cybercompass.content_packages.max_paste_bytes');
+        if (strlen($request->string('json')->toString()) > $max) {
+            throw ValidationException::withMessages(['json' => [__('Pasted text can be at most :mb MB. Upload the package as a .ccpkg.json file instead.', ['mb' => intdiv($max, 1024 * 1024)])]]);
+        }
 
         try {
             $package = $reader->fromString($request->string('json')->toString());
             $report = $planner->plan($package['envelope'], null)->toArray();
         } catch (ValidationException $e) {
-            $report = ['kind' => null, 'generator' => null, 'valid' => false, 'errors' => $e->errors(), 'warnings' => [], 'documents' => []];
+            $report = PackagePlan::unreadable($e->errors());
         }
 
         return response()->json(['data' => $report]);

@@ -230,6 +230,25 @@ describe('operations on an existing lesson', function () {
             ->and($plan->errors['operations.2.uuid'][0])->toContain('never invent');
     });
 
+    it('reports every problem in one round, not one kind at a time', function () {
+        $plan = planOf(envelope('lesson-sections', ['operations' => [
+            ['op' => 'remove', 'key' => 'the-7-layers'],
+            ['op' => 'append', 'section' => ['type' => 'marquee', 'payload' => []]],
+            ['op' => 'append', 'section' => ['type' => 'prose', 'payload' => ['text' => '']]],
+        ]], ['lesson' => 'osi-model']));
+
+        expect(array_keys($plan->errors))->toContain('operations.0.key', 'operations.1.section.type', 'operations.2.section.payload.text');
+    });
+
+    it('reports at most 100 errors and counts the rest', function () {
+        $operations = array_map(fn ($i) => ['op' => 'remove', 'key' => "missing-{$i}"], range(1, 150));
+        $report = planOf(envelope('lesson-sections', ['operations' => $operations], ['lesson' => 'osi-model']))->toArray();
+
+        expect(collect($report['errors'])->flatten())->toHaveCount(100)
+            ->and($report['errors'])->toHaveKey('operations.99.key')->not->toHaveKey('operations.100.key')
+            ->and($report['more_errors'])->toBe(50);
+    });
+
     it('refuses to remove a section an exercise question teaches (D30)', function () {
         $question = ExerciseQuestion::query()->whereNotNull('lesson_section_id')->where('is_archived', false)->with('section.lesson')->firstOrFail();
         $plan = planOf(envelope('lesson-sections', ['operations' => [['op' => 'remove', 'uuid' => $question->section->uuid]]], ['lesson' => $question->section->lesson->slug]));
@@ -294,7 +313,8 @@ describe('whole documents', function () {
         $plan = importPkg(newLessonPackage('pkg-new-lesson', [['key' => 'intro', 'type' => 'prose', 'heading' => 'Intro', 'payload' => ['text' => 'Hello.']]]));
         $lesson = Lesson::query()->where('slug', 'pkg-new-lesson')->firstOrFail();
 
-        expect($lesson->status)->toBe(LessonStatus::Draft)
+        expect($plan->documents[0]['id'])->toBe($lesson->id)
+            ->and($lesson->status)->toBe(LessonStatus::Draft)
             ->and($lesson->chapter->title)->toBe('How networks are built')
             ->and($lesson->topics()->exists())->toBeFalse()
             ->and($lesson->draft->snapshot['title'])->toBe('Package lesson')
@@ -333,6 +353,9 @@ describe('whole documents', function () {
 
     it('exports only the chosen sections as replace operations that import back', function () {
         $pkg = exported(osi(), ['the-seven-layers']);
+
+        $byUuid = exported(osi(), [osi()->sections()->where('heading', 'The seven layers')->value('uuid')]);
+        expect($byUuid['operations'])->toEqual($pkg['operations']);
 
         expect($pkg['kind'])->toBe('lesson-sections')
             ->and($pkg['operations'])->toHaveCount(1)

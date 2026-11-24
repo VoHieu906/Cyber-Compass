@@ -23,7 +23,7 @@ final class PackageExporter
         private readonly PostWorkingCopy $postCopy,
     ) {}
 
-    /** @param  ?list<string>  $keys  only these sections, as replace operations */
+    /** @param  ?list<string>  $keys  only these sections (keys or uuids), as replace operations */
     public function lesson(Lesson $lesson, ?array $keys = null): array
     {
         $copy = $this->lessonCopy->current($lesson->loadMissing('chapter.course'));
@@ -134,19 +134,20 @@ final class PackageExporter
         return array_map(fn (array $s) => array_diff_key($s, ['uuid' => true]), $sections);
     }
 
-    private static function replaceOperations(array $sections, array $keys): array
+    /** @param  list<string>  $names  section keys or uuids (the editor knows uuids, the overview both) */
+    private static function replaceOperations(array $sections, array $names): array
     {
-        $byKey = array_column($sections, null, 'key');
-        $missing = array_diff($keys, array_keys($byKey));
+        $byName = array_column($sections, null, 'key') + array_column($sections, null, 'uuid');
+        $missing = array_diff($names, array_keys($byName));
         if ($missing !== []) {
-            throw ValidationException::withMessages(['sections' => ['No section has the key: '.implode(', ', $missing).'.']]);
+            throw ValidationException::withMessages(['sections' => ['No section has the key or uuid: '.implode(', ', $missing).'.']]);
         }
 
-        return array_map(fn (string $key) => [
+        return array_map(fn (string $name) => [
             'op' => 'replace',
-            'key' => $key,
-            'uuid' => $byKey[$key]['uuid'],
-            'section' => array_diff_key($byKey[$key], ['uuid' => true]),
-        ], array_values($keys));
+            'key' => $byName[$name]['key'],
+            'uuid' => $byName[$name]['uuid'],
+            'section' => array_diff_key($byName[$name], ['uuid' => true]),
+        ], array_values($names));
     }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Pencil, Plus, X } from "lucide-react";
+import { Check, FileDown, FileUp, Pencil, Plus, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +9,8 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { controlClasses } from "@/components/ui/input";
 import { useErrorMessage } from "@/features/auth/use-error-message";
+import { ExportDialog } from "@/features/content-packages/components/export-dialog";
+import { ImportDialog } from "@/features/content-packages/components/import-dialog";
 import { moveItem } from "../editor-state";
 import { useAdminCourses, useCreateChapter, useRenameChapter, useReorderChapters, useReorderLessons } from "../hooks";
 import type { AdminCourse } from "../types";
@@ -55,6 +57,9 @@ export function CourseStructureView() {
           ))}
         </select>
       </div>
+      {course ? (
+        <CoursePackages key={`packages-${course.id}`} course={course} onApplied={() => void courses.refetch()} />
+      ) : null}
       {course ? <CourseOutline key={course.id} course={course} /> : null}
     </div>
   );
@@ -273,5 +278,29 @@ function ChapterTitle({ chapterId, position, title }: { chapterId: number; posit
       </div>
       {rename.isError ? <p className="text-sm text-bad">{errorMessage(rename.error)}</p> : null}
     </form>
+  );
+}
+
+/** Content packages for a whole course (F6): new lessons into its chapters, or every lesson out as a zip. */
+function CoursePackages({ course, onApplied }: { course: AdminCourse; onApplied: () => void }) {
+  const t = useTranslations("content.packages");
+  const [open, setOpen] = useState<"import" | "export" | null>(null);
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button variant="secondary" size="sm" onClick={() => setOpen("import")}>
+        <FileUp aria-hidden />
+        {t("importLessons")}
+      </Button>
+      <Button variant="secondary" size="sm" onClick={() => setOpen("export")}>
+        <FileDown aria-hidden />
+        {t("exportCourse")}
+      </Button>
+      <ImportDialog open={open === "import"} onClose={() => setOpen(null)} onApplied={onApplied} />
+      <ExportDialog
+        open={open === "export"}
+        onClose={() => setOpen(null)}
+        subject={{ type: "course", id: course.id }}
+      />
+    </div>
   );
 }

@@ -288,7 +288,6 @@ final class PackagePlanner
         $keys = ContentImporter::sectionKeys($currentSections);
         $entries = array_map(fn ($s, $k) => ['uuid' => $s['uuid'], 'key' => $k, 'section' => $s, 'origin' => null], $currentSections, $keys);
         $known = $isNew ? [] : array_flip($copy->knownUuids($doc));
-        $errorCount = count($plan->errors);
 
         if ($job['document'] !== null) {
             $entries = $this->wholeDocument($job['document']['sections'] ?? null, $entries, $known, $at, $plan, $type, $slug);
@@ -297,9 +296,8 @@ final class PackagePlanner
                 $entries = $this->operation($op, "operations.{$i}", $entries, $known, $stale, $plan, $type, $slug);
             }
         }
-        if (count($plan->errors) > $errorCount) {
-            return; // nothing useful to validate while the structure is wrong
-        }
+        // Operations or sections that failed above are left out; the rest is still validated, so
+        // the author sees every problem in one round instead of one kind of error at a time.
 
         // Images named by file: resolved now (stored on apply), then treated as existing by validation.
         foreach ($entries as $i => $entry) {

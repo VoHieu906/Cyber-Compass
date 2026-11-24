@@ -1,6 +1,17 @@
 "use client";
 
-import { Archive, ArchiveRestore, ExternalLink, Plus, RotateCcw, Save, Send, Trash2 } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  ExternalLink,
+  FileDown,
+  FileUp,
+  Plus,
+  RotateCcw,
+  Save,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +22,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { controlClasses } from "@/components/ui/input";
 import { useErrorMessage } from "@/features/auth/use-error-message";
+import { ExportDialog } from "@/features/content-packages/components/export-dialog";
+import { ImportDialog } from "@/features/content-packages/components/import-dialog";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { useShortcut } from "@/lib/shortcuts/use-shortcut";
@@ -106,6 +119,7 @@ function EditorForm<K extends DocKind>({
   type Copy = Doc["working_copy"];
   const t = useDocText(adapter.messages);
   const tCommon = useTranslations("common");
+  const tPackages = useTranslations("content.packages");
   const format = useFormatter();
   const router = useRouter();
   const errorMessage = useErrorMessage();
@@ -122,6 +136,7 @@ function EditorForm<K extends DocKind>({
   const [removing, setRemoving] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [packages, setPackages] = useState<"import" | "export" | null>(null);
 
   const { save, publish, discard, archive, unarchive, remove, restore } = useDocActions(adapter.kind, lesson.id);
   const references = adapter.references?.(lesson) ?? {};
@@ -279,7 +294,37 @@ function EditorForm<K extends DocKind>({
             </span>
           ) : null}
         </div>
+        {/* Content packages (F6): blocks or a whole document written elsewhere, into the draft; or this document out. */}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setPackages("import")}>
+            <FileUp aria-hidden />
+            {tPackages("import")}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => setPackages("export")}>
+            <FileDown aria-hidden />
+            {tPackages("export")}
+          </Button>
+        </div>
       </header>
+
+      <ImportDialog
+        open={packages === "import"}
+        onClose={() => setPackages(null)}
+        // An import writes the draft: unsaved edits here would then be saved over it, or conflict.
+        blockedReason={dirty ? tPackages("saveFirst") : null}
+        onApplied={async () => {
+          const fresh = await refetch();
+          if (fresh.data) load(fresh.data);
+        }}
+      />
+      <ExportDialog
+        open={packages === "export"}
+        onClose={() => setPackages(null)}
+        subject={{ type: adapter.kind, id: lesson.id }}
+        sections={base.sections.flatMap((s, i) =>
+          s.id ? [{ id: s.id, label: `${i + 1}. ${s.heading ?? typeByKey[s.type]?.label ?? s.type}` }] : [],
+        )}
+      />
 
       {/* The action bar stays in reach while scrolling a long lesson. */}
       <div className="sticky top-[var(--header-height)] z-[var(--z-sticky-nav)] -mx-[var(--gutter)] flex flex-wrap items-center justify-between gap-3 border-y border-rule bg-[color-mix(in_oklab,var(--color-paper)_94%,transparent)] px-[var(--gutter)] py-3 backdrop-blur-[6px] lg:mx-0 lg:rounded-card lg:border lg:px-4">

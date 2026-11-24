@@ -28,12 +28,19 @@ export type Account = { email: string; password: string };
 
 /**
  * "admin" is shared by the admin, blog, security, performance and sweep specs; "mapAdmin" is a
- * second admin for the course map suggestions spec, because the admin rate limit (120 a minute)
+ * second admin for the course map suggestions spec and "packagesAdmin" a third for the content
+ * packages spec, because the admin rate limit (120 a minute)
  * is per user and the specs run in parallel. Never raise the limit for tests.
  */
-export function account(role: keyof typeof LEARNER | "admin" | "mapAdmin"): Account {
+export function account(role: keyof typeof LEARNER | "admin" | "mapAdmin" | "packagesAdmin"): Account {
   const accounts = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, "utf8")) as Accounts;
   const email =
-    role === "admin" ? accounts.admins[0] : role === "mapAdmin" ? accounts.admins[1] : accounts.learners[LEARNER[role]];
+    role === "admin"
+      ? accounts.admins[0]
+      : role === "mapAdmin"
+        ? accounts.admins[1]
+        : role === "packagesAdmin"
+          ? accounts.admins[2]
+          : accounts.learners[LEARNER[role]];
   return { email, password: accounts.password };
 }

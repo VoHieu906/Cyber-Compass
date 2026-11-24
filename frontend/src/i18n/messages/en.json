@@ -1191,6 +1191,89 @@
       "explanation": "Explanation",
       "explanationHint": "Shown after the learner checks their answer, right or wrong.",
       "addQuestion": "Add question"
+    },
+    "packages": {
+      "import": "Import",
+      "export": "Export",
+      "importLessons": "Import lessons",
+      "exportCourse": "Export course package",
+      "close": "Close",
+      "importTitle": "Import a content package",
+      "importIntro": "A package from a chatbot or another installation lands in drafts after you check its preview. Nothing is published until you publish.",
+      "saveFirst": "Save or discard your changes first: an import writes this draft, and your unsaved edits would no longer match it.",
+      "file": "Package file",
+      "fileHint": "A .ccpkg.json document, or a .ccpkg.zip bundle with images (up to 250 MB).",
+      "uploadAndCheck": "Upload and check",
+      "paste": "Or paste a JSON package to check it",
+      "pasteHint": "Nothing is saved: you see the errors and changes only. Up to 2 MB; upload larger packages as a file.",
+      "checkOnly": "Check only",
+      "uploading": "Uploading {name}…",
+      "uploadProgress": "Upload progress",
+      "uploadedOf": "{sent} of {total}",
+      "validating": "Checking the package…",
+      "applying": "Writing the drafts…",
+      "stalled": "Still queued after 30 seconds. Is the queue worker running? Locally: docker compose up -d worker.",
+      "applied": "Imported into drafts. Open each one to review it, then publish.",
+      "failed": "The package could not be processed.",
+      "apply": "Apply to drafts",
+      "validateAgain": "Check again",
+      "another": "Import another package",
+      "back": "Back",
+      "checkedValid": "The package is valid. Nothing was saved; upload it as a file to apply it.",
+      "checkedInvalid": "The package has errors. Nothing was saved.",
+      "errors": "{count, plural, one {# error} other {# errors}}: nothing can be applied until they are fixed.",
+      "warnings": "{count, plural, one {# warning} other {# warnings}}",
+      "copyErrors": "Copy errors for the chatbot",
+      "copied": "Copied. Paste it back to the chatbot.",
+      "newDocument": {
+        "lesson": "New lesson (draft)",
+        "post": "New post (draft)"
+      },
+      "existingDocument": {
+        "lesson": "Lesson draft",
+        "post": "Post draft"
+      },
+      "noChanges": "No section changes.",
+      "kept": "{count, plural, one {# section unchanged} other {# sections unchanged}}",
+      "changes": {
+        "added": "Added",
+        "replaced": "Replaced",
+        "removed": "Removed"
+      },
+      "exportTitle": {
+        "lesson": "Export this lesson",
+        "post": "Export this post",
+        "course": "Export the course"
+      },
+      "exportIntro": "A content package can go to a chatbot as context, or into another installation.",
+      "scope": "What to export",
+      "scopes": {
+        "whole": {
+          "lesson": "The whole lesson",
+          "post": "The whole post"
+        },
+        "chosen": {
+          "lesson": "Chosen blocks only",
+          "post": "Chosen blocks only"
+        }
+      },
+      "format": "Format",
+      "formats": {
+        "json": "JSON (.ccpkg.json)",
+        "zip": "Zip with images (.ccpkg.zip)"
+      },
+      "formatHints": {
+        "json": "Downloads at once. Images stay references to this installation.",
+        "zip": "Prepared on the server, then downloaded. Images travel with it."
+      },
+      "courseExportHint": "Every lesson that is not archived, in course order, with its images, as one zip. It is prepared on the server.",
+      "downloadJson": "Download JSON",
+      "prepareZip": "Prepare zip",
+      "exporting": "Preparing the zip…",
+      "exportReady": "{documents, plural, one {# document} other {# documents}} and {images, plural, one {# image} other {# images}}.",
+      "downloadZip": "Download {name}",
+      "readyToApply": "Checked. Review the changes below, then apply them to drafts.",
+      "moreErrors": "…and {count, plural, one {# more error} other {# more errors}}. Fix these first; checking again lists the rest."
     }
   },
   "assessment": {

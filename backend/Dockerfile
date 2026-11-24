@@ -12,6 +12,13 @@ USER root
 RUN install-php-extensions intl gd
 USER www-data
 WORKDIR /var/www/html
+# Request body limits, set on purpose rather than inherited (F6): the largest bodies are 8 MB
+# content-package parts on a local transfers disk (production sends parts straight to S3) and
+# 5 MB lesson images. PHP and nginx must agree, or a too-large body is dropped silently.
+# ContentTransferLimitsTest keeps cybercompass.content_packages.part_bytes below these.
+ENV PHP_POST_MAX_SIZE=16M \
+    PHP_UPLOAD_MAX_FILE_SIZE=8M \
+    NGINX_CLIENT_MAX_BODY_SIZE=16M
 
 ############################################
 FROM base AS development

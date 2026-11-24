@@ -11,6 +11,9 @@ use App\Modules\Content\Services\ContentFileMedia;
  */
 final class PackagePlan
 {
+    /** A badly broken package can fail thousands of checks; the report keeps the first ones readable. */
+    public const MAX_REPORTED_ERRORS = 100;
+
     /** @var array<string, list<string>> package path => messages */
     public array $errors = [];
 
@@ -46,26 +49,45 @@ final class PackagePlan
     /** The preview: everything but the models and snapshots. */
     public function toArray(): array
     {
+        [$errors, $more] = self::capped($this->errors);
+
         return [
             'kind' => $this->kind,
             'generator' => $this->generator,
             'valid' => $this->valid(),
-            'errors' => $this->errors,
+            'errors' => $errors,
+            'more_errors' => $more,
             'warnings' => $this->warnings,
             'documents' => array_map(fn (array $d) => array_diff_key($d, ['snapshot' => true, 'model' => true]), $this->documents),
         ];
     }
 
-    /** Plain text a chatbot can act on: one line per problem, the place first. */
-    public function errorText(): string
+    /**
+     * The first MAX_REPORTED_ERRORS messages, still keyed by place, and how many were left out.
+     *
+     * @param  array<string, list<string>>  $errors
+     * @return array{0: array<string, list<string>>, 1: int}
+     */
+    public static function capped(array $errors): array
     {
-        $lines = [];
-        foreach ($this->errors as $path => $messages) {
+        $kept = [];
+        $count = 0;
+        foreach ($errors as $path => $messages) {
             foreach ($messages as $message) {
-                $lines[] = "- {$path}: {$message}";
+                if ($count++ < self::MAX_REPORTED_ERRORS) {
+                    $kept[$path][] = $message;
+                }
             }
         }
 
-        return $lines === [] ? '' : "The package was rejected. Fix these and send the whole package again:\n".implode("\n", $lines);
+        return [$kept, max(0, $count - self::MAX_REPORTED_ERRORS)];
+    }
+
+    /** The report of a package that could not even be read (a broken zip, invalid JSON). */
+    public static function unreadable(array $errors): array
+    {
+        [$kept, $more] = self::capped($errors);
+
+        return ['kind' => null, 'generator' => null, 'valid' => false, 'errors' => $kept, 'more_errors' => $more, 'warnings' => [], 'documents' => []];
     }
 }

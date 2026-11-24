@@ -1191,6 +1191,89 @@
       "explanation": "Giải thích",
       "explanationHint": "Hiện sau khi người học kiểm tra đáp án, dù đúng hay sai.",
       "addQuestion": "Thêm câu hỏi"
+    },
+    "packages": {
+      "import": "Nhập",
+      "export": "Xuất",
+      "importLessons": "Nhập bài học",
+      "exportCourse": "Xuất gói khóa học",
+      "close": "Đóng",
+      "importTitle": "Nhập gói nội dung",
+      "importIntro": "Gói từ chatbot hoặc từ một bản cài đặt khác sẽ vào bản nháp sau khi bạn xem trước. Không có gì được xuất bản cho đến khi bạn xuất bản.",
+      "saveFirst": "Hãy lưu hoặc hủy thay đổi trước: thao tác nhập sẽ ghi vào bản nháp này, và các chỉnh sửa chưa lưu sẽ không còn khớp.",
+      "file": "Tệp gói",
+      "fileHint": "Một tài liệu .ccpkg.json, hoặc một gói .ccpkg.zip có hình ảnh (tối đa 250 MB).",
+      "uploadAndCheck": "Tải lên và kiểm tra",
+      "paste": "Hoặc dán một gói JSON để kiểm tra",
+      "pasteHint": "Không có gì được lưu: bạn chỉ xem lỗi và thay đổi. Tối đa 2 MB; gói lớn hơn hãy tải lên dưới dạng tệp.",
+      "checkOnly": "Chỉ kiểm tra",
+      "uploading": "Đang tải lên {name}…",
+      "uploadProgress": "Tiến độ tải lên",
+      "uploadedOf": "{sent} / {total}",
+      "validating": "Đang kiểm tra gói…",
+      "applying": "Đang ghi bản nháp…",
+      "stalled": "Vẫn đang chờ sau 30 giây. Tiến trình xử lý hàng đợi (queue worker) có đang chạy không? Trên máy: docker compose up -d worker.",
+      "applied": "Đã nhập vào bản nháp. Hãy mở từng bản để xem lại, rồi xuất bản.",
+      "failed": "Không xử lý được gói.",
+      "apply": "Áp dụng vào bản nháp",
+      "validateAgain": "Kiểm tra lại",
+      "another": "Nhập gói khác",
+      "back": "Quay lại",
+      "checkedValid": "Gói hợp lệ. Chưa có gì được lưu; hãy tải lên dưới dạng tệp để áp dụng.",
+      "checkedInvalid": "Gói có lỗi. Chưa có gì được lưu.",
+      "errors": "{count} lỗi: chưa thể áp dụng cho đến khi sửa xong.",
+      "warnings": "{count} cảnh báo",
+      "copyErrors": "Sao chép lỗi cho chatbot",
+      "copied": "Đã sao chép. Hãy dán lại cho chatbot.",
+      "newDocument": {
+        "lesson": "Bài học mới (nháp)",
+        "post": "Bài viết mới (nháp)"
+      },
+      "existingDocument": {
+        "lesson": "Bản nháp bài học",
+        "post": "Bản nháp bài viết"
+      },
+      "noChanges": "Không có thay đổi mục nào.",
+      "kept": "{count} mục không đổi",
+      "changes": {
+        "added": "Thêm",
+        "replaced": "Thay thế",
+        "removed": "Xóa"
+      },
+      "exportTitle": {
+        "lesson": "Xuất bài học này",
+        "post": "Xuất bài viết này",
+        "course": "Xuất khóa học"
+      },
+      "exportIntro": "Gói nội dung có thể gửi cho chatbot làm ngữ cảnh, hoặc nhập vào một bản cài đặt khác.",
+      "scope": "Xuất những gì",
+      "scopes": {
+        "whole": {
+          "lesson": "Toàn bộ bài học",
+          "post": "Toàn bộ bài viết"
+        },
+        "chosen": {
+          "lesson": "Chỉ các khối đã chọn",
+          "post": "Chỉ các khối đã chọn"
+        }
+      },
+      "format": "Định dạng",
+      "formats": {
+        "json": "JSON (.ccpkg.json)",
+        "zip": "Zip kèm hình ảnh (.ccpkg.zip)"
+      },
+      "formatHints": {
+        "json": "Tải xuống ngay. Hình ảnh vẫn là tham chiếu đến bản cài đặt này.",
+        "zip": "Được chuẩn bị trên máy chủ rồi tải xuống. Hình ảnh đi kèm gói."
+      },
+      "courseExportHint": "Mọi bài học chưa lưu trữ, theo thứ tự khóa học, kèm hình ảnh, trong một tệp zip. Gói được chuẩn bị trên máy chủ.",
+      "downloadJson": "Tải JSON",
+      "prepareZip": "Chuẩn bị zip",
+      "exporting": "Đang chuẩn bị zip…",
+      "exportReady": "{documents} tài liệu và {images} hình ảnh.",
+      "downloadZip": "Tải {name}",
+      "readyToApply": "Đã kiểm tra. Hãy xem các thay đổi bên dưới, rồi áp dụng vào bản nháp.",
+      "moreErrors": "…và {count} lỗi khác. Hãy sửa các lỗi trên trước; kiểm tra lại sẽ liệt kê phần còn lại."
     }
   },
   "assessment": {

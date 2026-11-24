@@ -47,12 +47,13 @@ final class ImportPackage
             }
 
             $plan->media->store();
-            foreach ($plan->documents as $doc) {
+            foreach ($plan->documents as $i => $doc) {
                 $model = $doc['model'];
                 if ($doc['is_new']) {
                     $model = $model instanceof Lesson
                         ? $this->lessons->create($actor, $model->chapter, $doc['snapshot']['title'], $doc['slug'])
                         : $this->posts->create($actor, $doc['snapshot']['title'], $doc['slug']);
+                    $plan->documents[$i]['id'] = $model->id; // so the result can link to the new draft
                 }
                 $draft = DocumentDrafts::locked($model);
                 if (! $doc['is_new']) {

@@ -38,6 +38,7 @@ return [
         'max_entries' => 5000,
         'max_ratio' => 100,                             // uncompressed / compressed, per entry over 1 MB
         'max_document_bytes' => 10 * 1024 * 1024,       // one JSON document (the manifest or a $file .json)
+        'max_paste_bytes' => 2 * 1024 * 1024,           // JSON pasted into the validate-only check; larger goes as a file
         'max_text_bytes' => 1024 * 1024,                // one $file text
         'max_json_depth' => 64,
         'max_documents' => 60,                          // lessons in one `course` package

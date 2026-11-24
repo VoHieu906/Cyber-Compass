@@ -4,11 +4,13 @@ namespace App\Modules\Admin\Console;
 
 use App\Enums\Locale;
 use App\Enums\UserRole;
+use App\Models\ContentTransfer;
 use App\Models\CourseGraph;
 use App\Models\Lesson;
 use App\Models\Post;
 use App\Models\User;
 use App\Modules\Auth\Actions\RegisterUser;
+use App\Modules\Content\Packages\TransferStorage;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -49,6 +51,11 @@ final class E2eUsersCommand extends Command
             // Course maps the suite saved (F4 Part C) and the lessons it created, which it names e2e-*.
             CourseGraph::query()->whereIn('updated_by', self::throwaway()->select('id'))->delete();
             Lesson::query()->where('slug', 'like', self::PREFIX.'%')->delete();
+            // Content package uploads and exports (F6) go with their files; the rows would cascade, the files would not.
+            ContentTransfer::query()->whereIn('user_id', self::throwaway()->select('id'))->each(function (ContentTransfer $transfer) {
+                app(TransferStorage::class)->delete($transfer);
+                $transfer->delete();
+            });
             $deleted = 0;
             self::throwaway()->each(function (User $user) use (&$deleted) {
                 $user->delete();
