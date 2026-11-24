@@ -22,7 +22,7 @@ final class ContentFileMedia
 
     public const EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp', 'gif'];
 
-    /** @var array<string, array{path: string, alt: string, bytes: string}> uuid => pending image */
+    /** @var array<string, array{path: string, alt: string, bytes: string, source: ?string}> uuid => pending image */
     private array $pending = [];
 
     public function __construct(private readonly StoreLessonMedia $media) {}
@@ -35,16 +35,19 @@ final class ContentFileMedia
     /**
      * @param  array<string, mixed>  $ref
      * @param  array<string, list<string>>  $errors  filled with messages keyed by $at
+     * @param  ?string  $packageRoot  an unpacked content package (F6): images are read there and
+     *                                stored as uploads (no `source`), since they have no content file to go back to
      */
-    public function resolve(array $ref, string $at, array &$errors): ?string
+    public function resolve(array $ref, string $at, array &$errors, ?string $packageRoot = null): ?string
     {
         $path = $ref['file'];
         $alt = trim((string) ($ref['alt'] ?? ''));
-        $root = realpath(self::root());
-        $full = is_string($path) ? realpath(self::root().'/'.$path) : false;
+        $base = $packageRoot ?? self::root();
+        $root = realpath($base);
+        $full = is_string($path) && $root !== false ? realpath($base.'/'.$path) : false;
 
         if (! is_string($path) || $full === false || ! is_file($full) || ! str_starts_with($full, $root.DIRECTORY_SEPARATOR)) {
-            $errors[$at][] = 'Image file not found under database/seeders/content: '.(is_string($path) ? $path : '?');
+            $errors[$at][] = ($packageRoot ? 'Image file not found in the package: ' : 'Image file not found under database/seeders/content: ').(is_string($path) ? $path : '?');
 
             return null;
         }
@@ -62,7 +65,7 @@ final class ContentFileMedia
 
         $bytes = (string) file_get_contents($full);
         $uuid = Uuid::uuid5(self::NAMESPACE, $path.'#'.sha1($bytes))->toString();
-        $this->pending[$uuid] = ['path' => $path, 'alt' => $alt, 'bytes' => $bytes];
+        $this->pending[$uuid] = ['path' => $path, 'alt' => $alt, 'bytes' => $bytes, 'source' => $packageRoot ? null : $path];
 
         return $uuid;
     }
@@ -74,13 +77,19 @@ final class ContentFileMedia
         foreach ($this->pending as $uuid => $image) {
             $row = $existing->get($uuid);
             if (! $row) {
-                $this->media->importFile($image['bytes'], $image['alt'], $uuid, $image['path']);
+                $this->media->importFile($image['bytes'], $image['alt'], $uuid, $image['source']);
             } elseif ($row->alt !== $image['alt']) {
                 // Same file, new wording: the alt text lives with the image.
                 $row->update(['alt' => $image['alt']]);
             }
         }
         $this->pending = [];
+    }
+
+    /** UUIDs resolved but not stored yet: validation treats them as existing images. @return list<string> */
+    public function pendingUuids(): array
+    {
+        return array_keys($this->pending);
     }
 
     /** The reference content:export writes for a media row, or its UUID when it was uploaded. */

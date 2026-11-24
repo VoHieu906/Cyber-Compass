@@ -135,6 +135,18 @@ docker compose exec -u root api php artisan content:export networking-fundamenta
 - **Export** writes a course's *published* lessons back to its file so the admin's work can be reviewed and committed. Drafts are not exported. Review the diff before committing; payload keys may be reordered, but the content is identical, and importing the export changes nothing.
 - **Section identity.** Each block has a stable UUID that future exercises will link to. In files, it is derived from the lesson slug and the block's heading, so **renaming a heading in a file gives the block a new identity**. Blocks created in the admin console keep theirs through an explicit `'uuid'` that export adds. Don't edit or copy those values.
 
+### As a content package (F6)
+
+Lessons, posts or a few blocks written elsewhere (for example by a chatbot) come in as a package: a `.ccpkg.json` file, or a `.ccpkg.zip` bundle with images and long texts. A package is validated like an editor save and lands in the **draft**; nothing is published until you publish it. From the command line:
+
+```bash
+docker compose exec api php artisan content:package validate path/to/file.ccpkg.json
+docker compose exec api php artisan content:package import path/to/file.ccpkg.json --as=admin@cybercompass.test
+docker compose exec api php artisan content:package export --lesson=osi-model --sections=the-seven-layers
+```
+
+A section is named by its `key` (the heading as a slug) or its `uuid`; renaming a heading changes the key, never the uuid. The format and the AI authoring guide are in [content-format](content-format/README.md) (from F6 Part E).
+
 ## 4a. Exercises (graded, Phase 5)
 
 Exercises are graded practice at the end of a lesson; passing one completes the lesson (ARCHITECTURE D29 to D31). They live in `backend/database/seeders/content/exercises/<course>.php`, keyed by lesson slug, and are loaded by `ExerciseSeeder` after the lessons (it runs inside `db:seed` and `content:import`'s seeder; on its own: `php artisan db:seed --class=ExerciseSeeder`).

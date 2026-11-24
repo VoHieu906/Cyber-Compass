@@ -41,7 +41,7 @@ final class StoreLessonMedia
      * from its path and bytes, through the same re-encoding as uploads. Call inside the import
      * transaction; a rolled-back import leaves only a file that the next import overwrites.
      */
-    public function importFile(string $bytes, string $alt, string $uuid, string $source): LessonMedia
+    public function importFile(string $bytes, string $alt, string $uuid, ?string $source): LessonMedia
     {
         return $this->store($bytes, $alt, $uuid, $source, null);
     }

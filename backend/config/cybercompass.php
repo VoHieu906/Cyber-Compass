@@ -24,6 +24,22 @@ return [
         'scripted_3d' => (bool) env('CONTENT_SCRIPTED_3D', true),
     ],
 
+    // Content packages (F6, D67, D70): limits checked before anything is unpacked or decoded.
+    // Most of a large package is images; each JSON document stays small because PHP needs about
+    // ten times a document's size in memory to decode it.
+    'content_packages' => [
+        'max_bytes' => 250 * 1024 * 1024,                // the uploaded file, compressed
+        'max_uncompressed_bytes' => 1024 * 1024 * 1024, // every zip entry together
+        'max_entries' => 5000,
+        'max_ratio' => 100,                             // uncompressed / compressed, per entry over 1 MB
+        'max_document_bytes' => 10 * 1024 * 1024,       // one JSON document (the manifest or a $file .json)
+        'max_text_bytes' => 1024 * 1024,                // one $file text
+        'max_json_depth' => 64,
+        'max_documents' => 60,                          // lessons in one `course` package
+        'max_operations' => 200,
+        'text_extensions' => ['md', 'txt', 'json', 'html', 'css', 'js', 'ts', 'tsx', 'py', 'sh', 'ps1', 'php', 'go', 'rs', 'c', 'h', 'java', 'sql', 'yaml', 'yml', 'toml', 'ini', 'conf', 'log', 'csv', 'xml'],
+    ],
+
     // Shared secret the Next.js server sends with its public, server-side reads (X-Internal-Token).
     // On AWS every such read comes from the web task's one address, so it must not count against
     // the per-address `api` limit (docs/SECURITY_REVIEW.md S8). Empty locally.

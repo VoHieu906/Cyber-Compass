@@ -16,7 +16,24 @@ use Illuminate\Validation\ValidationException;
  */
 abstract class WorkingCopy
 {
+    /** @var array<string, true> images a content package brings, stored only when it is applied (F6) */
+    private array $assumedMedia = [];
+
     public function __construct(protected readonly BlockRegistry $blocks) {}
+
+    /**
+     * A copy that treats these media UUIDs as existing, so a package's images (not stored before
+     * it is applied) pass the image check. Everything else is validated as usual.
+     *
+     * @param  list<string>  $uuids
+     */
+    public function assumingMedia(array $uuids): static
+    {
+        $copy = clone $this;
+        $copy->assumedMedia = array_fill_keys($uuids, true);
+
+        return $copy;
+    }
 
     /** @return array<string, mixed> */
     abstract public function fromLive(BlockDocument $doc): array;
@@ -137,7 +154,7 @@ abstract class WorkingCopy
         }
 
         $errors += $this->checkIds($doc, $sections);
-        $errors += self::checkMedia($clean);
+        $errors += $this->checkMedia($clean);
 
         $withIds = array_map(fn (array $s, int $i) => [
             'uuid' => is_string($sections[$i]['id'] ?? null) ? strtolower($sections[$i]['id']) : (string) Str::uuid(),
@@ -185,7 +202,7 @@ abstract class WorkingCopy
      *
      * @return array<string, list<string>>
      */
-    private static function checkMedia(array $sections): array
+    private function checkMedia(array $sections): array
     {
         $wanted = [];
         foreach ($sections as $i => $section) {
@@ -194,15 +211,16 @@ abstract class WorkingCopy
             }
         }
 
-        return self::missingMedia($wanted);
+        return $this->missingMedia($wanted);
     }
 
     /**
      * @param  array<string, string>  $wanted  error key => media uuid
      * @return array<string, list<string>>
      */
-    protected static function missingMedia(array $wanted): array
+    protected function missingMedia(array $wanted): array
     {
+        $wanted = array_diff_key($wanted, array_filter($wanted, fn ($uuid) => isset($this->assumedMedia[$uuid])));
         if ($wanted === []) {
             return [];
         }

@@ -60,7 +60,7 @@ final class PostWorkingCopy extends WorkingCopy
         $errors += $sectionErrors;
         $cover = is_string($input['cover'] ?? null) && $input['cover'] !== '' ? strtolower($input['cover']) : null;
         if ($cover !== null && ! isset($errors['cover'])) {
-            $errors += self::missingMedia(['cover' => $cover]);
+            $errors += $this->missingMedia(['cover' => $cover]);
         }
 
         if ($errors) {

@@ -79,7 +79,12 @@ final class LessonWorkingCopy extends WorkingCopy
         $errors = $validator->errors()->toArray();
         [$sectionErrors, $sections] = $this->validateSections($doc, $input);
         $errors += $sectionErrors;
-        [$archErrors, $architecture] = MapSchemas::architecture($input['architecture'] ?? null, array_column($sections, 'uuid'));
+        // While blocks are invalid there is no clean list, so check references against the ids sent;
+        // otherwise every architecture node would also be reported as pointing nowhere.
+        $uuids = $sectionErrors
+            ? array_values(array_filter(array_map(fn ($s) => is_array($s) && is_string($s['id'] ?? null) ? strtolower($s['id']) : null, (array) ($input['sections'] ?? []))))
+            : array_column($sections, 'uuid');
+        [$archErrors, $architecture] = MapSchemas::architecture($input['architecture'] ?? null, $uuids);
         $errors += $archErrors;
 
         if ($errors) {
