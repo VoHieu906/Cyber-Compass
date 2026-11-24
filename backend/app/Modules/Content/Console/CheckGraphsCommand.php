@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\CourseGraph;
 use App\Models\LessonArchitecture;
 use App\Modules\Content\CourseMap\CourseMap;
+use App\Modules\Content\CourseMap\CourseMapSuggestions;
 use App\Modules\Content\CourseMap\MapSchemas;
 use App\Modules\Content\CourseMap\MapVersions;
 use Illuminate\Console\Command;
@@ -27,7 +28,7 @@ final class CheckGraphsCommand extends Command
 
     protected $description = 'Validate every course map and lesson architecture';
 
-    public function handle(CourseMap $map): int
+    public function handle(CourseMap $map, CourseMapSuggestions $suggestions): int
     {
         $errors = 0;
         $warnings = 0;
@@ -54,6 +55,13 @@ final class CheckGraphsCommand extends Command
             foreach ($map->issues($course, $row->graph) as $issue) {
                 $this->line("  <fg=yellow>warn</>  {$course->slug}: {$issue['type']} {$issue['lesson']}".(isset($issue['detail']) ? " ({$issue['detail']})" : ''));
                 $warnings++;
+            }
+            // Information only (F4 Part C, D63): what the admin panel would offer for those warnings.
+            foreach ($suggestions->forCourse($course, $row->graph) as $s) {
+                if (in_array($s['type'], ['relation', 'placement'], true)) {
+                    $what = $s['type'] === 'relation' ? "{$s['edge']['type']} from {$s['edge']['from']} to {$s['edge']['to']}" : 'column '.($s['placement']['col'] + 1).', row '.($s['placement']['row'] + 1).(isset($s['placement']['lane']) ? " in {$s['placement']['lane']}" : '');
+                    $this->line("  <fg=cyan>info</>  {$course->slug}: suggest {$s['type']} {$s['lesson']}: {$what}");
+                }
             }
             if ($this->option('upgrade') && ($row->graph['version'] ?? null) !== MapVersions::CURRENT) {
                 $row->update(['graph' => MapVersions::upgrade($row->graph, 'graph')[1]]);

@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, RotateCcw, Save, X } from "lucide-react";
+import { Check, Plus, RotateCcw, Save, Sparkles, X } from "lucide-react";
+import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import { useId, useMemo, useState } from "react";
 import { Alert } from "@/components/ui/alert";
@@ -14,7 +15,8 @@ import { EDGE_TYPES, courseGraphSchema, type CourseGraph, type EdgeType } from "
 import { restoreCourseGraph, saveCourseGraph } from "../api";
 import { errorAt, type FieldErrors } from "../editor-state";
 import { useCourseGraph, useCourseGraphMutation } from "../hooks";
-import type { AdminCourseGraph } from "../types";
+import { applySuggestions, isApplied, suggestionKey, useDismissed, type GraphSuggestion } from "../map-suggestions";
+import type { AdminCourseGraph, MapSuggestion } from "../types";
 import { Labelled } from "./document-editor";
 
 const EMPTY: CourseGraph = { version: 1, problem: "", layout: "auto", edges: [] };
@@ -23,7 +25,9 @@ const EMPTY: CourseGraph = { version: 1, problem: "", layout: "auto", edges: [] 
  * The course map of one course (F3, D58): saved at once, like the course structure, with the
  * lock the panel loaded (409 when someone saved since), an audit entry per save and a history to
  * restore from. A saved map is owned by the database: content imports leave it alone. Issues
- * (unplaced, unconnected, dangling lessons) are listed, never a reason to refuse a save.
+ * (unplaced, unconnected, dangling lessons) are listed, never a reason to refuse a save. Rule-based
+ * suggestions sit under the issue they resolve (D63): accepting one changes only this form, so
+ * nothing reaches readers until Save.
  */
 export function CourseGraphPanel({ courseId }: { courseId: number }) {
   const t = useTranslations("content.courses.map");
@@ -50,6 +54,10 @@ function GraphForm({ data }: { data: AdminCourseGraph }) {
   const err = (path: string) => errorAt(errors, `graph.${path}`);
   const titles = new Map(data.lessons.map((l) => [l.slug, l.title]));
   const lessonTitle = (slug: string) => titles.get(slug) ?? slug;
+  const { dismissed, dismiss, restoreAll } = useDismissed(`course-${courseId}`);
+  const suggestions = data.suggestions.filter((s) => !dismissed.has(suggestionKey(s)));
+  const hiddenCount = data.suggestions.length - suggestions.length;
+  const start = data.suggestions.find((s): s is Extract<MapSuggestion, { type: "start_map" }> => s.type === "start_map");
 
   const parsed = useMemo(() => (graph ? courseGraphSchema.safeParse(graph) : null), [graph]);
   // The preview shows what learners would see: published lessons only (the server does the same on the course page).
@@ -85,9 +93,47 @@ function GraphForm({ data }: { data: AdminCourseGraph }) {
           <Plus aria-hidden />
           {t("start")}
         </Button>
+        {start ? (
+          <>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setGraph(structuredClone(start.graph))}>
+              <Sparkles aria-hidden />
+              {t("suggest.startFromStructure")}
+            </Button>
+            <p className="max-w-[60ch] text-sm text-muted">{t("suggest.startHint")}</p>
+          </>
+        ) : null}
       </div>
     );
   }
+
+  const graphSuggestions = suggestions.filter(
+    (x): x is GraphSuggestion => x.type === "relation" || x.type === "placement",
+  );
+  const pending = (type: GraphSuggestion["type"]) => graphSuggestions.filter((x) => x.type === type && !isApplied(graph, x));
+  const forIssue = (issue: AdminCourseGraph["issues"][number]): MapSuggestion[] =>
+    suggestions.filter((x) => {
+      if (!("lesson" in x) || x.lesson !== issue.lesson) return false;
+      if (issue.type === "unconnected") return x.type === "relation";
+      if (issue.type === "unplaced") return x.type === "placement";
+      return issue.type === "no_problem" && (x.type === "problem" || x.type === "shape");
+    });
+  const laneLabel = (id?: string) => graph.lanes?.find((l) => l.id === id)?.label;
+  const describe = (x: MapSuggestion): string => {
+    switch (x.type) {
+      case "relation":
+        return t("suggest.relation", { to: lessonTitle(x.edge.to), type: tm(`edges.${x.edge.type}`), from: lessonTitle(x.edge.from) });
+      case "placement":
+        return laneLabel(x.placement.lane)
+          ? t("suggest.placementLane", { col: x.placement.col + 1, row: x.placement.row + 1, lane: laneLabel(x.placement.lane)! })
+          : t("suggest.placement", { col: x.placement.col + 1, row: x.placement.row + 1 });
+      case "problem":
+        return t("suggest.problem", { problem: x.problem });
+      case "shape":
+        return t("suggest.shape", { shape: tm(`shapes.${x.shape}`), block: x.heading ?? x.block });
+      default:
+        return "";
+    }
+  };
 
   const set = (patch: Partial<CourseGraph>) => setGraph({ ...graph, ...patch });
   const placement = graph.placement ?? {};
@@ -117,17 +163,88 @@ function GraphForm({ data }: { data: AdminCourseGraph }) {
       {data.owned_by_admin ? <p className="text-sm text-muted">{t("owned")}</p> : null}
       {data.issues.length ? (
         <Alert tone="info">
-          <p>{t("issuesTitle")}</p>
-          <ul className="list-disc pl-5">
-            {data.issues.map((issue, i) => (
-              <li key={i}>
-                {t(`issues.${issue.type}`, {
-                  lesson: lessonTitle(issue.lesson),
-                  detail: issue.detail ? lessonTitle(issue.detail) : "",
-                })}
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col gap-2">
+            <p>{t("issuesTitle")}</p>
+            {(["relation", "placement"] as const).some((type) => pending(type).length > 1) ? (
+              <div className="flex flex-wrap gap-2">
+                {(["relation", "placement"] as const).map((type) =>
+                  pending(type).length > 1 ? (
+                    <Button
+                      key={type}
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setGraph(applySuggestions(graph, pending(type)))}
+                    >
+                      <Check aria-hidden />
+                      {t(`suggest.acceptAll.${type}`, { count: pending(type).length })}
+                    </Button>
+                  ) : null,
+                )}
+              </div>
+            ) : null}
+            <ul className="list-disc pl-5">
+              {data.issues.map((issue, i) => (
+                <li key={i}>
+                  {t(`issues.${issue.type}`, {
+                    lesson: lessonTitle(issue.lesson),
+                    detail: issue.detail ? lessonTitle(issue.detail) : "",
+                  })}
+                  {forIssue(issue).length ? (
+                    <ul className="mt-1 flex flex-col gap-1.5">
+                      {forIssue(issue).map((x) => {
+                        const what = describe(x);
+                        const lessonId = "lesson" in x ? data.lessons.find((l) => l.slug === x.lesson)?.id : undefined;
+                        return (
+                          <li key={suggestionKey(x)} className="flex flex-wrap items-center gap-2">
+                            <span className="text-ink-2">{what}</span>
+                            {x.type === "relation" || x.type === "placement" ? (
+                              isApplied(graph, x) ? (
+                                <span className="text-sm text-muted">{t("suggest.accepted")}</span>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  aria-label={`${t("suggest.accept")}: ${what}`}
+                                  onClick={() => setGraph(applySuggestions(graph, [x]))}
+                                >
+                                  <Check aria-hidden />
+                                  {t("suggest.accept")}
+                                </Button>
+                              )
+                            ) : lessonId ? (
+                              <Link
+                                href={`/admin/lessons/${lessonId}#architecture-heading`}
+                                className="text-sm text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent"
+                              >
+                                {t("suggest.openLesson")}
+                              </Link>
+                            ) : null}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              aria-label={`${t("suggest.dismiss")}: ${what}`}
+                              onClick={() => dismiss(suggestionKey(x))}
+                            >
+                              <X aria-hidden />
+                              {t("suggest.dismiss")}
+                            </Button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {hiddenCount ? (
+              <Button type="button" variant="ghost" size="sm" className="self-start" onClick={restoreAll}>
+                {t("suggest.showDismissed", { count: hiddenCount })}
+              </Button>
+            ) : null}
+          </div>
         </Alert>
       ) : null}
 

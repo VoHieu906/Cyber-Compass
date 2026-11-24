@@ -74,6 +74,7 @@ const lesson: AdminLesson = {
   topics: [],
   exercise_references: {},
   architecture_issues: [],
+      architecture_suggestions: [],
   working_copy: {
     chapter_id: 2,
     slug: "osi-model",

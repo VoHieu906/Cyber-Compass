@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Models\Topic;
 use App\Modules\Content\Actions\LessonLifecycle;
 use App\Modules\Content\CourseMap\CourseMap;
+use App\Modules\Content\CourseMap\CourseMapSuggestions;
 use App\Modules\Content\Services\BlockSerializer;
 use App\Modules\Content\Services\LessonWorkingCopy;
 use App\Modules\Learning\Services\ExerciseReferences;
@@ -48,6 +49,8 @@ class AdminLessonResource extends JsonResource
             'exercise_references' => (object) app(ExerciseReferences::class)->forLesson($this->id),
             // Sub-node links readers will not see: the target is not live in this course (F3).
             'architecture_issues' => CourseMap::hiddenLinks($working['architecture'] ?? null, $chapter->course_id),
+            // Rule-based starts for the architecture (D63): the problem from the summary, a shape per matching block.
+            'architecture_suggestions' => CourseMapSuggestions::forLesson($working['summary'] ?? null, $working['sections'], $working['architecture'] ?? null),
             'working_copy' => [
                 ...collect($working)->except('sections')->all(),
                 'sections' => array_map(fn (array $s) => [

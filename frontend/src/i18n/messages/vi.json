@@ -848,7 +848,25 @@
         "historyRestored": "{who} đã khôi phục",
         "someone": "một người",
         "restoreBefore": "Khôi phục phiên bản trước đó",
-        "restoreAfter": "Khôi phục phiên bản này"
+        "restoreAfter": "Khôi phục phiên bản này",
+        "suggest": {
+          "startFromStructure": "Bắt đầu từ cấu trúc khóa học",
+          "startHint": "Điền tóm tắt khóa học làm vấn đề lớn và nối mỗi bài với bài trước nó. Chưa có gì được lưu cho đến khi bạn lưu bản đồ.",
+          "relation": "Gợi ý: {to} {type} {from}.",
+          "placement": "Vị trí gợi ý: cột {col}, hàng {row}.",
+          "placementLane": "Vị trí gợi ý: cột {col}, hàng {row}, trong {lane}.",
+          "problem": "Vấn đề gợi ý, bản nháp từ tóm tắt bài học, hãy sửa trước khi lưu: “{problem}”",
+          "shape": "Hình dạng gợi ý: {shape}, từ khối “{block}”.",
+          "accept": "Chấp nhận",
+          "accepted": "Đã chấp nhận. Lưu bản đồ để giữ lại.",
+          "dismiss": "Bỏ qua",
+          "openLesson": "Mở trong trình soạn bài học",
+          "showDismissed": "{count, plural, other {Hiện # gợi ý đã bỏ qua}}",
+          "acceptAll": {
+            "relation": "Chấp nhận cả {count} quan hệ",
+            "placement": "Chấp nhận cả {count} vị trí"
+          }
+        }
       }
     },
     "editor": {
@@ -1013,7 +1031,15 @@
         "preview": "Xem trước",
         "previewProblemOnly": "Không có dạng, bản đồ khóa học chỉ hiện vấn đề.",
         "serverErrors": "Một số trường phía trên cần sửa trước khi lưu bài học.",
-        "hiddenLinks": "Người học sẽ không thấy liên kết đến {lessons}: các bài học đó không công khai trong khóa học này."
+        "hiddenLinks": "Người học sẽ không thấy liên kết đến {lessons}: các bài học đó không công khai trong khóa học này.",
+        "suggest": {
+          "title": "Gợi ý",
+          "problem": "Vấn đề, bản nháp từ tóm tắt: “{problem}”",
+          "shape": "{shape}, từ khối “{block}”",
+          "use": "Dùng",
+          "dismiss": "Bỏ qua",
+          "hint": "Dùng một gợi ý chỉ thay đổi bản nháp này: sửa lại, rồi lưu bản nháp như thường lệ."
+        }
       }
     },
     "media": {

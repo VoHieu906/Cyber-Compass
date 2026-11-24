@@ -1,6 +1,9 @@
 <?php
 
 use App\Enums\UserRole;
+use App\Models\Course;
+use App\Models\CourseGraph;
+use App\Models\Lesson;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
@@ -51,6 +54,25 @@ it('purges only e2e accounts on example.test', function () {
     // Blog posts the suite made go too; everyone else's stay.
     expect(Post::query()->whereKey($e2ePost->id)->exists())->toBeFalse()
         ->and(Post::query()->whereKey($realPost->id)->exists())->toBeTrue();
+});
+
+it('purges the course maps the suite saved and the lessons it named e2e-*, nothing else (F4 Part C)', function () {
+    $suite = User::factory()->admin()->create(['email' => 'e2e-admin-x@example.test']);
+    $real = User::factory()->admin()->create(['email' => 'editor@example.test']);
+    $graph = ['version' => 1, 'problem' => 'P.', 'layout' => 'auto', 'edges' => []];
+    $courses = Course::query()->where('slug', '!=', 'networking-fundamentals')->orderBy('id')->limit(2)->get();
+    $suiteMap = CourseGraph::query()->create(['course_id' => $courses[0]->id, 'graph' => $graph, 'updated_by' => $suite->id]);
+    $realMap = CourseGraph::query()->create(['course_id' => $courses[1]->id, 'graph' => $graph, 'updated_by' => $real->id]);
+    $chapter = $courses[0]->chapters()->firstOrFail();
+    $lesson = tap($chapter->lessons()->firstOrFail()->replicate()->forceFill(['slug' => 'e2e-lesson-1', 'position' => 99]))->save();
+
+    runE2eUsers(['--purge' => true]);
+
+    expect(CourseGraph::query()->whereKey($suiteMap->id)->exists())->toBeFalse()
+        ->and(CourseGraph::query()->whereKey($realMap->id)->exists())->toBeTrue()
+        ->and(CourseGraph::query()->whereHas('course', fn ($q) => $q->where('slug', 'networking-fundamentals'))->exists())->toBeTrue()
+        ->and(Lesson::query()->whereKey($lesson->id)->exists())->toBeFalse()
+        ->and(Lesson::query()->where('slug', 'osi-model')->exists())->toBeTrue();
 });
 
 it('refuses outside local and testing', function () {

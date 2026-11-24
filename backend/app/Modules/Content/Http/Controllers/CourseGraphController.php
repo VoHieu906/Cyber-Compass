@@ -10,6 +10,7 @@ use App\Models\CourseGraph;
 use App\Models\Lesson;
 use App\Modules\Content\Actions\SaveCourseGraph;
 use App\Modules\Content\CourseMap\CourseMap;
+use App\Modules\Content\CourseMap\CourseMapSuggestions;
 use App\Modules\Content\Http\Requests\LockVersionRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ final class CourseGraphController extends Controller
      *
      * The stored map (null when none), `lock_version` to send back (0 when none), every lesson of
      * the course with its status and published architecture (problem, shape), the issues to look at
-     * (unplaced, unconnected, dangling, link_outside, no_problem) and the latest audited changes.
+     * (unplaced, unconnected, dangling, link_outside, no_problem), suggestions that resolve them
+     * (relation, placement, problem, shape, start_map; D63) and the latest audited changes.
      */
     public function show(Course $course, CourseMap $map): JsonResponse
     {
@@ -75,6 +77,7 @@ final class CourseGraphController extends Controller
             'lock_version' => $row->lock_version ?? 0,
             'owned_by_admin' => $row?->updated_by !== null,
             'lessons' => $chapters->flatMap(fn (CourseChapter $c) => $c->lessons->map(fn (Lesson $l) => [
+                'id' => $l->id,
                 'slug' => $l->slug,
                 'title' => $l->title,
                 'status' => $l->status->value,
@@ -84,6 +87,8 @@ final class CourseGraphController extends Controller
                 'architecture' => $l->architecture?->architecture,
             ]))->values(),
             'issues' => $map->issues($course, $row?->graph),
+            // Rule-based fixes for those issues (D63); nothing is applied until the admin saves.
+            'suggestions' => app(CourseMapSuggestions::class)->forCourse($course, $row?->graph),
             'history' => AdminAuditLog::query()
                 ->where('subject_type', 'course')->where('subject_id', $course->id)
                 ->whereIn('action', SaveCourseGraph::AUDITED)

@@ -848,7 +848,25 @@
         "historyRestored": "Restored by {who}",
         "someone": "someone",
         "restoreBefore": "Restore the version before",
-        "restoreAfter": "Restore this version"
+        "restoreAfter": "Restore this version",
+        "suggest": {
+          "startFromStructure": "Start from the course structure",
+          "startHint": "Fills in the course summary as the big problem and relates each lesson to the one before it. Nothing is saved until you save the map.",
+          "relation": "Suggested: {to} {type} {from}.",
+          "placement": "Suggested place: column {col}, row {row}.",
+          "placementLane": "Suggested place: column {col}, row {row}, in {lane}.",
+          "problem": "Suggested problem, a draft from the lesson summary to edit before saving: “{problem}”",
+          "shape": "Suggested shape: {shape}, from the block “{block}”.",
+          "accept": "Accept",
+          "accepted": "Accepted. Save the map to keep it.",
+          "dismiss": "Dismiss",
+          "openLesson": "Open in the lesson editor",
+          "showDismissed": "{count, plural, one {Show # dismissed suggestion} other {Show # dismissed suggestions}}",
+          "acceptAll": {
+            "relation": "Accept all {count} relations",
+            "placement": "Accept all {count} places"
+          }
+        }
       }
     },
     "editor": {
@@ -1013,7 +1031,15 @@
         "preview": "Preview",
         "previewProblemOnly": "Without a shape, the course map shows only the problem.",
         "serverErrors": "Some fields above need fixing before the lesson can be saved.",
-        "hiddenLinks": "Learners will not see the links to {lessons}: those lessons are not live in this course."
+        "hiddenLinks": "Learners will not see the links to {lessons}: those lessons are not live in this course.",
+        "suggest": {
+          "title": "Suggestions",
+          "problem": "Problem, a draft from the summary: “{problem}”",
+          "shape": "{shape}, from the block “{block}”",
+          "use": "Use",
+          "dismiss": "Dismiss",
+          "hint": "Using one only changes this draft: edit it, then save the draft as usual."
+        }
       }
     },
     "media": {

@@ -64,16 +64,31 @@ export type AdminLesson = EditorDoc<WorkingCopy> & {
   exercise_references: Record<string, string[]>;
   /** Lessons the architecture's parts link to that readers will not see (not live in this course). */
   architecture_issues: string[];
+  architecture_suggestions: LessonSuggestion[];
 };
 
 /** The course map panel (GET /admin/content/courses/{id}/graph, F3, D58). */
+/** A lesson's architecture suggestion (D63): the problem from its summary, or a shape from one of its blocks. */
+export type LessonSuggestion =
+  | { type: "problem"; resolves: "no_problem"; problem: string; draft: true }
+  | { type: "shape"; shape: ShapeId; section: string; block: string; heading: string | null };
+
+/** A rule-based course map suggestion (F4 Part C, D63); `key` is stable, for dismissing it. */
+export type MapSuggestion = { key: string } & (
+  | { type: "relation"; lesson: string; resolves: "unconnected"; edge: CourseGraph["edges"][number] }
+  | { type: "placement"; lesson: string; resolves: "unplaced"; placement: { col: number; row: number; lane?: string } }
+  | { type: "start_map"; graph: CourseGraph }
+  | ({ lesson: string } & LessonSuggestion)
+);
+
 export type AdminCourseGraph = {
   course: { id: number; slug: string; title: string };
   graph: CourseGraph | null;
   lock_version: number;
   owned_by_admin: boolean;
-  lessons: { slug: string; title: string; status: LessonStatus; problem: string | null; shape: ShapeId | null; architecture: Architecture | null }[];
+  lessons: { id: number; slug: string; title: string; status: LessonStatus; problem: string | null; shape: ShapeId | null; architecture: Architecture | null }[];
   issues: { type: "unplaced" | "unconnected" | "dangling" | "link_outside" | "no_problem"; lesson: string; detail?: string }[];
+  suggestions: MapSuggestion[];
   history: { id: number; action: "course_graph.saved" | "course_graph.restored"; at: string | null; actor: string | null; has_before: boolean }[];
 };
 

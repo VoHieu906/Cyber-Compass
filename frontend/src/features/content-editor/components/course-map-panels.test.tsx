@@ -66,17 +66,27 @@ const copy: WorkingCopy = {
   ],
 };
 const lesson = {
+  id: 7,
   course: { id: 1, slug: "crypto", title: "Crypto", is_published: true },
   architecture_issues: [],
+  architecture_suggestions: [],
 } as unknown as AdminLesson;
 
-function Harness({ initial, errors = {} }: { initial: WorkingCopy; errors?: Record<string, string[]> }) {
+function Harness({
+  initial,
+  errors = {},
+  suggestions = [],
+}: {
+  initial: WorkingCopy;
+  errors?: Record<string, string[]>;
+  suggestions?: AdminLesson["architecture_suggestions"];
+}) {
   const [state, setState] = useState(initial);
   return (
     <>
       <ArchitecturePanel
         copy={state}
-        lesson={lesson}
+        lesson={{ ...lesson, architecture_suggestions: suggestions }}
         errors={errors}
         onChange={(patch) => setState((c) => ({ ...c, ...patch }))}
       />
@@ -160,6 +170,7 @@ const panel = (over: Partial<AdminCourseGraph> = {}): AdminCourseGraph => ({
   owned_by_admin: true,
   lessons: [
     {
+      id: 7,
       slug: "hashing",
       title: "Hashing",
       status: "published",
@@ -167,9 +178,10 @@ const panel = (over: Partial<AdminCourseGraph> = {}): AdminCourseGraph => ({
       shape: null,
       architecture: null,
     },
-    { slug: "tls", title: "TLS", status: "published", problem: null, shape: null, architecture: null },
+    { id: 8, slug: "tls", title: "TLS", status: "published", problem: null, shape: null, architecture: null },
   ],
   issues: [{ type: "no_problem", lesson: "tls" }],
+  suggestions: [],
   history: [{ id: 41, action: "course_graph.saved", at: "2026-11-23T10:00:00Z", actor: "Ada", has_before: true }],
   ...over,
 });
@@ -220,5 +232,184 @@ describe("CourseGraphPanel", () => {
     renderWithProviders(<CourseGraphPanel courseId={1} />);
     await user.click(await screen.findByRole("button", { name: "Create the course map" }));
     expect(screen.getByRole("textbox", { name: "The big problem" })).toHaveValue("");
+  });
+});
+
+
+describe("course map suggestions (F4 Part C)", () => {
+  const loose = (over: Partial<AdminCourseGraph> = {}) =>
+    panel({
+      graph: { version: 1, problem: "Keep data safe.", layout: "auto", edges: [] },
+      issues: [
+        { type: "unconnected", lesson: "hashing" },
+        { type: "unconnected", lesson: "tls" },
+        { type: "no_problem", lesson: "tls" },
+      ],
+      suggestions: [
+        {
+          key: "relation:hashing",
+          type: "relation",
+          lesson: "hashing",
+          resolves: "unconnected",
+          edge: { from: "hashing", to: "tls", type: "builds-on" },
+        },
+        { key: "problem:tls", type: "problem", lesson: "tls", resolves: "no_problem", problem: "Know what the padlock means.", draft: true },
+      ],
+      ...over,
+    });
+  const preview = () => screen.getByRole("heading", { name: /^Preview \(published/ }).parentElement!;
+
+  beforeEach(() => {
+    window.localStorage.clear();
+    mocks.saveCourseGraph
+      .mockReset()
+      .mockImplementation(async (_id: number, graph: unknown) =>
+        loose({ graph: graph as AdminCourseGraph["graph"], issues: [], suggestions: [] }),
+      );
+  });
+
+  it("accepts a relation into the form and the live preview, and saves it only on Save", async () => {
+    mocks.fetchCourseGraph.mockReset().mockResolvedValue(loose());
+    const user = userEvent.setup();
+    renderWithProviders(<CourseGraphPanel courseId={1} />);
+
+    expect(await screen.findByText("Suggested: TLS builds on Hashing.")).toBeInTheDocument();
+    expect(within(preview()).queryByText("builds on")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Accept: Suggested: TLS builds on Hashing." }));
+
+    expect(screen.getByText("Accepted. Save the map to keep it.")).toBeInTheDocument();
+    expect(within(preview()).getByText("builds on")).toBeInTheDocument();
+    expect(mocks.saveCourseGraph).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Save the course map" }));
+    await waitFor(() =>
+      expect(mocks.saveCourseGraph).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ edges: [{ from: "hashing", to: "tls", type: "builds-on" }] }),
+        3,
+      ),
+    );
+  });
+
+  it("links a problem suggestion to the lesson editor, and remembers a dismissal", async () => {
+    mocks.fetchCourseGraph.mockReset().mockResolvedValue(loose());
+    const user = userEvent.setup();
+    const first = renderWithProviders(<CourseGraphPanel courseId={1} />);
+
+    const text = await screen.findByText(/Suggested problem, a draft/);
+    expect(within(text.closest("li")!).getByRole("link", { name: "Open in the lesson editor" })).toHaveAttribute(
+      "href",
+      "/admin/lessons/8#architecture-heading",
+    );
+    await user.click(screen.getByRole("button", { name: /^Dismiss: Suggested problem/ }));
+    expect(screen.queryByText(/Suggested problem, a draft/)).toBeNull();
+    first.unmount();
+
+    renderWithProviders(<CourseGraphPanel courseId={1} />);
+    await screen.findByText("Suggested: TLS builds on Hashing.");
+    expect(screen.queryByText(/Suggested problem, a draft/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Show 1 dismissed suggestion" }));
+    expect(screen.getByText(/Suggested problem, a draft/)).toBeInTheDocument();
+  });
+
+  it("accepts all places at once, skipping a cell that is already taken", async () => {
+    mocks.fetchCourseGraph.mockReset().mockResolvedValue(
+      loose({
+        graph: {
+          version: 1,
+          problem: "Keep data safe.",
+          layout: "manual",
+          edges: [{ from: "hashing", to: "tls", type: "requires" }],
+          placement: {},
+        },
+        issues: [
+          { type: "unplaced", lesson: "hashing" },
+          { type: "unplaced", lesson: "tls" },
+        ],
+        suggestions: [
+          { key: "placement:hashing", type: "placement", lesson: "hashing", resolves: "unplaced", placement: { col: 0, row: 0 } },
+          { key: "placement:tls", type: "placement", lesson: "tls", resolves: "unplaced", placement: { col: 0, row: 0 } },
+        ],
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<CourseGraphPanel courseId={1} />);
+
+    await user.click(await screen.findByRole("button", { name: "Accept all 2 places" }));
+    await user.click(screen.getByRole("button", { name: "Save the course map" }));
+    await waitFor(() =>
+      expect(mocks.saveCourseGraph).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ placement: { hashing: { col: 0, row: 0 } } }),
+        3,
+      ),
+    );
+  });
+
+  it("starts a map from the course structure without saving it", async () => {
+    mocks.fetchCourseGraph.mockReset().mockResolvedValue(
+      loose({
+        graph: null,
+        lock_version: 0,
+        issues: [],
+        history: [],
+        suggestions: [
+          {
+            key: "start_map",
+            type: "start_map",
+            graph: {
+              version: 1,
+              problem: "Crypto, step by step.",
+              layout: "auto",
+              edges: [{ from: "hashing", to: "tls", type: "builds-on" }],
+            },
+          },
+        ],
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithProviders(<CourseGraphPanel courseId={1} />);
+
+    await user.click(await screen.findByRole("button", { name: "Start from the course structure" }));
+    expect(screen.getByRole("textbox", { name: "The big problem" })).toHaveValue("Crypto, step by step.");
+    expect(within(preview()).getByText("builds on")).toBeInTheDocument();
+    expect(mocks.saveCourseGraph).not.toHaveBeenCalled();
+  });
+
+  it("uses a drafted problem and a suggested shape in the architecture, and drops one whose block is gone", async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <Harness
+        initial={copy}
+        suggestions={[
+          { type: "problem", resolves: "no_problem", problem: "Store passwords safely.", draft: true },
+          { type: "shape", shape: "layers", section: S2, block: "layer-stack", heading: "The stack" },
+          { type: "shape", shape: "tree", section: "33333333-3333-4333-8333-333333333333", block: "tree", heading: "Gone" },
+        ]}
+      />,
+    );
+
+    expect(screen.queryByText(/Gone/)).toBeNull();
+    await user.click(screen.getByRole("button", { name: /^Use: Problem, a draft/ }));
+    expect(arch()).toMatchObject({ problem: "Store passwords safely.", shape: null });
+    expect(screen.queryByText(/Problem, a draft/)).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: /^Use: Layers/ }));
+    expect(arch()).toMatchObject({
+      problem: "Store passwords safely.",
+      shape: "layers",
+      nodes: [{ section: S2 }, { section: S2 }],
+    });
+    expect(screen.queryByRole("button", { name: /^Use:/ })).toBeNull();
+  });
+
+  it("dismisses an architecture suggestion for good", async () => {
+    const user = userEvent.setup();
+    const suggestions = [{ type: "problem" as const, resolves: "no_problem" as const, problem: "Store passwords safely.", draft: true as const }];
+    const first = renderWithProviders(<Harness initial={copy} suggestions={suggestions} />);
+    await user.click(screen.getByRole("button", { name: /^Dismiss: Problem, a draft/ }));
+    expect(screen.queryByText(/Problem, a draft/)).toBeNull();
+    first.unmount();
+    renderWithProviders(<Harness initial={copy} suggestions={suggestions} />);
+    expect(screen.queryByText(/Problem, a draft/)).toBeNull();
   });
 });

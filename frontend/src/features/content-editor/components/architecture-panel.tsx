@@ -20,6 +20,7 @@ import { FILLABLE, fillFromBlock } from "../architecture-fill";
 import { errorAt, errorsUnder, moveItem, type FieldErrors } from "../editor-state";
 import { useAdminCourses } from "../hooks";
 import type { AdminLesson, WorkingCopy } from "../types";
+import { ArchitectureSuggestions } from "./architecture-suggestions";
 import { Labelled } from "./document-editor";
 import { RowControls, StringListEditor } from "./list-editors";
 
@@ -81,6 +82,7 @@ export function ArchitecturePanel({
           <Plus aria-hidden />
           {t("start")}
         </Button>
+        <ArchitectureSuggestions lesson={lesson} copy={copy} onUse={(architecture) => onChange({ architecture })} />
       </section>
     );
   }
@@ -154,6 +156,7 @@ export function ArchitecturePanel({
       {lesson.architecture_issues.length ? (
         <Alert tone="info">{t("hiddenLinks", { lessons: lesson.architecture_issues.join(", ") })}</Alert>
       ) : null}
+      <ArchitectureSuggestions lesson={lesson} copy={copy} onUse={(architecture) => onChange({ architecture })} />
 
       <Labelled id={ids.problem} label={t("problem")} hint={t("problemHint")} error={err("problem")}>
         <input
