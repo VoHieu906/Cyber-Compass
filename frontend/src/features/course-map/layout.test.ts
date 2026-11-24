@@ -331,3 +331,51 @@ describe("edge ends on lesson nodes", () => {
       }
   });
 });
+
+describe("focus mode routes relations around every node", () => {
+  const MANY: CourseMapData = {
+    problem: "Get data across",
+    layout: "auto",
+    lanes: [],
+    lessons: ["s1", "s2", "hub", "t1", "t2", "t3", "t4", "t5", "u1", "u2"].map((s) => lesson(s)),
+    edges: [
+      { from: "s1", to: "hub", type: "requires" },
+      { from: "s2", to: "hub", type: "builds-on" },
+      ...["t1", "t2", "t3", "t4", "t5"].map((to) => ({ from: "hub", to, type: "requires" as const })),
+      { from: "t1", to: "u1", type: "feeds-into" },
+      { from: "s1", to: "u2", type: "builds-on", label: "skips ahead" },
+      { from: "t2", to: "t4", type: "contrasts-with" },
+    ],
+  };
+  const corners = (d: string) => {
+    const n = d.match(/-?\d+(\.\d+)?/g)!.map(Number);
+    return Array.from({ length: n.length / 2 }, (_, i) => ({ x: n[2 * i], y: n[2 * i + 1] }));
+  };
+
+  it.each(["hub", "t1", "s1"])("with %s expanded, no relation passes through a box but its own two", (focus) => {
+    const layout = layoutCourseMap(MANY, focus, { width: 624, height: 520 });
+    expect(layout.fallbacks).toEqual([]);
+    for (const e of layout.edges) {
+      const pts = corners(e.d);
+      for (const [slug, b] of layout.boxes) {
+        if (slug === e.from || slug === e.to) continue;
+        for (let i = 1; i < pts.length; i++) {
+          const seg = {
+            x: Math.min(pts[i - 1].x, pts[i].x),
+            y: Math.min(pts[i - 1].y, pts[i].y),
+            width: Math.abs(pts[i].x - pts[i - 1].x) || 0.01,
+            height: Math.abs(pts[i].y - pts[i - 1].y) || 0.01,
+          };
+          expect(overlaps(seg, b), `${e.from}>${e.to} through ${slug}`).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("lays out and routes a focus state inside a frame", () => {
+    layoutCourseMap(MANY, "hub", { width: 624, height: 520 });
+    const t0 = performance.now();
+    for (let i = 0; i < 5; i++) layoutCourseMap(MANY, "hub", { width: 624, height: 520 });
+    expect((performance.now() - t0) / 5).toBeLessThan(16);
+  });
+});

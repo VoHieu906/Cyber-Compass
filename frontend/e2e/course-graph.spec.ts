@@ -93,9 +93,9 @@ test.describe("course map", () => {
       await page.mouse.move(0, 0);
       await hashing.hover();
       await expect(tip).toContainText("Store passwords so that a stolen database", { timeout: 1_000 });
+      // The problem only: the title is already on the node.
+      await expect(tip).not.toContainText("Hashing and password storage", { timeout: 1_000 });
     }).toPass();
-    // The problem only: the title is already on the node.
-    await expect(tip).not.toContainText("Hashing and password storage");
     await page.mouse.move(0, 0);
     await expect(tip).toBeHidden();
 

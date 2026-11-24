@@ -1,7 +1,8 @@
 import { edgeSides, gridEdgeRoute, layoutGrid, type GridBox, type GridMetrics } from "@/lib/graph/grid";
-import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
+import { centre, overlaps, type Rect } from "@/lib/graph/shapes/geometry";
 import { roundedPath, routeEdges } from "@/lib/graph/shapes/route";
-import { textWidth } from "@/lib/graph/text";
+import { routeOrtho, type OrthoRoute, type Terminal } from "@/lib/graph/ortho";
+import { textWidth, wrapLabel } from "@/lib/graph/text";
 import type { CourseMapData, MapEdge } from "./types";
 
 /*
@@ -67,7 +68,8 @@ export function expandedSize(
 }
 
 /** The ring outside the expanded node that part links may run along on their way out. */
-const RING = 24;
+/** Under the 22px row gap, so the ring never reaches the lesson beyond it. */
+const RING = 20;
 
 /**
  * A focused lesson's part links (a part that leads to another lesson): inside the expanded node,
@@ -82,7 +84,7 @@ export function routePartLinks(
   parts: Map<string, Rect>,
   links: { id: string; key: string; to: Rect }[],
   detail: number = EXPANDED.detail,
-): { id: string; inner: string; outer: string; fallback: boolean }[] {
+): { id: string; inner: string; exit: Terminal; fallback: boolean }[] {
   const shift = (r: Rect): Rect => ({ ...r, x: r.x + RING, y: r.y + RING });
   const rects = new Map<string, Rect>([...parts].map(([id, r]) => [`p:${id}`, shift(r)]));
   rects.set("card", shift({ x: 0, y: 0, ...card }));
@@ -110,7 +112,7 @@ export function routePartLinks(
     const c = centre(l.to);
     const x = Math.min(panel.width + RING / 2, Math.max(-RING / 2, c.x));
     const y = Math.min(panel.height + RING / 2, Math.max(-RING / 2, c.y));
-    rects.set(`x:${l.key}`, shift({ x: x - 8, y: y - 8, width: 16, height: 16 }));
+    rects.set(`x:${l.key}`, shift({ x: x - 6, y: y - 6, width: 12, height: 12 }));
   }
   const routes = routeEdges(
     rects,
@@ -119,12 +121,21 @@ export function routePartLinks(
   );
   return routes.map((r, i) => {
     const pts = r.points.map((p) => ({ x: p.x - RING, y: p.y - RING }));
-    const exit = pts[pts.length - 1];
-    const end = borderPoint(links[i].to, exit);
+    // On to the exit's centre (an elbow inside the exit square), where the rest of the link starts,
+    // heading straight out of the node on the side facing the lesson.
+    const c = centre(links[i].to);
+    const out = { x: Math.max(-c.x, c.x - panel.width, 0), y: Math.max(-c.y, c.y - panel.height, 0) };
+    const x = Math.min(panel.width + RING / 2, Math.max(-RING / 2, c.x));
+    const y = Math.min(panel.height + RING / 2, Math.max(-RING / 2, c.y));
+    const dir: Terminal["dir"] = out.x >= out.y ? (c.x < 0 ? 3 : 1) : c.y < 0 ? 0 : 2;
+    const last = pts[pts.length - 1];
+    const before = pts[pts.length - 2] ?? last;
+    const elbow = before.x === last.x ? { x: last.x, y } : { x, y: last.y };
     return {
       id: links[i].id,
-      inner: roundedPath(pts),
-      outer: `M ${exit.x} ${exit.y} L ${end.x} ${end.y}`,
+      inner: roundedPath([...pts, elbow, { x, y }]),
+      // Already clear of the node's padding: the route around the lessons starts right here.
+      exit: { x, y, dir, reach: 0 },
       fallback: r.fallback,
     };
   });
@@ -225,15 +236,93 @@ function separateLabels<
   }
 }
 
+/**
+ * Whether the overview routes its relations around the nodes too (UI Part 3), or keeps the D59
+ * curves through the column gaps. Focus mode always routes: the expanded node is in the way.
+ */
+export const ROUTE_OVERVIEW = false;
+
+type Anchored = { x: number; y: number; anchor: "middle" | "end" };
+
+/**
+ * Labels on routed lines (focus mode): each is tried along its line's level stretches, longest
+ * first, then beside its upright ones, and takes the first spot clear of every node and every label
+ * placed before it; authored labels go first. The type words focus mode adds are sized by the
+ * type's English name (the renderer words them). With no clear spot, the longest stretch.
+ */
+function placeRouteLabels(
+  edges: { label?: string; type: string; labelAt: Anchored; quiet?: boolean }[],
+  lines: Map<number, { x: number; y: number }[]>,
+  obstacles: Rect[],
+) {
+  const placed: Rect[] = [];
+  const clear = (r: Rect) => !obstacles.some((o) => overlaps(r, o)) && !placed.some((o) => overlaps(r, o, 2));
+  const order = [...edges.keys()].sort((a, b) => Number(!edges[a].label) - Number(!edges[b].label));
+  for (const k of order) {
+    const pts = lines.get(k);
+    if (!pts) continue;
+    const w = textWidth(edges[k].label ?? edges[k].type, 11) + 8;
+    const segs = pts
+      .slice(1)
+      .map((q, i) => ({ p: pts[i], q, len: Math.abs(q.x - pts[i].x) + Math.abs(q.y - pts[i].y) }))
+      .sort((a, b) => b.len - a.len);
+    const tries: { at: Anchored; box: Rect }[] = [];
+    for (const { p, q } of segs) {
+      if (p.y === q.y) {
+        // Above the line (the renderer lifts middle-anchored labels 9px), along the stretch.
+        const [lo, hi] = [Math.min(p.x, q.x) + w / 2 + 4, Math.max(p.x, q.x) - w / 2 - 4];
+        for (
+          let x = (lo + hi) / 2, step = 0;
+          lo <= hi && step < 12;
+          step++, x = (lo + hi) / 2 + (step % 2 ? 1 : -1) * Math.ceil(step / 2) * 12
+        )
+          if (x >= lo && x <= hi)
+            tries.push({
+              at: { x, y: p.y, anchor: "middle" },
+              box: { x: x - w / 2, y: p.y - 16, width: w, height: 14 },
+            });
+      } else {
+        // Left of an upright stretch, along it.
+        const [lo, hi] = [Math.min(p.y, q.y) + 10, Math.max(p.y, q.y) - 10];
+        for (
+          let y = (lo + hi) / 2, step = 0;
+          lo <= hi && step < 12;
+          step++, y = (lo + hi) / 2 + (step % 2 ? 1 : -1) * Math.ceil(step / 2) * 12
+        )
+          if (y >= lo && y <= hi)
+            tries.push({
+              at: { x: p.x - 5, y, anchor: "end" },
+              box: { x: p.x - 5 - w, y: y - 7, width: w, height: 14 },
+            });
+      }
+    }
+    const spot = tries.find((t) => clear(t.box)) ?? (edges[k].label ? tries[0] : undefined);
+    // No clear room for focus mode's type word: leave it out (the relation's tooltip still names it).
+    if (!spot) {
+      if (!edges[k].label) edges[k].quiet = true;
+      continue;
+    }
+    edges[k].labelAt = spot.at;
+    placed.push(spot.box);
+  }
+}
+
 export type MapLayout = {
   /** Every lesson's box, and the goal's. The focused lesson's box is its whole expanded footprint; `nodeHeight` is its title card. */
   boxes: Map<string, GridBox>;
-  edges: (MapEdge & { d: string; labelAt: { x: number; y: number; anchor: "middle" | "end" } })[];
+  /** `quiet`: no clear room for focus mode's type word, so it is left out. */
+  edges: (MapEdge & { d: string; labelAt: { x: number; y: number; anchor: "middle" | "end" }; quiet?: boolean })[];
   /** Lighter "contributes to" lines into the goal. */
   contributes: { from: string; d: string }[];
   bands: { label: string; y: number; height: number }[];
   /** The lesson node's size: NODE, or NARROW_NODE when the map is narrow (D61). */
   node: { width: number; height: number };
+  /** Relations or goal lines with no clean route (drawn as before, beneath the nodes). */
+  fallbacks: string[];
+  /** Focus mode: where each part link lands on its lesson, spread with that side's other ends. */
+  partPorts: Map<string, Terminal>;
+  /** Routes the rest of each part link, from the expanded node's edge to its lesson, around every node. */
+  routeLinks: (links: { from: Terminal; terminal: Terminal }[]) => OrthoRoute[];
   width: number;
   height: number;
 };
@@ -249,6 +338,8 @@ export function layoutCourseMap(
   focused: string | null,
   expanded: { width: number; height: number },
   narrow = false,
+  /** `route: false` for size-only layouts; overview routing follows ROUTE_OVERVIEW. */
+  opts: { route?: boolean } = {},
 ): MapLayout {
   const node = narrow ? NARROW_NODE : NODE;
   const metrics = narrow ? { ...METRICS, colWidth: node.width, colGap: NARROW_GAP } : METRICS;
@@ -298,6 +389,17 @@ export function layoutCourseMap(
       { id: `${i}<`, node: e.to, side: sb, key: mid(a) },
     ];
   });
+  // Focus mode: the focused lesson's part links land on their lessons, on the side facing the expanded node.
+  const frame = focused ? boxes.get(focused) : undefined;
+  const partLinks = frame
+    ? (map.lessons.find((l) => l.slug === focused)?.nodes ?? []).filter(
+        (n) => n.lesson && n.lesson !== focused && boxes.has(n.lesson),
+      )
+    : [];
+  for (const n of partLinks) {
+    const target = boxes.get(n.lesson!)!;
+    ends.push({ id: `part:${n.id}`, node: n.lesson!, side: edgeSides(frame!, target)[1], key: mid(frame!) });
+  }
   for (const l of contributors) {
     // Narrow: the line turns down the gutter, so it takes the lowest place on the side.
     ends.push({ id: `goal:${l.slug}>`, node: l.slug, side: "right", key: narrow ? [Infinity, 0] : mid(goal) });
@@ -332,8 +434,72 @@ export function layoutCourseMap(
       : { x: route.mid.x, y: route.mid.y, anchor: "middle" as const };
     return { ...e, d: route.d, labelAt };
   });
-  separateLabels(edges);
   const contributes = contributors.map((l) => ({ from: l.slug, d: intoGoal(l.slug) }));
+
+  // UI Part 3: route every relation (and the goal lines, beside the goal) around every node.
+  const terminal = (slug: string, id: string, side: "left" | "right"): Terminal => {
+    const b = boxes.get(slug)!;
+    return side === "left" ? { x: b.x, y: ports.get(id)!, dir: 3 } : { x: b.x + b.width, y: ports.get(id)!, dir: 1 };
+  };
+  const order = [...boxes.keys()];
+  const obstacles: Rect[] = [
+    ...order.map((k) => {
+      const b = boxes.get(k)!;
+      return { x: b.x, y: b.y, width: b.width, height: b.height };
+    }),
+    // Lane names on the left are text the lines must not run through.
+    ...bands.map((b) => ({
+      x: 8,
+      y: grid.rows[b.row].y,
+      width: LANE_HEADER - 16,
+      height: wrapLabel(b.label, 12, 3).length * 16 + 6,
+    })),
+  ];
+  const bounds = { x: 0, y: -16, width, height: height + 32 };
+  const fallbacks: string[] = [];
+  const routed = opts.route ?? (focused ? true : ROUTE_OVERVIEW);
+  if (routed) {
+    const requests = placedEdges.map((e, i) => {
+      const [sa, sb] = edgeSides(boxes.get(e.from)!, boxes.get(e.to)!);
+      return {
+        from: terminal(e.from, `${i}>`, sa),
+        to: terminal(e.to, `${i}<`, sb),
+      };
+    });
+    const goalLines = narrow
+      ? []
+      : contributors.map((l) => ({
+          from: terminal(l.slug, `goal:${l.slug}>`, "right"),
+          to: terminal(GOAL, `goal:${l.slug}<`, "left"),
+        }));
+    const routes = routeOrtho(obstacles, [...requests, ...goalLines], bounds);
+    const lines = new Map<number, { x: number; y: number }[]>();
+    edges.forEach((e, i) => {
+      const r = routes[i];
+      if (r.fallback) return void fallbacks.push(`${e.from} -> ${e.to}`);
+      e.d = roundedPath(r.points, 8);
+      lines.set(i, r.points);
+    });
+    placeRouteLabels(edges, lines, obstacles);
+    contributes.forEach((c, k) => {
+      const r = routes[requests.length + k];
+      if (r && !r.fallback) c.d = roundedPath(r.points, 8);
+      else if (r) fallbacks.push(`${c.from} -> goal`);
+    });
+  }
+  if (!routed) separateLabels(edges);
+  const partPorts = new Map(
+    partLinks.map((n) => {
+      const side = edgeSides(frame!, boxes.get(n.lesson!)!)[1];
+      return [n.id, terminal(n.lesson!, `part:${n.id}`, side)] as const;
+    }),
+  );
+  const routeLinks = (links: { from: Terminal; terminal: Terminal }[]) =>
+    routeOrtho(
+      obstacles,
+      links.map((l) => ({ from: l.from, to: l.terminal })),
+      bounds,
+    );
 
   return {
     boxes,
@@ -347,6 +513,9 @@ export function layoutCourseMap(
     node,
     width,
     height,
+    fallbacks,
+    partPorts,
+    routeLinks,
   };
 }
 

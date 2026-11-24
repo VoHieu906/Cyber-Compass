@@ -23,6 +23,7 @@ import { wrapLabel } from "@/lib/graph/text";
 import { pressed } from "@/lib/shortcuts/registry";
 import { cn } from "@/lib/utils";
 import type { Rect } from "@/lib/graph/shapes/geometry";
+import { roundedPath } from "@/lib/graph/shapes/route";
 import {
   GOAL,
   NARROW_NODE,
@@ -115,9 +116,15 @@ export function CourseMap({
   const fit = (footprint: { width: number; height: number }) =>
     fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint);
   // D61: narrower nodes and a goal band when the overview would not fit the box at the D59 sizes.
-  const narrow = useMemo(() => layoutCourseMap(map, null, NODE).width > boxWidth, [map, boxWidth]);
+  const narrow = useMemo(
+    () => layoutCourseMap(map, null, NODE, false, { route: false }).width > boxWidth,
+    [map, boxWidth],
+  );
   const node = narrow ? NARROW_NODE : NODE;
-  const overviewWidth = useMemo(() => layoutCourseMap(map, null, node, narrow).width, [map, node, narrow]);
+  const overviewWidth = useMemo(
+    () => layoutCourseMap(map, null, node, narrow, { route: false }).width,
+    [map, node, narrow],
+  );
   // The wide footprint when the map still fits its box with it, else the compact one (and the box scrolls sideways).
   const wide = overviewWidth + expandedSize(fit(SHAPE_BOX.wide), node).width - node.width <= boxWidth;
   const footprint = wide ? SHAPE_BOX.wide : SHAPE_BOX.compact;
@@ -173,7 +180,19 @@ export function CourseMap({
         },
       ];
     });
-    return routePartLinks(frame, { width: layout.node.width, height: frame.nodeHeight }, parts, links, detail);
+    const inner = routePartLinks(frame, { width: layout.node.width, height: frame.nodeHeight }, parts, links, detail);
+    // The rest, from the node's edge to the lesson, routed around every node (drawn beneath them, in map coordinates).
+    const outer = layout.routeLinks(
+      inner.map((l) => ({
+        from: { ...l.exit, x: l.exit.x + frame.x, y: l.exit.y + frame.y },
+        terminal: layout.partPorts.get(l.id)!,
+      })),
+    );
+    return inner.map((l, i) => ({
+      ...l,
+      outer: roundedPath(outer[i].points, 8),
+      fallback: l.fallback || outer[i].fallback,
+    }));
   }, [frame, focusedLesson, parts, layout, detail]);
   const partLinkProps = (id: string) => ({
     fill: "none",
@@ -189,6 +208,10 @@ export function CourseMap({
         console.debug(`[course map] no clean route for part ${l.id}; drawn beneath the parts`);
   }, [partLinks]);
   const titles = useMemo(() => new Map(map.lessons.map((l) => [l.slug, l.title])), [map]);
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production")
+      for (const f of layout.fallbacks) console.debug(`[course map] no clean route for ${f}; drawn beneath the nodes`);
+  }, [layout]);
 
   useCompassPageItems([
     { id: "course-map", label: t("title"), run: () => goTo(document.getElementById("course-map-title")) },
@@ -307,109 +330,119 @@ export function CourseMap({
                 </text>
               </g>
             ))}
-            {/* The rest of each part link, from the expanded node's edge to its lesson: beneath the lesson nodes. */}
-            {frame ? (
-              <g transform={`translate(${frame.x} ${frame.y})`}>
-                {partLinks.map((l) => (
-                  <path
-                    key={l.id}
-                    d={l.outer}
-                    data-link-out={l.id}
-                    markerEnd="url(#cm-solid)"
-                    {...partLinkProps(l.id)}
-                  />
-                ))}
-              </g>
-            ) : null}
-            {layout.contributes.map((c) => (
-              <path
-                key={c.from}
-                d={c.d}
-                fill="none"
-                {...EDGE_STYLE.contributes}
-                className={cn(
-                  "[transition:d_var(--dur-long),opacity_var(--dur-long)] motion-reduce:transition-none",
-                  hot ? c.from !== hot && "opacity-30" : focused && "opacity-20",
-                )}
-              />
-            ))}
-            {layout.edges.map((e) => {
-              const key = `${e.from}>${e.to}>${e.type}`;
-              const state = edgeState(e);
-              // Focus mode words the focused lesson's relations; a hover leaves that to the relation's tooltip.
-              const label = state === "emphasis" && !hot ? (e.label ?? t(`edges.${e.type}`)) : e.label;
-              const wide = hotEdge === key ? 1.25 : 0;
-              return (
-                <g
-                  key={key}
-                  data-edge={key}
-                  data-state={state}
+            {/* Routes are computed once per layout; a new focus fades its routes in rather than morphing them (none with reduced motion). */}
+            <g
+              key={focused ?? "overview"}
+              className="transition-opacity duration-[var(--dur-long)] motion-reduce:transition-none starting:opacity-0"
+            >
+              {/* The rest of each part link, from the expanded node's edge to its lesson: beneath the lesson nodes. */}
+              {frame ? (
+                <g>
+                  {partLinks.map((l) => (
+                    <path
+                      key={l.id}
+                      d={l.outer}
+                      data-link-out={l.id}
+                      markerEnd="url(#cm-solid)"
+                      {...partLinkProps(l.id)}
+                    />
+                  ))}
+                </g>
+              ) : null}
+              {layout.contributes.map((c) => (
+                <path
+                  key={c.from}
+                  d={c.d}
+                  fill="none"
+                  {...EDGE_STYLE.contributes}
                   className={cn(
-                    "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
-                    state === "dim" && (hot ? "opacity-30" : "opacity-20"),
+                    "[transition:d_var(--dur-long),opacity_var(--dur-long)] motion-reduce:transition-none",
+                    hot ? c.from !== hot && "opacity-30" : focused && "opacity-20",
                   )}
-                >
-                  {e.type === "parallel-to" ? (
+                />
+              ))}
+              {layout.edges.map((e) => {
+                const key = `${e.from}>${e.to}>${e.type}`;
+                const state = edgeState(e);
+                // Focus mode words the focused lesson's relations; a hover leaves that to the relation's tooltip.
+                const label = state === "emphasis" && !hot && !e.quiet ? (e.label ?? t(`edges.${e.type}`)) : e.label;
+                const wide = hotEdge === key ? 1.25 : 0;
+                return (
+                  <g
+                    key={key}
+                    data-edge={key}
+                    data-state={state}
+                    className={cn(
+                      "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
+                      state === "dim" && (hot ? "opacity-30" : "opacity-20"),
+                    )}
+                  >
+                    {e.type === "parallel-to" ? (
+                      <path
+                        d={e.d}
+                        fill="none"
+                        strokeWidth={(state === "emphasis" ? 6 : 5) + wide}
+                        style={{ stroke: state === "emphasis" ? "var(--color-accent)" : "var(--color-rule-2)" }}
+                        className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
+                      />
+                    ) : null}
                     <path
                       d={e.d}
                       fill="none"
-                      strokeWidth={(state === "emphasis" ? 6 : 5) + wide}
-                      style={{ stroke: state === "emphasis" ? "var(--color-accent)" : "var(--color-rule-2)" }}
+                      {...EDGE_STYLE[e.type]}
+                      {...(e.type === "parallel-to"
+                        ? { style: { stroke: "var(--color-paper-3)" } }
+                        : state === "emphasis" || wide
+                          ? {
+                              style: { stroke: "var(--color-accent)" },
+                              strokeWidth: Number(EDGE_STYLE[e.type].strokeWidth) + 0.75 + wide,
+                            }
+                          : {})}
                       className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
                     />
-                  ) : null}
-                  <path
-                    d={e.d}
-                    fill="none"
-                    {...EDGE_STYLE[e.type]}
-                    {...(e.type === "parallel-to"
-                      ? { style: { stroke: "var(--color-paper-3)" } }
-                      : state === "emphasis" || wide
-                        ? {
-                            style: { stroke: "var(--color-accent)" },
-                            strokeWidth: Number(EDGE_STYLE[e.type].strokeWidth) + 0.75 + wide,
-                          }
-                        : {})}
-                    className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
-                  />
-                  {/* A wide invisible stroke takes the pointer: the relation's name after a pause, and a thicker line. */}
-                  <path
-                    d={e.d}
-                    fill="none"
-                    stroke="transparent"
-                    strokeWidth={12}
-                    pointerEvents="stroke"
-                    data-edge-hit={key}
-                    onPointerEnter={(ev) => {
-                      setHotEdge(key);
-                      later({ text: edgeName(e), rect: new DOMRect(ev.clientX, ev.clientY - 6, 0, 12), kind: "edge" });
-                    }}
-                    onPointerLeave={() => {
-                      setHotEdge(null);
-                      hideTip();
-                    }}
-                  />
-                  {label ? (
-                    <text
-                      x={e.labelAt.x}
-                      y={e.labelAt.y - (e.labelAt.anchor === "middle" ? 9 : 0)}
-                      textAnchor={e.labelAt.anchor}
-                      dominantBaseline="central"
-                      fontSize={11}
-                      style={{
-                        fill: state === "emphasis" ? "var(--color-ink)" : "var(--color-muted)",
-                        paintOrder: "stroke",
-                        stroke: "var(--color-paper-3)",
-                        strokeWidth: 4,
-                        fontFamily: "var(--font-measured)",
+                    {/* A wide invisible stroke takes the pointer: the relation's name after a pause, and a thicker line. */}
+                    <path
+                      d={e.d}
+                      fill="none"
+                      stroke="transparent"
+                      strokeWidth={12}
+                      pointerEvents="stroke"
+                      data-edge-hit={key}
+                      onPointerEnter={(ev) => {
+                        setHotEdge(key);
+                        later({
+                          text: edgeName(e),
+                          rect: new DOMRect(ev.clientX, ev.clientY - 6, 0, 12),
+                          kind: "edge",
+                        });
                       }}
-                    >
-                      {label}
-                    </text>
-                  ) : null}
-                </g>
-              );
-            })}
+                      onPointerLeave={() => {
+                        setHotEdge(null);
+                        hideTip();
+                      }}
+                    />
+                    {label ? (
+                      <text
+                        x={e.labelAt.x}
+                        y={e.labelAt.y - (e.labelAt.anchor === "middle" ? 9 : 0)}
+                        textAnchor={e.labelAt.anchor}
+                        dominantBaseline="central"
+                        fontSize={11}
+                        style={{
+                          fill: state === "emphasis" ? "var(--color-ink)" : "var(--color-muted)",
+                          paintOrder: "stroke",
+                          stroke: "var(--color-paper-3)",
+                          strokeWidth: 4,
+                          fontFamily: "var(--font-measured)",
+                        }}
+                      >
+                        {label}
+                      </text>
+                    ) : null}
+                  </g>
+                );
+              })}
+            </g>
           </svg>
 
           {map.lessons.map((lesson) => {
