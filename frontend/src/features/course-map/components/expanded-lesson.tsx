@@ -158,7 +158,15 @@ export default function ExpandedLesson({
             </div>
           </div>
         ) : lesson.shape ? (
-          <p className="text-muted">{t("pickPart")}</p>
+          // Until a part is chosen: the lesson's problem (the node no longer shows it, and touch has no hover) and the hint.
+          <div className="flex flex-col gap-1">
+            {lesson.problem ? (
+              <p className="line-clamp-2">
+                <span className="font-medium text-ink">{t("problemLabel")}</span> <span className="text-ink-2">{lesson.problem}</span>
+              </p>
+            ) : null}
+            <p className="text-muted">{t("pickPart")}</p>
+          </div>
         ) : null}
       </div>
     </>

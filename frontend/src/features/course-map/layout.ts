@@ -14,9 +14,10 @@ export const GOAL = "@goal";
 /** Relations that order lessons left to right in the automatic layout. */
 const ORDERING = new Set(["requires", "builds-on", "feeds-into"]);
 
-export const NODE = { width: 224, height: 132 };
+/** A lesson node: icon, a title of up to three lines and the status mark; the problem is in its tooltip. */
+export const NODE = { width: 224, height: 92 };
 /** D61: the node of a map that would not fit its box at the D59 sizes. */
-export const NARROW_NODE = { width: 184, height: 132 };
+export const NARROW_NODE = { width: 184, height: 92 };
 const NARROW_GAP = 72;
 /** The goal band under the lanes of a narrow map. */
 const BAND = { gap: 48, height: 96 };

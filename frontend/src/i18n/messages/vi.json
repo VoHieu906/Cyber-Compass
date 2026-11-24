@@ -1930,6 +1930,7 @@
     "parts": "{title}: cách được xây dựng",
     "readSection": "Đọc phần này trong bài học",
     "goToLesson": "Đến {title}",
+    "problemLabel": "Vấn đề:",
     "pickPart": "Chọn một phần để xem nó làm gì.",
     "keysHint": "Phím mũi tên đi theo các quan hệ, Enter mở một bài học, Escape quay lại toàn cảnh.",
     "textVersion": "Bản văn bản",

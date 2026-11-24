@@ -3,7 +3,8 @@
 import { Target } from "lucide-react";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
+import { createPortal } from "react-dom";
 import { statusIcon } from "@/features/catalog/components/curriculum";
 import { useCourseProgress } from "@/features/catalog/hooks";
 import { goTo, useCompassPageItems } from "@/features/compass/page-items";
@@ -50,6 +51,28 @@ export function CourseMap({
   const nodes = useRef(new Map<string, HTMLElement>());
   const expandedHeading = useId();
   const [parts, setParts] = useState<Map<string, Rect>>(new Map());
+  // The problem tooltip: after a short pause on hover (no flicker while the pointer crosses the map), or on keyboard focus.
+  const [tip, setTip] = useState<{ slug: string; rect: DOMRect } | null>(null);
+  const tipTimer = useRef<number | undefined>(undefined);
+  const showTip = (slug: string, el: HTMLElement) => {
+    window.clearTimeout(tipTimer.current);
+    tipTimer.current = window.setTimeout(() => setTip({ slug, rect: el.getBoundingClientRect() }), TIP_DELAY);
+  };
+  const hideTip = useCallback(() => {
+    window.clearTimeout(tipTimer.current);
+    setTip(null);
+  }, []);
+  // It is placed once, against the viewport: any scroll or resize closes it rather than leave it behind.
+  useEffect(() => {
+    if (!tip) return;
+    window.addEventListener("scroll", hideTip, true);
+    window.addEventListener("resize", hideTip);
+    return () => {
+      window.removeEventListener("scroll", hideTip, true);
+      window.removeEventListener("resize", hideTip);
+    };
+  }, [tip, hideTip]);
+  useEffect(() => () => window.clearTimeout(tipTimer.current), []);
 
   useEffect(() => {
     const el = wrapper.current;
@@ -122,6 +145,7 @@ export function CourseMap({
 
   const open = (slug: string) => {
     if (slug === GOAL) return;
+    hideTip();
     setParts(new Map());
     setFocused(slug);
     setActive(slug);
@@ -135,6 +159,12 @@ export function CourseMap({
   }, []);
 
   const onNodeKey = (event: KeyboardEvent<HTMLElement>, slug: string) => {
+    // Escape closes the tooltip first; the next Escape leaves focus mode.
+    if (tip && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      return hideTip();
+    }
     for (const [id, key] of [
       ["courseMap.forward", "ArrowRight"],
       ["courseMap.backward", "ArrowLeft"],
@@ -283,10 +313,17 @@ export function CourseMap({
                   aria-describedby={`${lesson.slug}-map-desc`}
                   data-state={state}
                   onClick={() => (isFocused ? close() : open(lesson.slug))}
-                  onFocus={() => setActive(lesson.slug)}
+                  onFocus={(e) => {
+                    setActive(lesson.slug);
+                    // Keyboard focus only: a click opens the lesson instead.
+                    if (!isFocused && lesson.problem && e.currentTarget.matches(":focus-visible")) showTip(lesson.slug, e.currentTarget);
+                  }}
+                  onBlur={hideTip}
+                  onPointerEnter={(e) => e.pointerType === "mouse" && !isFocused && lesson.problem && showTip(lesson.slug, e.currentTarget)}
+                  onPointerLeave={hideTip}
                   onKeyDown={(e) => onNodeKey(e, lesson.slug)}
                   className={cn(
-                    "absolute top-0 left-0 flex flex-col items-start gap-1 rounded-card border p-3 text-left transition-[transform,border-color,background-color,opacity] duration-[var(--dur-long)] motion-reduce:transition-none",
+                    "absolute top-0 left-0 flex flex-col items-start justify-center gap-1 rounded-card border p-3 text-left transition-[transform,border-color,background-color,opacity] duration-[var(--dur-long)] motion-reduce:transition-none",
                     isFocused && "z-10",
                     nodeClass(state),
                   )}
@@ -317,17 +354,6 @@ export function CourseMap({
                       />
                     ) : null}
                   </span>
-                  {lesson.problem ? (
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "line-clamp-2 text-[13px] leading-[1.35] transition-[filter,opacity]",
-                        state === "dimmed" ? "opacity-50 blur-[0.6px]" : "text-ink-2",
-                      )}
-                    >
-                      {lesson.problem}
-                    </span>
-                  ) : null}
                 </button>
                 {/* Outside the button, so its name is exactly its visible title (WCAG 2.5.3). */}
                 <span id={`${lesson.slug}-map-desc`} className="sr-only">
@@ -408,12 +434,49 @@ export function CourseMap({
           </div>
         </div>
       </div>
+      {tip ? <ProblemTip rect={tip.rect} title={titles.get(tip.slug) ?? ""} problem={map.lessons.find((l) => l.slug === tip.slug)?.problem ?? ""} /> : null}
       <p className="text-sm text-muted">{t("keysHint")}</p>
       <EdgeLegend
         types={[...new Set(map.edges.map((e) => e.type))]}
         shapes={[...new Set(map.lessons.flatMap((l) => (l.shape ? [l.shape] : [])))]}
       />
     </div>
+  );
+}
+
+const TIP_DELAY = 300;
+
+/**
+ * A lesson's problem beside its node (UI Part 1). Visual only (aria-hidden): screen readers get the
+ * problem from the node's description. In a portal, so the map's scroll box never clips it, and
+ * kept inside the viewport: above the node, below when there is no room, nudged in from the sides.
+ * The full title is repeated, since a long one is clamped on the node.
+ */
+function ProblemTip({ rect, title, problem }: { rect: DOMRect; title: string; problem: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const margin = 8;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    const left = Math.min(Math.max(margin, rect.left + rect.width / 2 - w / 2), window.innerWidth - w - margin);
+    const above = rect.top - h - margin;
+    setAt({ left, top: above >= margin ? above : Math.min(rect.bottom + margin, window.innerHeight - h - margin) });
+  }, [rect]);
+  return createPortal(
+    <div
+      ref={ref}
+      aria-hidden
+      data-testid="course-map-tip"
+      className="pointer-events-none fixed z-50 flex max-w-[20rem] flex-col gap-1 rounded-control border border-rule-2 bg-paper-2 px-3 py-2 text-sm shadow-[var(--shadow-overlay)]"
+      style={at ?? { left: 0, top: 0, visibility: "hidden" }}
+    >
+      <span className="font-medium text-ink">{title}</span>
+      <span className="text-ink-2">{problem}</span>
+    </div>,
+    document.body,
   );
 }
 

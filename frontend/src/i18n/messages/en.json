@@ -1930,6 +1930,7 @@
     "parts": "{title}: how it is built",
     "readSection": "Read this in the lesson",
     "goToLesson": "Go to {title}",
+    "problemLabel": "The problem:",
     "pickPart": "Choose a part to see what it does.",
     "keysHint": "Arrow keys follow the relations, Enter opens a lesson, Escape returns to the overview.",
     "textVersion": "Text version",

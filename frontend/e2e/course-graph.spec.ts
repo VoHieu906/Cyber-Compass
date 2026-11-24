@@ -57,6 +57,40 @@ test.describe("course map", () => {
     await expect(hashing).toHaveAttribute("aria-expanded", "false");
   });
 
+  test("a lesson's problem shows in a tooltip on hover and on keyboard focus, and Escape closes it", async ({ page }) => {
+    await page.goto(COURSE);
+    const map = page.getByRole("group", { name: /Course map of Applied/ });
+    const hashing = map.getByRole("button", { name: "Hashing and password storage" });
+    const tip = page.getByTestId("course-map-tip");
+
+    // The node shows its title only; screen readers still get the problem as its description.
+    await expect(hashing).not.toContainText("Store passwords");
+    await expect(hashing).toHaveAccessibleDescription(/Store passwords so that a stolen database/);
+
+    // Hovering before hydration does nothing, so hover again until the page answers.
+    await expect(async () => {
+      await page.mouse.move(0, 0);
+      await hashing.hover();
+      await expect(tip).toContainText("Store passwords so that a stolen database", { timeout: 1_000 });
+    }).toPass();
+    await page.mouse.move(0, 0);
+    await expect(tip).toBeHidden();
+
+    // Keyboard: the arrow key moves focus, and the tooltip follows it.
+    await hashing.focus();
+    await page.keyboard.press("ArrowRight");
+    const symmetric = map.getByRole("button", { name: /Symmetric and asymmetric/ });
+    await expect(symmetric).toBeFocused();
+    await expect(tip).toContainText("Share secrets with someone you have never met");
+    const box = (await tip.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    await page.keyboard.press("Escape");
+    await expect(tip).toBeHidden();
+    await expect(symmetric).toHaveAttribute("aria-expanded", "false");
+  });
+
   test("a learner follows a part to the section that teaches it", async ({ page }) => {
     await signIn(page, account("courseMap"));
     await page.goto(COURSE);
