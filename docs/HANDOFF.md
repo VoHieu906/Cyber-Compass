@@ -10,9 +10,10 @@ Where the project stands and what the next phase needs to know. This page only p
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
 - **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4.
+- **F5 (Networking exercises) is done:** graded exercises for the 14 lessons F4 added (73 questions), reviewed by an independent subagent; every networking lesson now has an exercise.
 - **Course map UI round after F4 is done** (D64, D65): the problem in a tooltip, spread edge ends and hover highlights, lines routed around every node in focus mode, and one style map for every line with an interactive legend. Details in the roadmap's F4 section.
-- **F4 (Networking Fundamentals, expanded) is done** (D61 to D63): 20 lessons in 5 chapters with three new topics, architectures and the course map, the wide-map layout, and rule-based Course map suggestions for admins. Graded exercises for the new lessons are F5; maps for the other courses are F3 Part C.
-- **Tests:** 807 Pest, 486 Vitest and 34 Playwright end-to-end tests (after F4). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F4 (Networking Fundamentals, expanded) is done** (D61 to D63): 20 lessons in 5 chapters with three new topics, architectures and the course map, the wide-map layout, and rule-based Course map suggestions for admins. Maps for the other courses are F3 Part C.
+- **Tests:** 807 Pest, 518 Vitest and 36 Playwright end-to-end tests (after F5). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -45,6 +46,12 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Performance guards:** `QueryBudgetTest` (a new hot endpoint gets a budget there) and `performance.spec.ts` (budgets per route, enforced in CI). A module that uses zod at runtime imports `@/lib/zod-config` (the CSP forbids zod's eval probe); never re-export `z` from another module, which defeats tree-shaking.
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
+
+## F5: Networking exercises (2026-11-24)
+
+- **Writing more questions:** follow the rules in the roadmap's F5 section (one-token command blanks, one recall question per lesson, defender-side scenarios, explanations of the tempting wrong option). Read the lesson's knowledge checks first, so no graded question repeats one.
+- **E2E admins:** global setup makes two; `account("mapAdmin")` is the course map suggestions spec's own, because the admin limit is per user. Give a new admin-heavy spec its own admin the same way rather than raising a limit.
+- **Checking a batch:** run the seeder (`db:seed --class='Database\Seeders\ExerciseSeeder'`), which validates every question and section reference; then pass each exercise in the browser from its revealed answers. One learner loading many lessons in a row hits the `api` limit of 120 a minute: pace about 25 seconds per lesson.
 
 ## Course map UI round after F4 (2026-11-24)
 

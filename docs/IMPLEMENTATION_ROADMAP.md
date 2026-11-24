@@ -16,7 +16,7 @@ flowchart LR
   F1 --> F2[F2 Blog]
   F2 --> F3[F3 Course map]
   F3 --> F4[F4 Networking Fundamentals, expanded]
-  F4 --> F5[F5 Networking exercises, planned]
+  F4 --> F5[F5 Networking exercises, done]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -586,23 +586,6 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
 - Production parity: as above.
 - Owner action when deploying: nothing.
 
-## Follow-ups (not scheduled in a phase)
-
-- **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.
-- **Question bank admin area** (D24). Phase 4 keeps the bank in a seed file; an admin area follows the CLAUDE.md §3 admin recipe when needed.
-
-## Decisions made
-
-| # | Decision | Outcome (2026-11-19) |
-|---|---|---|
-| O1 | Local toolchain | **Docker Desktop.** PHP, Composer, MySQL and Mailpit run in containers. The host needs only Node and Docker. |
-| O2 | Learning content language | **English content.** The UI is bilingual (en/vi). Translatable content columns can be added later without changing the API shape. |
-| O3 | Production domain layout | **Closed 2026-11-21 (D41):** a Route 53 domain; `api.<domain>` on the ALB, `app.<domain>` through CloudFront to the same ALB, uploads through CloudFront from a private bucket. |
-
-## Open decisions
-| O4 | **Email verification required before learning?** | Not required in the MVP. No verification email yet. | Auth flow |
-
-
 #### Course map UI round (owner request after F4, done 2026-11-24)
 
 Rendering only: no course data, relation types, map JSON or `content:check-graphs` changed. Each part was approved on screenshots before the next. Decisions D64 and D65.
@@ -623,3 +606,49 @@ Rendering only: no course data, relation types, map JSON or `content:check-graph
 - Budgets: the course page's weight was not re-measured in this round; `performance.spec.ts` checks it on the next full run.
 - Production parity: not checked in this round.
 - Owner action when deploying: nothing.
+
+### F5: Networking exercises (done, 2026-11-24)
+
+Graded exercises for the 14 lessons F4 added to Networking Fundamentals, the shift F4 recorded. Content only; no decision needed.
+
+**Impact check (CLAUDE.md §5), approved by the owner on 2026-11-24:**
+- **Duplicate:** none. The questions extend `seeders/content/exercises/networking-fundamentals.php` through `ExerciseLoader` (D29), and none repeats one of the lesson's own ungraded knowledge checks (§3).
+- **Conflict:** none. As D31 intends, each of the 14 lessons is now completed only by passing its exercise; earlier completions stay. There are no production learners yet.
+- **Shift:** none. Labs for the new lessons are not part of F5.
+- **Owner's rules for the questions:** command blanks are one token (never an interface name or an optional argument), with a choice question where a command has many valid forms; at most one recall question per lesson; plausible distractors that are real misconceptions; an explanation of the right answer and the tempting wrong one; varied position and length of the correct option; attack scenarios from the defender's side.
+
+**Parts:**
+- **Part A:** network-devices-and-media, encapsulation-and-pdus, ethernet-and-mac-addresses, switching-and-the-mac-table, vlans, arp, ipv6-essentials (36 questions).
+- **Part B:** routing-basics, nat-and-private-addresses, tcp-and-udp-in-depth, icmp-and-troubleshooting, application-protocols, wifi-essentials, packet-capture-basics (37 questions).
+- **Part C:** an independent technical review, a browser pass and the gate.
+
+**Exit, verified (2026-11-24):**
+- **Content:** 73 questions, 5 or 6 per lesson, every lesson with a scenario and at least four of the seven types; 24 networking and security exercises with 127 questions load clean, and every section reference resolves. The correct option is the longest in 4 of 32 choice questions (two of them ties between equal-length options) and sits in every position.
+- **Review:** a subagent that did not write the questions checked all 73 against the lessons and the owner's rules: 3 errors (two correct options in the `iw` question, a debatable order in the troubleshooting routine, a blank with a second valid answer), 9 lessons with rule findings (extra recall, copies of the lessons' worked examples and tables, three near-repeats of knowledge checks, two filler distractors) and 11 wording points. All were fixed; vlans and arp had none.
+- **Browser pass** (Edge, a throwaway learner, through the real exercise UI): every one of the 14 exercises submitted empty and failed, then answered from the revealed solutions and passed at 100% with the lesson marked complete, before and after the review fixes.
+- **Tests:** 807 Pest (ExerciseLoaderTest now derives the exercise count from the files), 518 Vitest, 36 Playwright; Pint, tsc and ESLint clean.
+- **The full end-to-end run found two test problems, fixed on the test side:** the course map suggestions spec hit the admin limit (120 a minute per user) because five specs share one admin account in parallel, so it now signs in as a second throwaway admin (`mapAdmin`; global setup makes two); and the relation-tooltip check now re-aims its hover inside a retry, like the other hover checks. The limiter is unchanged.
+
+**Deploy notes:**
+- Migrations: not applicable (content only).
+- Release task: done. `cybercompass:release` seeds the exercises with the content (`ContentSeeder` runs `ExerciseSeeder`); a lesson edited by an admin keeps its sections, and the loader refuses a question whose section is missing rather than writing a broken one.
+- Configuration, edge, storage and jobs: not applicable.
+- Budgets: unchanged pages; `performance.spec.ts` passed in the full run.
+- Production parity: not checked (content only).
+- Owner action when deploying: nothing.
+
+## Follow-ups (not scheduled in a phase)
+
+- **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.
+- **Question bank admin area** (D24). Phase 4 keeps the bank in a seed file; an admin area follows the CLAUDE.md §3 admin recipe when needed.
+
+## Decisions made
+
+| # | Decision | Outcome (2026-11-19) |
+|---|---|---|
+| O1 | Local toolchain | **Docker Desktop.** PHP, Composer, MySQL and Mailpit run in containers. The host needs only Node and Docker. |
+| O2 | Learning content language | **English content.** The UI is bilingual (en/vi). Translatable content columns can be added later without changing the API shape. |
+| O3 | Production domain layout | **Closed 2026-11-21 (D41):** a Route 53 domain; `api.<domain>` on the ALB, `app.<domain>` through CloudFront to the same ALB, uploads through CloudFront from a private bucket. |
+
+## Open decisions
+| O4 | **Email verification required before learning?** | Not required in the MVP. No verification email yet. | Auth flow |
