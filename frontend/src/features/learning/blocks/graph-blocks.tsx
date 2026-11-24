@@ -29,7 +29,7 @@ function DetailPanel({ title, detail }: { title: string | null; detail: string |
 function TextVersion({ children }: { children: React.ReactNode }) {
   const t = useTranslations("learn.blocks");
   return (
-    <details className="group text-sm">
+    <details suppressHydrationWarning className="group text-sm">
       <summary className="cursor-pointer rounded-control text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
         {t("textVersion")}
       </summary>

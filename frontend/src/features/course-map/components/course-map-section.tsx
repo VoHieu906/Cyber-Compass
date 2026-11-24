@@ -33,7 +33,9 @@ export function CourseMapSection({
       <div className="md:hidden">
         <CourseMapOutline map={map} />
       </div>
-      <details className="max-md:hidden">
+      {/* The browser may open it before hydration (a click while the page loads, or find-in-page
+          matching text inside): `open` is the reader's, React never sets it. Covers this element only. */}
+      <details className="max-md:hidden" suppressHydrationWarning>
         <summary className="cursor-pointer text-sm text-ink underline decoration-rule-2 underline-offset-4">
           {t("textVersion")}
         </summary>

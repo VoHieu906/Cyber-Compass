@@ -66,7 +66,7 @@ export function ChartTooltip({ datum, x, width }: { datum: Datum | null; x: numb
       {datum ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute top-0 z-10 flex -translate-x-1/2 -translate-y-[calc(100%+4px)] flex-col whitespace-nowrap rounded-control border border-rule bg-paper-2 px-2.5 py-1.5 text-sm shadow-sm"
+          className="pointer-events-none absolute top-0 z-10 flex -translate-x-1/2 -translate-y-[calc(100%+4px)] flex-col rounded-control border border-rule bg-paper-2 px-2.5 py-1.5 text-sm whitespace-nowrap shadow-sm"
           style={{ left }}
         >
           <span className="measured font-semibold text-ink">{datum.display}</span>
@@ -80,8 +80,10 @@ export function ChartTooltip({ datum, x, width }: { datum: Datum | null; x: numb
 /** The table view every chart carries, so no value depends on hovering or on colour. */
 export function ChartTable({ data, text, className }: { data: Datum[]; text: ChartTableText; className?: string }) {
   return (
-    <details className={cn("group text-sm", className)}>
-      <summary className="w-fit cursor-pointer text-ink-2 underline decoration-rule-2 underline-offset-4 hover:decoration-accent">{text.toggle}</summary>
+    <details suppressHydrationWarning className={cn("group text-sm", className)}>
+      <summary className="w-fit cursor-pointer text-ink-2 underline decoration-rule-2 underline-offset-4 hover:decoration-accent">
+        {text.toggle}
+      </summary>
       <table className="mt-3 w-full max-w-[28rem] border-collapse">
         <thead>
           <tr className="border-b border-rule text-left text-muted">
@@ -99,7 +101,7 @@ export function ChartTable({ data, text, className }: { data: Datum[]; text: Cha
               <th scope="row" className="py-1.5 pr-4 text-left font-normal text-ink-2">
                 {d.detail}
               </th>
-              <td className="measured py-1.5 text-right tabular-nums text-ink">{d.display}</td>
+              <td className="measured py-1.5 text-right text-ink tabular-nums">{d.display}</td>
             </tr>
           ))}
         </tbody>
@@ -109,12 +111,32 @@ export function ChartTable({ data, text, className }: { data: Datum[]; text: Cha
 }
 
 /** Y-axis tick labels and hairline gridlines, shared by both chart kinds. */
-export function YAxis({ ticks, y, left, right, format }: { ticks: number[]; y: (v: number) => number; left: number; right: number; format: (v: number) => string }) {
+export function YAxis({
+  ticks,
+  y,
+  left,
+  right,
+  format,
+}: {
+  ticks: number[];
+  y: (v: number) => number;
+  left: number;
+  right: number;
+  format: (v: number) => string;
+}) {
   return (
     <g>
       {ticks.map((tick) => (
         <g key={tick}>
-          <line x1={left} x2={right} y1={y(tick)} y2={y(tick)} className="stroke-rule" strokeWidth={1} shapeRendering="crispEdges" />
+          <line
+            x1={left}
+            x2={right}
+            y1={y(tick)}
+            y2={y(tick)}
+            className="stroke-rule"
+            strokeWidth={1}
+            shapeRendering="crispEdges"
+          />
           <text x={left - 8} y={y(tick)} dy="0.32em" textAnchor="end" className="fill-muted text-[11px] tabular-nums">
             {format(tick)}
           </text>

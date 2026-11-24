@@ -17,7 +17,18 @@ import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { goTo, useCompassPageItems } from "@/features/compass/page-items";
 import { useLab, useLabAction, useResetLab, useStartLab } from "../hooks";
-import type { Checkpoint, FirewallScenario, FirewallState, HttpScenario, HttpState, LabAction, LabActionResult, LabDetail, ShellScenario, ShellState } from "../types";
+import type {
+  Checkpoint,
+  FirewallScenario,
+  FirewallState,
+  HttpScenario,
+  HttpState,
+  LabAction,
+  LabActionResult,
+  LabDetail,
+  ShellScenario,
+  ShellState,
+} from "../types";
 import { FirewallConsole } from "./firewall-console";
 import { HttpConsole } from "./http-console";
 import { DIFFICULTY, ENGINE_ICON } from "./labs-list";
@@ -53,7 +64,10 @@ function Workspace({ lab }: { lab: LabDetail }) {
   return (
     <div className="container-page flex flex-col gap-8 py-[var(--space-xl)]">
       <header className="flex flex-col gap-4">
-        <Breadcrumb label={t("common.breadcrumb")} items={[{ href: "/labs", label: t("labs.title") }, { label: lab.title }]} />
+        <Breadcrumb
+          label={t("common.breadcrumb")}
+          items={[{ href: "/labs", label: t("labs.title") }, { label: lab.title }]}
+        />
         <h1 className="text-[length:var(--text-display-s)]">{lab.title}</h1>
         <p className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <span className="inline-flex items-center gap-1.5 text-ink">
@@ -64,7 +78,10 @@ function Workspace({ lab }: { lab: LabDetail }) {
           <DifficultyChip difficulty={DIFFICULTY[lab.difficulty - 1]} />
           <Duration minutes={lab.estimated_minutes} className="text-ink" />
           {lab.lesson ? (
-            <Link href={`/learn/${lab.lesson.slug}`} className="text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent">
+            <Link
+              href={`/learn/${lab.lesson.slug}`}
+              className="text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent"
+            >
               {t("labs.practises", { lesson: lab.lesson.title })}
             </Link>
           ) : null}
@@ -103,13 +120,23 @@ function Running({ lab }: { lab: LabDetail }) {
     {
       id: "console",
       label: tc("pageConsole"),
-      run: () => goTo(document.querySelector<HTMLElement>("#lab-console :is(input, select, textarea):not(:disabled)") ?? document.getElementById("lab-console")),
+      run: () =>
+        goTo(
+          document.querySelector<HTMLElement>("#lab-console :is(input, select, textarea):not(:disabled)") ??
+            document.getElementById("lab-console"),
+        ),
     },
     ...(open
-      ? [{ id: "next", label: tc("pageNextTask"), run: () => {
-          const task = document.querySelector<HTMLElement>('li[data-passed="false"]');
-          goTo(task?.querySelector<HTMLElement>("input:not(:disabled)") ?? task ?? null);
-        } }]
+      ? [
+          {
+            id: "next",
+            label: tc("pageNextTask"),
+            run: () => {
+              const task = document.querySelector<HTMLElement>('li[data-passed="false"]');
+              goTo(task?.querySelector<HTMLElement>("input:not(:disabled)") ?? task ?? null);
+            },
+          },
+        ]
       : []),
   ]);
 
@@ -128,28 +155,59 @@ function Running({ lab }: { lab: LabDetail }) {
 
   const engineConsole =
     lab.engine === "linux-shell" ? (
-      <Terminal scenario={lab.scenario as ShellScenario} state={attempt.state as ShellState} busy={act.isPending} onCommand={(command) => send({ type: "command", command })} />
+      <Terminal
+        scenario={lab.scenario as ShellScenario}
+        state={attempt.state as ShellState}
+        busy={act.isPending}
+        onCommand={(command) => send({ type: "command", command })}
+      />
     ) : lab.engine === "firewall-rules" ? (
-      <FirewallConsole scenario={lab.scenario as FirewallScenario} state={attempt.state as FirewallState} busy={act.isPending} onAction={send} />
+      <FirewallConsole
+        scenario={lab.scenario as FirewallScenario}
+        state={attempt.state as FirewallState}
+        busy={act.isPending}
+        onAction={send}
+      />
     ) : (
-      <HttpConsole scenario={lab.scenario as HttpScenario} state={attempt.state as HttpState} busy={act.isPending} onAction={send} />
+      <HttpConsole
+        scenario={lab.scenario as HttpScenario}
+        state={attempt.state as HttpState}
+        busy={act.isPending}
+        onAction={send}
+      />
     );
 
   return (
     // On lg+ the workspace fills the screen below the header, so tasks and console are readable together.
     <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:h-[calc(100dvh-var(--header-height)-3rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
-      <Checkpoints lab={lab} busy={act.isPending} onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })} />
-      <div id="lab-console" className={cn("flex min-w-0 flex-col gap-3 lg:min-h-0", lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1")}>
-        {notice ? (
-          <Alert tone="error">{notice}</Alert>
-        ) : null}
+      <Checkpoints
+        lab={lab}
+        busy={act.isPending}
+        onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })}
+      />
+      <div
+        id="lab-console"
+        className={cn(
+          "flex min-w-0 flex-col gap-3 lg:min-h-0",
+          lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1",
+        )}
+      >
+        {notice ? <Alert tone="error">{notice}</Alert> : null}
         {engineConsole}
       </div>
     </div>
   );
 }
 
-function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; onAnswer: (id: string, value: string) => Promise<LabActionResult | null> }) {
+function Checkpoints({
+  lab,
+  busy,
+  onAnswer,
+}: {
+  lab: LabDetail;
+  busy: boolean;
+  onAnswer: (id: string, value: string) => Promise<LabActionResult | null>;
+}) {
   const t = useTranslations("labs");
   const passed = lab.checkpoints.filter((c) => c.passed).length;
   const total = lab.checkpoints.length;
@@ -184,7 +242,10 @@ function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; o
         <ProgressTrack value={Math.round((passed / Math.max(1, total)) * 100)} />
       </div>
       {done ? (
-        <p role="status" className="flex items-center gap-2 rounded-card border border-accent bg-accent-soft px-4 py-3 text-sm font-medium text-ink">
+        <p
+          role="status"
+          className="flex items-center gap-2 rounded-card border border-accent bg-accent-soft px-4 py-3 text-sm font-medium text-ink"
+        >
           <Trophy aria-hidden className="size-4 text-accent" />
           {passed === total ? t("complete") : t("completedBefore")}
         </p>
@@ -192,7 +253,7 @@ function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; o
       {/* Only the list scrolls on lg+; the padding keeps the edge fades and focus rings off the first and last items. */}
       <div
         ref={list}
-        className="flex flex-col gap-4 lg:sticky-panel lg:-mx-1 lg:min-h-0 lg:flex-1 lg:px-1 lg:py-3 lg:[mask-image:linear-gradient(to_bottom,transparent,black_0.75rem,black_calc(100%-0.75rem),transparent)]"
+        className="flex flex-col gap-4 lg:sticky-panel lg:-mx-1 lg:min-h-0 lg:flex-1 lg:[mask-image:linear-gradient(to_bottom,transparent,black_0.75rem,black_calc(100%-0.75rem),transparent)] lg:px-1 lg:py-3"
       >
         <ol className="flex flex-col gap-3">
           {lab.checkpoints.map((c, i) => (
@@ -205,7 +266,17 @@ function Checkpoints({ lab, busy, onAnswer }: { lab: LabDetail; busy: boolean; o
   );
 }
 
-function CheckpointItem({ checkpoint, number, busy, onAnswer }: { checkpoint: Checkpoint; number: number; busy: boolean; onAnswer: (id: string, value: string) => Promise<LabActionResult | null> }) {
+function CheckpointItem({
+  checkpoint,
+  number,
+  busy,
+  onAnswer,
+}: {
+  checkpoint: Checkpoint;
+  number: number;
+  busy: boolean;
+  onAnswer: (id: string, value: string) => Promise<LabActionResult | null>;
+}) {
   const t = useTranslations("labs");
   const [value, setValue] = useState("");
   const [wrong, setWrong] = useState(false);
@@ -214,7 +285,11 @@ function CheckpointItem({ checkpoint, number, busy, onAnswer }: { checkpoint: Ch
   return (
     <li data-passed={checkpoint.passed} className="flex flex-col gap-2 rounded-card border border-rule bg-paper-2 p-4">
       <p className="flex gap-2.5 text-sm text-ink">
-        {checkpoint.passed ? <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" /> : <Circle aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />}
+        {checkpoint.passed ? (
+          <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" />
+        ) : (
+          <Circle aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />
+        )}
         <span>
           <span className="sr-only">
             {t("taskNumber", { number })}, {checkpoint.passed ? t("done") : t("notDone")}:{" "}
@@ -262,8 +337,10 @@ function CheckpointItem({ checkpoint, number, busy, onAnswer }: { checkpoint: Ch
         </form>
       ) : null}
       {checkpoint.hint && !checkpoint.passed ? (
-        <details className="pl-6 text-sm">
-          <summary className="cursor-pointer text-ink underline decoration-rule-2 underline-offset-4">{t("hint")}</summary>
+        <details suppressHydrationWarning className="pl-6 text-sm">
+          <summary className="cursor-pointer text-ink underline decoration-rule-2 underline-offset-4">
+            {t("hint")}
+          </summary>
           <p className="mt-1.5">{checkpoint.hint}</p>
         </details>
       ) : null}
@@ -283,7 +360,13 @@ function ResetButton({ lab }: { lab: LabDetail }) {
         <RotateCcw aria-hidden />
         {t("labs.reset")}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={t("labs.resetTitle")} description={t("labs.resetBody")} closeLabel={t("common.close")}>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title={t("labs.resetTitle")}
+        description={t("labs.resetBody")}
+        closeLabel={t("common.close")}
+      >
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             {t("common.cancel")}
@@ -291,7 +374,9 @@ function ResetButton({ lab }: { lab: LabDetail }) {
           <Button
             variant="danger"
             loading={reset.isPending}
-            onClick={() => reset.mutate({ attemptId: attempt.id, version: attempt.version }, { onSettled: () => setOpen(false) })}
+            onClick={() =>
+              reset.mutate({ attemptId: attempt.id, version: attempt.version }, { onSettled: () => setOpen(false) })
+            }
           >
             {t("labs.reset")}
           </Button>

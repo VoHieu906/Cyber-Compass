@@ -241,7 +241,7 @@ export function Topology({ data }: { data: TopologyData }) {
         </div>
       ) : null}
 
-      <details className="text-sm">
+      <details suppressHydrationWarning className="text-sm">
         <summary className="cursor-pointer rounded-control text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
           {t("textVersion")}
         </summary>
