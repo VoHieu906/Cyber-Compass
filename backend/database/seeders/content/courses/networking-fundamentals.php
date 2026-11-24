@@ -506,6 +506,7 @@ MD],
 ip link show dev eth0        # look for "mtu 1500"
 tracepath 203.0.113.10       # reports the path MTU hop by hop
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so yours is probably not `eth0`: a wired card is often `enp0s3` or `eno1`, a wireless one `wlp2s0`. Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['callout', 'Headers inside headers', 'A tunnel puts a whole packet inside another packet: VPNs, GRE, and DNS tunnelling used to smuggle data out. A firewall that reads only the outer header sees only the tunnel, which is why tunnels are either allowed on purpose or blocked.', 'warning'],
                         ['knowledge-check', 'Check your understanding', [
                             'questions' => [
@@ -584,6 +585,7 @@ MD],
 ip -br link                  # name, state and MAC address of every interface
 ip link show dev eth0        # "link/ether" is the MAC address
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so yours is probably not `eth0`: a wired card is often `enp0s3` or `eno1`, a wireless one `wlp2s0`. Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['callout', 'A MAC address is not an identity', 'Any interface\'s address can be changed with one command (`ip link set dev eth0 address …`), and phones use a different random address on each network. Allowing devices onto a network by MAC address alone stops accidents, not attackers. Use 802.1X authentication when the identity of a device matters.', 'warning'],
                         ['knowledge-check', 'Check your understanding', [
                             'questions' => [
@@ -785,6 +787,7 @@ sudo ip link add link eth0 name eth0.20 type vlan id 20
 sudo ip addr add 10.0.20.10/24 dev eth0.20
 sudo ip link set dev eth0.20 up
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so yours is probably not `eth0`: a wired card is often `enp0s3` or `eno1`, a wireless one `wlp2s0`. Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['callout', 'VLAN hopping', 'Two classic tricks get frames into a VLAN an attacker is not in. Switch spoofing: the attacker\'s port negotiates itself into a trunk. Double tagging: a frame with two tags loses the outer one on a trunk whose native VLAN matches it. Defences: turn off automatic trunk negotiation, make user ports access ports, allow only the VLANs a trunk needs, and give trunks an unused native VLAN.', 'warning'],
                         ['knowledge-check', 'Check your understanding', [
                             'questions' => [
@@ -955,6 +958,7 @@ ip neigh show                       # IP, interface, MAC and state of each entry
 ip neigh show dev eth0              # only one interface
 sudo ip neigh flush dev eth0        # forget them all; they are relearned on use
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so yours is probably not `eth0`: a wired card is often `enp0s3` or `eno1`, a wireless one `wlp2s0`. Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['callout', 'ARP spoofing', 'ARP believes any reply, even one nobody asked for. An attacker on the same network can keep telling the victim "the gateway is at my MAC address" and telling the gateway the same about the victim, then sit in the middle of their traffic. Defences: switches that check ARP against DHCP records (Dynamic ARP Inspection with DHCP snooping), static entries for a few critical hosts, and encryption such as TLS, so a man in the middle sees only ciphertext.', 'warning'],
                         ['prose', 'IPv6 does it differently', <<<'MD'
 IPv6 has no ARP. **Neighbor Discovery** does the same job with ICMPv6 messages: a neighbor solicitation sent to a multicast address (the target's solicited-node address) instead of a broadcast, answered by a unicast neighbor advertisement. The idea and the weakness are the same: forged advertisements can redirect traffic, and the defence is the same kind of switch inspection.
@@ -1273,7 +1277,9 @@ default via 192.168.1.1 dev wlan0 proto dhcp metric 600
 
 $ ip route get 203.0.113.10       # which route would this destination use?
 203.0.113.10 via 192.168.1.1 dev wlan0 src 192.168.1.20 uid 1000
+    cache
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so your table will show a name like `wlp2s0` (wireless) or `enp0s3` (wired) where this example shows `wlan0`. Run `ip -br link` to list your interfaces.', 'tip'],
                         ['steps', 'Longest prefix match', [
                             'Take the packet\'s destination address, for example 10.1.2.3.',
                             'Find every route whose prefix contains it: here `10.0.0.0/8`, `10.1.0.0/16` and the default `0.0.0.0/0`.',
@@ -1395,6 +1401,7 @@ sudo nft add table ip nat
 sudo nft add chain ip nat postrouting '{ type nat hook postrouting priority srcnat; }'
 sudo nft add rule ip nat postrouting oifname "wan0" masquerade
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', '`wan0` stands for the interface that faces the internet. Most distributions name interfaces after where the hardware sits, such as `enp0s3` or `eno1`; run `ip -br link` to list yours and use that name.', 'tip'],
                         ['callout', 'NAT is not a firewall', 'Unsolicited inbound packets fail through NAT only because no mapping exists. A port forward, an automatic one opened by UPnP, or IPv6, where hosts usually have global addresses and no NAT at all, removes that accident. Protect inbound traffic with explicit firewall rules.', 'warning'],
                         ['prose', 'Where else you meet it', <<<'MD'
 Containers rely on NAT too: when Docker publishes a container's port, it adds a destination NAT rule from the host's port to the container's private address. The blog post "Docker & Containers 101" (/blog/docker-containers-101) follows one such packet hop by hop.
@@ -1893,6 +1900,7 @@ MD],
 nmcli dev wifi list          # nearby networks: SSID, BSSID, channel, security
 iw dev wlan0 link            # the access point you are connected to and the signal
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so your wireless card is probably not `wlan0` but something like `wlp2s0` (a wired one looks like `enp0s3`). Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['callout', 'Evil twins and deauthentication', 'An attacker can set up an access point with the same SSID as a real one, then send forged "deauthenticate" frames so clients drop off and reconnect, some of them to the impostor. WPA3 makes protected management frames mandatory, which stops the forged disconnects; enterprise Wi-Fi whose clients check the server certificate stops them trusting a fake network.', 'warning'],
                         ['prose', 'Guest networks', <<<'MD'
 Visitors' devices belong on their own network: a separate SSID mapped to its own VLAN and subnet, with firewall rules that allow the internet and nothing internal. Turning on **client isolation** also stops guest devices from talking to each other.
@@ -1966,6 +1974,7 @@ sudo tcpdump -i eth0 -n -c 20 host 203.0.113.10         # 20 packets to or from 
 sudo tcpdump -i eth0 -w web.pcap 'tcp port 443'         # save HTTPS traffic to a file
 tcpdump -n -r web.pcap | head                           # read the file back
 SH, 'bash'],
+                        ['callout', 'Your interface may have another name', 'Most distributions name interfaces after where the hardware sits, so yours is probably not `eth0`: a wired card is often `enp0s3` or `eno1`, a wireless one `wlp2s0`. Run `ip -br link` to list your interfaces and use that name in the commands above.', 'tip'],
                         ['comparison', 'Capture filters and display filters', [
                             'columns' => ['Capture filter', 'Display filter'],
                             'rows' => [
