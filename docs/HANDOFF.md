@@ -72,7 +72,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Testing:** `cybercompass:e2e-course-map install|remove` (local and testing only) gives a test map on Applied Cryptography. Playwright installs it in global setup and removes it in teardown. After installing by hand, the public course page can show the old version for up to 60 seconds.
 - **Lesson anchors:** `DocumentLayout` scrolls to `#<section uuid>` once a lesson renders (lessons load on the client).
 - **Cache deadlocks:** the `database` cache driver is `App\Support\Cache\RetryingDatabaseStore` (registered in `AppServiceProvider`), which retries writes MySQL picks as deadlock victims (parallel first requests of one user racing on the rate limiter row).
-- **Hallmark sloplint:** run `~/.claude/skills/hallmark/scripts/sloplint.mjs` copied into a folder with `puppeteer-core` installed, with `CHROME_PATH` set to Edge; `--scope app` and `--url` for the render tier (it cannot log in, so admin screens get the static pass).
+- **Hallmark sloplint:** run `~/.claude/skills/hallmark/scripts/sloplint.mjs` copied into a folder with `puppeteer-core` installed, with `CHROME_PATH` set to Edge; `--scope app` and `--url` for the render tier (it cannot log in, so admin screens get the static pass). Lint component files together with `src/app/globals.css`: the focus ring (gate 26a, never waivable) is the global `:focus-visible` rule there, so a component linted alone reports "no focus-visible styling" although every control has the ring (checked by keyboard in the admin Course map and Architecture panels, 2026-11-24).
 
 ## F1: compass menu and keyboard shortcuts (formerly Phase 7.5, 2026-11-22)
 
