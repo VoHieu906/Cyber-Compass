@@ -562,8 +562,8 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
 - Migrations: not applicable.
 - Release task: done. The map and architectures arrive with `content:import` in `cybercompass:release`; a map an admin has already edited would be skipped (D58).
 - Configuration, edge, storage and jobs: not applicable.
-- Budgets: as above.
-- Production parity: see the production check.
+- Budgets: as above. On the production images `/courses/networking-fundamentals` loads 199 KB of JavaScript and makes 1 API request (budget 250 KB and 2), the same as before the map.
+- Production parity: checked with `docker-compose.prod.yml` (fresh secrets, migrations, content seed): 32 of 33 end-to-end tests passed in one run; the avatar upload test failed on a 429 from the login rate limit (every login in the run comes from one address) and passed when rerun with the course map specs (4 of 4).
 - Owner action when deploying: nothing.
 
 ## Follow-ups (not scheduled in a phase)
