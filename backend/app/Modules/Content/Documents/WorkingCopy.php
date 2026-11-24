@@ -95,7 +95,7 @@ abstract class WorkingCopy
         return [
             ...$snapshot,
             'sections' => array_map(
-                fn (array $s) => ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'], 'payload' => $s['payload']],
+                fn (array $s) => ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'], 'payload' => $s['payload'], 'sources' => $s['sources'] ?? null],
                 $snapshot['sections'] ?? [],
             ),
         ];
@@ -105,7 +105,7 @@ abstract class WorkingCopy
     protected function liveSections(BlockDocument $doc): array
     {
         return $doc->sections()->get()
-            ->map(fn (Model $s) => ['uuid' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload])
+            ->map(fn (Model $s) => ['uuid' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload, 'sources' => $s->sources])
             ->all();
     }
 

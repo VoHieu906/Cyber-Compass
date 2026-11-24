@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "step-through",
+  "x-factual": true,
   "description": "An annotated walkthrough. Each step can show a row of parts (headers wrapping data, say) and a list of values; values that changed since the previous step are highlighted.",
   "type": "object",
   "required": ["steps"],

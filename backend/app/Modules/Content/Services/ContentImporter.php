@@ -100,8 +100,8 @@ final class ContentImporter
     }
 
     /**
-     * Converts the compact section format to {key, uuid, type, heading, payload}:
-     * [type, heading, body, extra, data] plus optional named 'key' and 'uuid' elements.
+     * Converts the compact section format to {key, uuid, type, heading, payload, sources}:
+     * [type, heading, body, extra, data] plus optional named 'key', 'uuid' and 'sources' (D68) elements.
      * 'uuid' pins a section created in the admin console (random UUID) when it is exported
      * back to a file; otherwise the UUID is derived from the lesson slug and section key.
      *
@@ -123,7 +123,7 @@ final class ContentImporter
             default => is_array($body) ? $body : [],
         };
 
-        return ['key' => $s['key'] ?? null, 'uuid' => $s['uuid'] ?? null, 'type' => (string) $type, 'heading' => $heading, 'payload' => $payload];
+        return ['key' => $s['key'] ?? null, 'uuid' => $s['uuid'] ?? null, 'type' => (string) $type, 'heading' => $heading, 'payload' => $payload, 'sources' => $s['sources'] ?? null];
     }
 
     /**

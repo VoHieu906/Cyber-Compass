@@ -18,7 +18,7 @@ final class CalloutBlock extends JsonSchemaBlock
 
     public function description(): string
     {
-        return 'A short note set apart from the text: info, tip or warning.';
+        return 'A short note set apart from the text: info, tip, warning, a recap that says the block before it another way, or a fun fact.';
     }
 
     public function normalize(array $payload): array

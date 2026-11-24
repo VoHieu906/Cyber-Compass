@@ -26,8 +26,8 @@ final class BlockSerializer
     {
         $rows = Collection::make($sections)
             ->map(fn ($s) => $s instanceof Model
-                ? ['id' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload]
-                : ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'] ?? null, 'payload' => $s['payload']])
+                ? ['id' => $s->uuid, 'type' => $s->type, 'heading' => $s->heading, 'payload' => $s->payload, 'sources' => $s->sources]
+                : ['id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'] ?? null, 'payload' => $s['payload'], 'sources' => $s['sources'] ?? null])
             ->values();
 
         // With 3D scripts switched off, the code never leaves the server; the reader shows the description.

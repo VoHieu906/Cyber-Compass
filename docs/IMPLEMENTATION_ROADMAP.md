@@ -657,6 +657,15 @@ Lessons, blog posts and blocks written with outside chatbots come into the admin
 - **Part E:** course overview, `content:format-guide` and the guide-is-current test, the AI guide and format spec, the OSI prompt and the tested example package, the "Download AI guide" action.
 - **Part F:** AWS (transfers bucket, IAM, CORS, lifecycle, CSP, preflight, environment examples), DEPLOYMENT_AWS (including the notification delay), docs and the gate.
 
+**Part A (done, 2026-11-24):**
+- **Sources** (D68): migration `add_sources_to_sections` (nullable JSON on `lesson_sections` and `post_sections`); `Content\Documents\SectionSources` with `Documents/schemas/sources.json` and shared fixtures, called from `BlockRegistry::validateSections`, so the editor, content files and (later) packages validate in one place; carried by `SectionWriter`, `WorkingCopy` (live sections and `toInput`), `BlockSerializer`, the admin resources, `ContentImporter::fromCompact` and `ContentExporter` (named `'sources'` element); `RevisionSummary` does not count a missing key in old snapshots as an edit. Reader: a collapsed "Sources (n)" list under any section, in lessons and posts. Editor: a Sources list on every block (`SourceListEditor`).
+- **Callout tones** `recap` ("In other words") and `fun-fact` ("Fun fact"), named on screen; the other tones keep their screen-reader-only name. Editor options come from `calloutTones` in the zod mirror.
+- **Block metadata** (D69, as amended): every block schema declares `x-factual`; the purpose stays the block's `description()`. A Pest test requires `x-factual` on every registered type.
+- **Tests:** Pest (registry: sources fixtures, error paths, trimming, `x-factual`; editor: sources through draft, preview, publish and the reader, a refused `javascript:` link; export: sources written to and read from the content file), Vitest (sources zod contract on the shared fixtures, the reader disclosure, named tones, the editor keeping and editing sources).
+- **Browser check** (Edge, light and dark, 1280 and 390, temporary data on `osi-model`, removed afterwards): sources list, recap and fun fact in the reader, the editor's Sources list and tone options, no overflow, no console errors; 44 of 44.
+- **Totals:** 825 Pest, 537 Vitest; Pint, tsc and ESLint clean. The seeded Docker post still shows only the three original tones (its guard test is unchanged); adding recap and fun-fact examples to it is a content change left for the owner.
+- **Deploy notes (Part A):** one expand-only migration, run by `cybercompass:release`; no variable, route, origin, upload or job change. Owner action: nothing.
+
 ## Follow-ups (not scheduled in a phase)
 
 - **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.

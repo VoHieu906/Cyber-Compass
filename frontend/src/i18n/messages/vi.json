@@ -352,7 +352,9 @@
     "callout": {
       "info": "Lưu ý",
       "tip": "Mẹo",
-      "warning": "Cẩn thận"
+      "warning": "Cẩn thận",
+      "recap": "Nói cách khác",
+      "fun-fact": "Chuyện thú vị"
     },
     "diagramUnavailable": "Sơ đồ này không khả dụng.",
     "diagrams": {
@@ -470,7 +472,17 @@
     "takeExercise": "Làm bài tập",
     "exercisePassed": "Đã đạt bài tập",
     "practiseAgain": "Luyện tập lại",
-    "practiseInLab": "Luyện tập trong bài thực hành:"
+    "practiseInLab": "Luyện tập trong bài thực hành:",
+    "sources": "Nguồn tham khảo ({count})",
+    "sourceKinds": {
+      "paper": "Bài báo khoa học",
+      "rfc": "RFC hoặc tiêu chuẩn",
+      "docs": "Tài liệu chính thức",
+      "article": "Bài viết",
+      "book": "Sách",
+      "community": "Thảo luận cộng đồng",
+      "other": "Khác"
+    }
   },
   "careers": {
     "title": "Nghề nghiệp",
@@ -933,7 +945,9 @@
       "tones": {
         "info": "Ghi chú",
         "tip": "Mẹo",
-        "warning": "Cảnh báo"
+        "warning": "Cảnh báo",
+        "recap": "Nói cách khác (tóm lại)",
+        "fun-fact": "Chuyện thú vị"
       },
       "steps": "Các bước",
       "addStep": "Thêm bước",
@@ -1040,7 +1054,14 @@
           "dismiss": "Bỏ qua",
           "hint": "Dùng một gợi ý chỉ thay đổi bản nháp này: sửa lại, rồi lưu bản nháp như thường lệ."
         }
-      }
+      },
+      "sources": "Nguồn tham khảo",
+      "sourcesHint": "Những gì chứng minh cho nội dung của mục này. Không bao giờ bịa nguồn; ghi chú lại mọi nguồn chưa kiểm tra.",
+      "sourceLabel": "Tên nguồn",
+      "sourceUrl": "Liên kết",
+      "sourceKind": "Loại",
+      "sourceNote": "Ghi chú",
+      "addSource": "Thêm nguồn"
     },
     "media": {
       "image": "Hình ảnh",

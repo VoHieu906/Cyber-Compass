@@ -48,7 +48,8 @@ Limits are enforced when you save; the editor shows them in each block's **Field
 ### Text, callouts and steps
 
 - Text format: blank line between paragraphs; `- ` for bullets; `1. ` for numbered lists; `**bold**`; `` `code` ``; `[link text](https://…)`. Only `https://` links are accepted, and they open in a new tab. No HTML: it is shown as text.
-- Callout tones: **info** for context, **tip** for a memory aid or shortcut, **warning** for an attack or a common mistake. At most one or two per lesson, or they stop standing out.
+- Callout tones: **info** for context, **tip** for a memory aid or shortcut, **warning** for an attack or a common mistake, **recap** ("In other words") right after a long or dense block to say the same thing another way (an analogy, why it matters, the attacker's or defender's view; 2 to 4 sentences, never a copy of its opening), and **fun-fact** for a memorable association (an analogy needs no source; an anecdote or "the inventor got the idea from…" story is a factual claim and needs one, and a popular legend is called a legend). At most one or two of each per lesson, never a fun fact in the middle of a procedure.
+- **Sources** (D68): any section can list what backs its facts (label, link, kind: paper, rfc, docs, article, book, community, other, and an optional note), shown to readers in a collapsed "Sources" list under the section. Prefer primary sources (RFCs, official docs); label forum threads as community; never invent one, and write "needs verification" in the note when unsure. In the editor it is the Sources list on each block; in content files a named `'sources' => [...]` element on the section. The lesson's `resources` list stays as further reading.
 - Headings become the lesson's "On this page" list, so make them short and specific ("TCP and UDP", not "More details").
 
 ### Layer stack

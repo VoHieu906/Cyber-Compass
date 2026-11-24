@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "layer-stack",
+  "x-factual": true,
   "description": "Ordered layers, top of the stack first (OSI, TCP/IP, defence in depth). Learners select a layer to read its details. Mirrors frontend/src/features/learning/blocks/schemas.ts.",
   "type": "object",
   "required": ["layers"],

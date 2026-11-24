@@ -74,7 +74,7 @@ const lesson: AdminLesson = {
   topics: [],
   exercise_references: {},
   architecture_issues: [],
-      architecture_suggestions: [],
+  architecture_suggestions: [],
   working_copy: {
     chapter_id: 2,
     slug: "osi-model",
@@ -128,6 +128,34 @@ describe("block-document editor adapters", () => {
     expect(lockVersion).toBe(1);
     expect(copy).toMatchObject({ title: "Containers, explained", tags: ["docker"], cover: null });
     expect(mocks.lesson.saveDraft).not.toHaveBeenCalled();
+  });
+
+  it("keeps a section's sources when saving and edits them in place (D68)", async () => {
+    const user = userEvent.setup();
+    const sources = [{ label: "Docker overview", url: "https://docs.docker.com/get-started/", kind: "docs" as const }];
+    mocks.post.fetch.mockResolvedValue({
+      ...post,
+      working_copy: { ...post.working_copy, sections: [{ ...post.working_copy.sections[0], sources }] },
+    });
+    mocks.post.saveDraft.mockImplementation(async (_id: number, copy: AdminPost["working_copy"]) => ({
+      ...post,
+      lock_version: 2,
+      working_copy: copy,
+    }));
+    renderWithProviders(<PostEditor id={7} />);
+
+    const label = await screen.findByLabelText("Source title 1");
+    await user.type(label, " (get started)");
+    await user.click(screen.getByRole("button", { name: "Add source" }));
+    await user.type(screen.getByLabelText("Source title 2"), "Community thread");
+    await user.selectOptions(screen.getByLabelText("Kind 2"), "community");
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+
+    await waitFor(() => expect(mocks.post.saveDraft).toHaveBeenCalled());
+    expect(mocks.post.saveDraft.mock.calls[0][1].sections[0].sources).toEqual([
+      { label: "Docker overview (get started)", url: "https://docs.docker.com/get-started/", kind: "docs" },
+      { label: "Community thread", url: "https://", kind: "community" },
+    ]);
   });
 
   it("keeps the lesson editor as it was: chapter, objectives and typed reading time", async () => {

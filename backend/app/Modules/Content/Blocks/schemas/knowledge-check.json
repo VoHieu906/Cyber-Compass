@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "knowledge-check",
+  "x-factual": false,
   "description": "One to three ungraded questions. Answers ship with the lesson and never affect progress (PHASE_3_5 A4). Each question needs at least one correct option (checked in KnowledgeCheckBlock); several correct options make it a choose-all question.",
   "type": "object",
   "required": ["questions"],

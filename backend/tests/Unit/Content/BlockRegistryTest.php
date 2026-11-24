@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 // Datasets are built before the app boots, so resolve the path from this file, not app_path().
 const FIXTURES = __DIR__.'/../../../app/Modules/Content/Blocks/fixtures';
+const SOURCE_FIXTURES = __DIR__.'/../../../app/Modules/Content/Documents/fixtures';
 
 $fixtures = fn (string $kind) => collect(glob(FIXTURES.'/*.'.$kind.'.json'))
     ->flatMap(function (string $file) {
@@ -70,7 +71,7 @@ it('normalizes payloads before validating and storing them', function () {
         ['type' => 'code', 'heading' => '', 'payload' => ['code' => "ls\n\n"]],
     ]);
 
-    expect($clean[0])->toBe(['type' => 'callout', 'heading' => 'Note', 'payload' => ['text' => 'Spaced', 'tone' => 'info']])
+    expect($clean[0])->toBe(['type' => 'callout', 'heading' => 'Note', 'payload' => ['text' => 'Spaced', 'tone' => 'info'], 'sources' => null])
         ->and($clean[1]['heading'])->toBeNull()
         ->and($clean[1]['payload'])->toBe(['code' => 'ls', 'language' => 'text']);
 });
@@ -118,4 +119,48 @@ it('trims a calculator starting value and drops an empty one', function () {
 
     expect($clean[0]['payload'])->toBe(['tool' => 'cidr', 'initial' => '10.0.0.1/8'])
         ->and($clean[1]['payload'])->toBe(['tool' => 'chmod']);
+});
+
+it('declares in every block schema whether the block states facts (D69)', function () {
+    foreach (BlockRegistry::default()->all() as $key => $block) {
+        expect($block->schema()->{'x-factual'} ?? null)->toBeBool("{$key} has no x-factual");
+    }
+});
+
+/*
+| Section sources (D68) are checked once for every block type; the fixtures are shared with
+| the zod mirror in frontend/src/features/learning/blocks/schemas.ts.
+*/
+$sourceFixtures = fn (string $kind) => collect(json_decode(file_get_contents(SOURCE_FIXTURES."/sources.{$kind}.json"), true))
+    ->mapWithKeys(fn ($sources, $i) => ["sources #{$i}" => [$sources]])
+    ->all();
+
+it('accepts every valid sources fixture on any block', function (array $sources) {
+    $clean = BlockRegistry::default()->validateSections([['type' => 'prose', 'payload' => ['text' => 'x'], 'sources' => $sources]]);
+
+    expect($clean[0]['sources'])->toBe($sources === [] ? null : $sources);
+})->with($sourceFixtures('valid'));
+
+it('rejects every invalid sources fixture', function (mixed $sources) {
+    BlockRegistry::default()->validateSections([['type' => 'layer-stack', 'payload' => BlockRegistry::default()->get('layer-stack')->example(), 'sources' => $sources]]);
+})->with($sourceFixtures('invalid'))->throws(ValidationException::class);
+
+it('reports source errors under the section', function () {
+    try {
+        BlockRegistry::default()->validateSections([
+            ['type' => 'prose', 'payload' => ['text' => 'x']],
+            ['type' => 'prose', 'payload' => ['text' => 'y'], 'sources' => [['label' => ' RFC 791 ', 'url' => 'https://www.rfc-editor.org/rfc/rfc791', 'kind' => 'blog']]],
+        ]);
+        $this->fail('expected a validation error');
+    } catch (ValidationException $e) {
+        expect(array_keys($e->errors()))->toBe(['sections.1.sources.0.kind']);
+    }
+});
+
+it('trims source text', function () {
+    $clean = BlockRegistry::default()->validateSections([
+        ['type' => 'prose', 'payload' => ['text' => 'x'], 'sources' => [['label' => ' RFC 791 ', 'url' => 'https://www.rfc-editor.org/rfc/rfc791 ', 'kind' => 'rfc']]],
+    ]);
+
+    expect($clean[0]['sources'])->toBe([['label' => 'RFC 791', 'url' => 'https://www.rfc-editor.org/rfc/rfc791', 'kind' => 'rfc']]);
 });

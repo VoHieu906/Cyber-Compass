@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "calculator",
+  "x-factual": false,
   "description": "A small tool the learner can try: cidr (subnetting), chmod (Linux permissions) or password-entropy. Runs entirely in the browser. The starting value is checked per tool in CalculatorBlock.",
   "type": "object",
   "required": ["tool"],

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { controlClasses } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { errorAt, moveItem, type FieldErrors } from "../editor-state";
+import type { SectionSource, SourceKind } from "@/features/learning/types";
 import type { Resource } from "../types";
 
 const iconButton =
@@ -211,5 +212,116 @@ export function ResourceListEditor({
         </div>
       ) : null}
     </fieldset>
+  );
+}
+
+const SOURCE_KINDS: SourceKind[] = ["docs", "rfc", "paper", "article", "book", "community", "other"];
+
+/**
+ * A section's sources (D68), collapsed unless it has some or the server named a problem in them.
+ * Errors come keyed `sections.<i>.sources.<j>.<field>`.
+ */
+export function SourceListEditor({
+  items,
+  onChange,
+  errors,
+  errorPrefix,
+}: {
+  items: SectionSource[];
+  onChange: (items: SectionSource[]) => void;
+  errors: FieldErrors;
+  errorPrefix: string;
+}) {
+  const t = useTranslations("content.editor");
+  const tKind = useTranslations("learn.sourceKinds");
+  const update = (i: number, patch: Partial<SectionSource>) =>
+    onChange(items.map((s, j) => (j === i ? { ...s, ...patch } : s)));
+  const hasErrors = Object.keys(errors).some((k) => k.startsWith(`${errorPrefix}.`) || k === errorPrefix);
+
+  return (
+    <details open={items.length > 0 || hasErrors} className="rounded-control border border-rule px-3 py-2 text-sm">
+      <summary className="cursor-pointer rounded-chip font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+        {t("sources")} ({items.length})
+      </summary>
+      <div className="mt-2 flex flex-col gap-3">
+        <p className="text-muted">{t("sourcesHint")}</p>
+        {errorAt(errors, errorPrefix) ? <p className="text-bad">{errorAt(errors, errorPrefix)}</p> : null}
+        <ol className="flex flex-col gap-3">
+          {items.map((s, i) => {
+            const at = `${errorPrefix}.${i}`;
+            const fieldError = ["label", "url", "kind", "note"].map((f) => errorAt(errors, `${at}.${f}`)).find(Boolean);
+            const name = `${t("sources")} ${i + 1}`;
+            return (
+              <li key={i} className="flex flex-col gap-1">
+                <div className="flex items-start gap-2">
+                  <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+                    <input
+                      value={s.label}
+                      onChange={(e) => update(i, { label: e.target.value })}
+                      placeholder={t("sourceLabel")}
+                      aria-label={`${t("sourceLabel")} ${i + 1}`}
+                      aria-invalid={Boolean(errorAt(errors, `${at}.label`))}
+                      className={controlClasses(Boolean(errorAt(errors, `${at}.label`)))}
+                    />
+                    <input
+                      value={s.url}
+                      type="url"
+                      inputMode="url"
+                      onChange={(e) => update(i, { url: e.target.value })}
+                      placeholder="https://"
+                      aria-label={`${t("sourceUrl")} ${i + 1}`}
+                      aria-invalid={Boolean(errorAt(errors, `${at}.url`))}
+                      className={controlClasses(Boolean(errorAt(errors, `${at}.url`)), "measured text-sm")}
+                    />
+                    <select
+                      value={s.kind}
+                      onChange={(e) => update(i, { kind: e.target.value as SourceKind })}
+                      aria-label={`${t("sourceKind")} ${i + 1}`}
+                      aria-invalid={Boolean(errorAt(errors, `${at}.kind`))}
+                      className={controlClasses(Boolean(errorAt(errors, `${at}.kind`)))}
+                    >
+                      {SOURCE_KINDS.map((k) => (
+                        <option key={k} value={k}>
+                          {tKind(k)}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      value={s.note ?? ""}
+                      maxLength={200}
+                      onChange={(e) => update(i, { note: e.target.value === "" ? undefined : e.target.value })}
+                      placeholder={`${t("sourceNote")} (${t("optional")})`}
+                      aria-label={`${t("sourceNote")} ${i + 1}`}
+                      aria-invalid={Boolean(errorAt(errors, `${at}.note`))}
+                      className={controlClasses(Boolean(errorAt(errors, `${at}.note`)))}
+                    />
+                  </div>
+                  <RowControls
+                    index={i}
+                    count={items.length}
+                    label={name}
+                    onMove={(to) => onChange(moveItem(items, i, to))}
+                    onRemove={() => onChange(items.filter((_, j) => j !== i))}
+                  />
+                </div>
+                {fieldError ? <p className="text-bad">{fieldError}</p> : null}
+              </li>
+            );
+          })}
+        </ol>
+        {items.length < 8 ? (
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onChange([...items, { label: "", url: "https://", kind: "docs" }])}
+            >
+              <Plus aria-hidden />
+              {t("addSource")}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </details>
   );
 }

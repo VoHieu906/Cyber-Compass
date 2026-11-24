@@ -53,7 +53,8 @@ export const proseSchema = z.strictObject({ text: text(20000) }).superRefine((p,
   }
 });
 
-export const calloutSchema = z.strictObject({ text: text(2000), tone: z.enum(["info", "tip", "warning"]) });
+export const calloutTones = ["info", "tip", "warning", "recap", "fun-fact"] as const;
+export const calloutSchema = z.strictObject({ text: text(2000), tone: z.enum(calloutTones) });
 export const stepsSchema = z.strictObject({ items: z.array(text(600)).min(1).max(30) });
 export const codeSchema = z.strictObject({ code: text(10000), language: z.string().regex(/^[a-z0-9+#-]{1,20}$/) });
 export const mediaSchema = z.strictObject({
@@ -420,6 +421,22 @@ export const knowledgeCheckSchema = z.strictObject({
 });
 
 /** Every block type's payload contract, by section type. */
+/** A section's sources (D68): one rule for every block type, mirrored from Documents/schemas/sources.json. */
+export const sourceKinds = ["paper", "rfc", "docs", "article", "book", "community", "other"] as const;
+export const sectionSourcesSchema = z
+  .array(
+    z.strictObject({
+      label: text(200),
+      url: z
+        .string()
+        .max(500)
+        .regex(/^https?:\/\/[^\s]+$/),
+      kind: z.enum(sourceKinds),
+      note: text(200).optional(),
+    }),
+  )
+  .max(8);
+
 export const blockSchemas = {
   prose: proseSchema,
   callout: calloutSchema,

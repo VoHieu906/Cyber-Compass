@@ -1,6 +1,6 @@
 /** Content authoring API shapes (backend app/Modules/Content/Http/Resources). */
 
-import type { LessonSection } from "@/features/learning/types";
+import type { LessonSection, SectionSource } from "@/features/learning/types";
 import type { Architecture, CourseGraph, ShapeId } from "@/lib/graph/shapes/schemas";
 
 export type LessonStatus = "draft" | "published" | "archived";
@@ -11,6 +11,7 @@ export type EditorSection = {
   type: string;
   heading: string | null;
   payload: Record<string, unknown>;
+  sources?: SectionSource[] | null;
 };
 
 export type Resource = { label: string; url: string };

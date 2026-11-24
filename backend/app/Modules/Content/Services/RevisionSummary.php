@@ -53,7 +53,8 @@ final class RevisionSummary
             'sections' => [
                 'added' => $new->keys()->diff($old->keys())->count(),
                 'removed' => $old->keys()->diff($new->keys())->count(),
-                'edited' => $kept->filter(fn ($uuid) => $old[$uuid] != $new[$uuid])->count(),
+                // Snapshots from before D68 have no `sources` key; that alone is not an edit.
+                'edited' => $kept->filter(fn ($uuid) => $old[$uuid] + ['sources' => null] != $new[$uuid] + ['sources' => null])->count(),
                 'reordered' => $old->keys()->intersect($kept)->values()->all() !== $new->keys()->intersect($kept)->values()->all(),
             ],
         ];

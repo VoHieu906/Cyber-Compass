@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "bitfield",
+  "x-factual": true,
   "description": "Rows of bits split into labelled fields (an IPv4 address and its mask, a TCP flags byte). Each field gives its bits as 0s and 1s; a row holds at most 64 bits (checked in BitfieldBlock).",
   "type": "object",
   "required": ["rows"],

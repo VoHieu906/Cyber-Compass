@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "script-3d",
+  "x-factual": false,
   "description": "Three.js code run only inside the sandboxed worker (docs/SANDBOXED_3D.md). Mirrors frontend/src/sandbox/scene3d/schema.ts. Can be switched off with CONTENT_SCRIPTED_3D=false.",
   "type": "object",
   "required": ["title", "description", "code"],

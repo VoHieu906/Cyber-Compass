@@ -1,0 +1,8 @@
+[
+  [],
+  [{ "label": "RFC 1122: Requirements for Internet Hosts", "url": "https://www.rfc-editor.org/rfc/rfc1122", "kind": "rfc" }],
+  [
+    { "label": "Server Fault: why is ARP not a layer 3 protocol?", "url": "https://serverfault.com/questions/1", "kind": "community", "note": "Community answer, cross-checked with the RFC." },
+    { "label": "An old vendor page", "url": "http://example.com/page", "kind": "other", "note": "needs verification" }
+  ]
+]

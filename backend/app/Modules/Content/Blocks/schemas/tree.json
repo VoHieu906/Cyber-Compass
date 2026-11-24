@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "tree",
+  "x-factual": true,
   "description": "A hierarchy with one root (DNS hierarchy, file system, org chart). Each node names its parent; one root and no loops are checked in TreeBlock.",
   "type": "object",
   "required": ["nodes"],

@@ -352,7 +352,9 @@
     "callout": {
       "info": "Note",
       "tip": "Tip",
-      "warning": "Watch out"
+      "warning": "Watch out",
+      "recap": "In other words",
+      "fun-fact": "Fun fact"
     },
     "diagramUnavailable": "This diagram isn't available.",
     "diagrams": {
@@ -470,7 +472,17 @@
     "takeExercise": "Take the exercise",
     "exercisePassed": "Exercise passed",
     "practiseAgain": "Practise again",
-    "practiseInLab": "Practise in a lab:"
+    "practiseInLab": "Practise in a lab:",
+    "sources": "Sources ({count})",
+    "sourceKinds": {
+      "paper": "Paper",
+      "rfc": "RFC or standard",
+      "docs": "Official docs",
+      "article": "Article",
+      "book": "Book",
+      "community": "Community thread",
+      "other": "Other"
+    }
   },
   "careers": {
     "title": "Careers",
@@ -933,7 +945,9 @@
       "tones": {
         "info": "Note",
         "tip": "Tip",
-        "warning": "Warning"
+        "warning": "Warning",
+        "recap": "In other words (recap)",
+        "fun-fact": "Fun fact"
       },
       "steps": "Steps",
       "addStep": "Add step",
@@ -1040,7 +1054,14 @@
           "dismiss": "Dismiss",
           "hint": "Using one only changes this draft: edit it, then save the draft as usual."
         }
-      }
+      },
+      "sources": "Sources",
+      "sourcesHint": "What backs this section's facts. Never invent a citation; mark anything unchecked in the note.",
+      "sourceLabel": "Source title",
+      "sourceUrl": "Link",
+      "sourceKind": "Kind",
+      "sourceNote": "Note",
+      "addSource": "Add source"
     },
     "media": {
       "image": "Image",

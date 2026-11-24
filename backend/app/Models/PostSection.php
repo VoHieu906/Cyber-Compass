@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** One block of a blog post: the twin of LessonSection (ARCHITECTURE D55). */
-#[Fillable(['uuid', 'post_id', 'position', 'type', 'heading', 'payload'])]
+#[Fillable(['uuid', 'post_id', 'position', 'type', 'heading', 'payload', 'sources'])]
 class PostSection extends Model
 {
     /** @return BelongsTo<Post, $this> */
@@ -18,6 +18,6 @@ class PostSection extends Model
 
     protected function casts(): array
     {
-        return ['payload' => 'array'];
+        return ['payload' => 'array', 'sources' => 'array'];
     }
 }

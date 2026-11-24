@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * App\Modules\Content\Blocks\BlockRegistry (the single source of allowed types);
  * `uuid` is the stable identity that survives reordering and edits.
  */
-#[Fillable(['uuid', 'lesson_id', 'position', 'type', 'heading', 'payload'])]
+#[Fillable(['uuid', 'lesson_id', 'position', 'type', 'heading', 'payload', 'sources'])]
 class LessonSection extends Model
 {
     /** @return BelongsTo<Lesson, $this> */
@@ -22,6 +22,6 @@ class LessonSection extends Model
 
     protected function casts(): array
     {
-        return ['payload' => 'array'];
+        return ['payload' => 'array', 'sources' => 'array'];
     }
 }

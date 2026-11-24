@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "scene-3d",
+  "x-factual": false,
   "description": "A declarative 3D scene drawn by the sandboxed renderer (docs/SANDBOXED_3D.md). Mirrors frontend/src/sandbox/scene3d/schema.ts. Cross-references (unique ids, parents, link ends, step targets) are checked in Scene3dBlock.",
   "type": "object",
   "required": ["title", "description", "camera", "objects"],

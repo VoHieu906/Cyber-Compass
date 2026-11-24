@@ -29,7 +29,7 @@ function courseSnapshot(string $slug): array
             'position' => $l->position,
             'status' => $l->status->value,
             'fields' => [$l->title, $l->summary, $l->estimated_minutes, $l->objectives, $l->key_takeaways, $l->resources],
-            'sections' => $l->sections->map(fn (LessonSection $s) => [$s->uuid, $s->type, $s->heading, $s->payload])->all(),
+            'sections' => $l->sections->map(fn (LessonSection $s) => [$s->uuid, $s->type, $s->heading, $s->payload, $s->sources])->all(),
         ]])
         ->all();
 }
@@ -77,6 +77,20 @@ it('pins the UUID of a section made in the admin console, so re-importing keeps 
     expect(LessonSection::query()->where('uuid', $uuid)->value('lesson_id'))->toBe($lesson->id)
         // Seeded sections keep their derived UUIDs and are written without one.
         ->and(substr_count($php, "'uuid' =>"))->toBe(1);
+});
+
+it('writes section sources to the file and reads them back (D68)', function () use ($export, $import) {
+    $section = LessonSection::query()->whereHas('lesson', fn ($q) => $q->where('slug', 'subnetting'))->orderBy('position')->firstOrFail();
+    $sources = [['label' => 'RFC 950: Internet Standard Subnetting Procedure', 'url' => 'https://www.rfc-editor.org/rfc/rfc950', 'kind' => 'rfc']];
+    $section->update(['sources' => $sources]);
+
+    $php = $export('networking-fundamentals')['php'];
+    expect($php)->toContain("'sources' =>");
+
+    $section->update(['sources' => null]);
+    $import(evalExport($php));
+    expect($section->fresh()->sources)->toEqual($sources)
+        ->and(substr_count($php, "'sources' =>"))->toBe(1);
 });
 
 it('exports the live lesson, not an unpublished draft', function () use ($export) {

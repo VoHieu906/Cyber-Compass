@@ -44,6 +44,7 @@ final class SectionWriter
                 'type' => $section['type'],
                 'heading' => $section['heading'],
                 'payload' => $section['payload'],
+                'sources' => $section['sources'] ?? null,
             ]);
         }
 

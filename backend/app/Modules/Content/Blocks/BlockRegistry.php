@@ -21,6 +21,7 @@ use App\Modules\Content\Blocks\Types\StepThroughBlock;
 use App\Modules\Content\Blocks\Types\TimelineBlock;
 use App\Modules\Content\Blocks\Types\TopologyBlock;
 use App\Modules\Content\Blocks\Types\TreeBlock;
+use App\Modules\Content\Documents\SectionSources;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -122,10 +123,16 @@ final class BlockRegistry
                 $errors[rtrim("{$at}.payload.{$path}", '.')] = $messages;
             }
 
+            [$sourceErrors, $sources] = SectionSources::validate($section['sources'] ?? null);
+            foreach ($sourceErrors as $path => $messages) {
+                $errors[rtrim("{$at}.sources.{$path}", '.')] = $messages;
+            }
+
             $clean[] = [
                 'type' => $type,
                 'heading' => is_string($heading) && trim($heading) !== '' ? trim($heading) : null,
                 'payload' => $payload,
+                'sources' => $sources,
             ];
         }
 

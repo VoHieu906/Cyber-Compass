@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "sequence",
+  "x-factual": true,
   "description": "Messages between actors over time, shown one step at a time (TCP handshake, DNS lookup, DHCP). Actor references are checked in SequenceBlock.",
   "type": "object",
   "required": ["actors", "messages"],

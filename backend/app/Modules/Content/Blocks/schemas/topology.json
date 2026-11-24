@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "topology",
+  "x-factual": true,
   "description": "Devices and links at fixed positions, with optional zones. Positions are percentages of the canvas (0 to 100). References and zone bounds are checked in TopologyBlock.",
   "type": "object",
   "required": ["devices", "links"],

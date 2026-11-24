@@ -1,13 +1,13 @@
 "use client";
 
-import { AlertTriangle, Check, Copy, Info, Lightbulb, Link2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, ExternalLink, Info, Lightbulb, Link2, Puzzle, Repeat2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SceneFrame } from "../blocks/scene-frame";
 import { isVisualBlock, VisualBlock } from "../blocks/visual-block";
 import { Diagram } from "../diagrams/registry";
-import type { CalloutTone, LessonSection } from "../types";
+import type { CalloutTone, LessonSection, SectionSource } from "../types";
 import { LazyMount } from "./lazy-mount";
 import { Prose, renderInline } from "./prose";
 
@@ -23,7 +23,16 @@ const calloutStyle: Record<CalloutTone, { box: string; icon: typeof Info; iconCl
     icon: AlertTriangle,
     iconClass: "text-attn",
   },
+  recap: { box: "border-rule-2 bg-paper", icon: Repeat2, iconClass: "text-ink-2" },
+  "fun-fact": {
+    box: "border-dashed border-[color-mix(in_oklab,var(--color-accent)_45%,var(--color-rule))] bg-paper",
+    icon: Puzzle,
+    iconClass: "text-accent",
+  },
 };
+
+/** Tones whose name is part of what the reader sees ("In other words", "Fun fact"), not only announced. */
+const NAMED_TONES: CalloutTone[] = ["recap", "fun-fact"];
 
 function Callout({ heading, text, tone }: { heading: string | null; text: string; tone: CalloutTone }) {
   const t = useTranslations("learn.callout");
@@ -33,13 +42,56 @@ function Callout({ heading, text, tone }: { heading: string | null; text: string
     <aside className={cn("flex gap-3 rounded-control border p-4", style.box)}>
       <Icon aria-hidden className={cn("mt-1 size-4 shrink-0", style.iconClass)} />
       <div className="flex flex-col gap-1">
-        <p className="font-medium text-ink">
-          <span className="sr-only">{t(tone)}: </span>
-          {heading}
-        </p>
+        {NAMED_TONES.includes(tone) ? (
+          <p className="font-medium text-ink">
+            {heading ? (
+              <>
+                <span className="text-muted">{t(tone)}: </span>
+                {heading}
+              </>
+            ) : (
+              t(tone)
+            )}
+          </p>
+        ) : (
+          <p className="font-medium text-ink">
+            <span className="sr-only">{t(tone)}: </span>
+            {heading}
+          </p>
+        )}
         <p className="text-ink">{renderInline(text)}</p>
       </div>
     </aside>
+  );
+}
+
+/** The sources behind a section's facts (D68), collapsed under the section. */
+function Sources({ sources }: { sources: SectionSource[] }) {
+  const t = useTranslations("learn");
+  return (
+    <details className="text-sm">
+      <summary className="w-fit cursor-pointer rounded-chip text-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+        {t("sources", { count: sources.length })}
+      </summary>
+      <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-5 marker:text-muted">
+        {sources.map((s, i) => (
+          <li key={i}>
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-ink underline decoration-rule-2 underline-offset-4 hover:decoration-accent"
+            >
+              {s.label}
+              <ExternalLink aria-hidden className="size-3" />
+              <span className="sr-only">({t("opensInNewTab")})</span>
+            </a>
+            <span className="text-muted"> · {t(`sourceKinds.${s.kind}`)}</span>
+            {s.note ? <span className="text-muted"> · {s.note}</span> : null}
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }
 
@@ -233,6 +285,7 @@ export function Section({ section, enhanced = false }: { section: LessonSection;
     <section id={section.id} className="@container flex scroll-mt-[calc(var(--header-height)+1.5rem)] flex-col gap-4">
       {heading}
       {body}
+      {section.sources?.length ? <Sources sources={section.sources} /> : null}
     </section>
   );
 }

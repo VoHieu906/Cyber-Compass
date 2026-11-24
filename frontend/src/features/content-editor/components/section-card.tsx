@@ -7,9 +7,10 @@ import { controlClasses } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { errorAt, errorsUnder, type FieldErrors } from "../editor-state";
 import type { BlockTypeInfo, EditorSection } from "../types";
-import { RowControls, StringListEditor } from "./list-editors";
+import { RowControls, SourceListEditor, StringListEditor } from "./list-editors";
 import { InputRow, JsonField, SelectRow, TextArea } from "./fields";
 import { MediaPicker } from "./media-picker";
+import { calloutTones } from "@/features/learning/blocks/schemas";
 import { isVisualBlock } from "@/features/learning/blocks/visual-block";
 import { SceneEditor, ScriptEditor } from "./scene-editors";
 import { FORM_VISUAL_EDITORS, JsonVisualEditor } from "./visual-editors";
@@ -114,6 +115,13 @@ export function SectionCard({
         replacePayload={(p) => onChange({ ...section, payload: p })}
         onJsonValidity={onJsonValidity}
       />
+
+      <SourceListEditor
+        items={section.sources ?? []}
+        onChange={(sources) => onChange({ ...section, sources: sources.length ? sources : null })}
+        errors={errors}
+        errorPrefix={`${at}.sources`}
+      />
     </li>
   );
 }
@@ -158,7 +166,7 @@ function Body({
           <SelectRow
             label={t("tone")}
             value={String(p.tone ?? "info")}
-            options={(["info", "tip", "warning"] as const).map((v) => ({ value: v, label: t(`tones.${v}`) }))}
+            options={calloutTones.map((v) => ({ value: v, label: t(`tones.${v}`) }))}
             error={err("tone")}
             onChange={(v) => setPayload({ tone: v })}
           />

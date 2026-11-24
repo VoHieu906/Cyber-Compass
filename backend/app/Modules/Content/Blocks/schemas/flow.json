@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "flow",
+  "x-factual": true,
   "description": "A process or decision flow, laid out automatically. Node and edge references are checked in FlowBlock.",
   "type": "object",
   "required": ["nodes", "edges"],

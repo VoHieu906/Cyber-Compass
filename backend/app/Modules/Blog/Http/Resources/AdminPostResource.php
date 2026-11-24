@@ -43,7 +43,7 @@ class AdminPostResource extends JsonResource
             'working_copy' => [
                 ...collect($working)->except('sections')->all(),
                 'sections' => array_map(fn (array $s) => [
-                    'id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'], 'payload' => $s['payload'],
+                    'id' => $s['uuid'], 'type' => $s['type'], 'heading' => $s['heading'], 'payload' => $s['payload'], 'sources' => $s['sources'] ?? null,
                 ], $working['sections']),
             ],
             'preview_sections' => app(BlockSerializer::class)->sections($working['sections']),

@@ -126,6 +126,9 @@ final class ContentExporter
                 if ($s->uuid !== ContentImporter::sectionUuid($lesson->slug, $keys[$i])) {
                     $tuple['uuid'] = $s->uuid;
                 }
+                if ($s->sources) {
+                    $tuple['sources'] = $s->sources;
+                }
 
                 return $tuple;
             })->all(),
@@ -152,6 +155,9 @@ final class ContentExporter
                 $tuple = self::compact($s->type, $s->heading, $this->withFileMedia($s->type, $s->payload));
                 if ($s->uuid !== ContentImporter::postSectionUuid($post->slug, $keys[$i])) {
                     $tuple['uuid'] = $s->uuid;
+                }
+                if ($s->sources) {
+                    $tuple['sources'] = $s->sources;
                 }
 
                 return $tuple;

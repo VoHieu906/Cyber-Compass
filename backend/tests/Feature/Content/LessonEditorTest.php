@@ -93,11 +93,43 @@ describe('reading', function () {
             // OSI and TCP moved to layer-stack and sequence: still valid for old revisions, no longer offered.
             ->and($types['diagram']['diagram_keys'])->toBe(['cia-triad'])
             ->and($types['knowledge-check']['example']['questions'][0]['options'])->toHaveCount(3)
-            ->and($types['callout']['schema']['properties']['tone']['enum'])->toBe(['info', 'tip', 'warning']);
+            ->and($types['callout']['schema']['properties']['tone']['enum'])->toBe(['info', 'tip', 'warning', 'recap', 'fun-fact']);
     });
 });
 
 describe('drafts', function () {
+    it('carries section sources through the draft, the preview and publishing (D68)', function () {
+        $data = editor($this->lesson);
+        $sections = $data['working_copy']['sections'];
+        $sources = [['label' => 'NIST SP 800-63B', 'url' => 'https://pages.nist.gov/800-63-3/sp800-63b.html', 'kind' => 'docs', 'note' => 'Section 5.1.1.2']];
+        $sections[0]['sources'] = $sources;
+
+        $saved = $this->actingAs($this->admin, 'web')
+            ->putJson("/api/v1/admin/content/lessons/{$this->lesson->id}/draft", body($data, ['sections' => $sections]))
+            ->assertOk()
+            // MySQL JSON reorders keys, so compare as maps.
+            ->assertJsonPath('data.working_copy.sections.0.sources', fn ($v) => $v == $sources)
+            ->assertJsonPath('data.preview_sections.0.sources', fn ($v) => $v == $sources)
+            ->json('data');
+        expect(learnerView('hashing-and-passwords')['sections'][0]['sources'])->toBeNull();
+
+        $this->actingAs($this->admin, 'web')->postJson("/api/v1/admin/content/lessons/{$this->lesson->id}/publish", ['lock_version' => $saved['lock_version']])->assertOk();
+
+        expect(learnerView('hashing-and-passwords')['sections'][0]['sources'])->toEqual($sources)
+            ->and(learnerView('hashing-and-passwords')['sections'][1]['sources'])->toBeNull();
+    });
+
+    it('refuses a source that is not a link', function () {
+        $data = editor($this->lesson);
+        $sections = $data['working_copy']['sections'];
+        $sections[1]['sources'] = [['label' => 'x', 'url' => 'javascript:alert(1)', 'kind' => 'docs']];
+
+        $this->actingAs($this->admin, 'web')
+            ->putJson("/api/v1/admin/content/lessons/{$this->lesson->id}/draft", body($data, ['sections' => $sections]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['sections.1.sources.0.url']);
+    });
+
     it('saves edits to a draft that learners never see, and imports leave it alone', function () {
         $before = learnerView('hashing-and-passwords');
         $data = editor($this->lesson);
@@ -146,7 +178,7 @@ describe('drafts', function () {
             ->assertJsonValidationErrors(['title', 'resources.0.url', 'sections.1.payload.text', 'sections.1.payload.tone'])
             // Plain words for authors, not the schema library's wording.
             ->assertJsonPath('errors', fn ($e) => $e['sections.1.payload.text'] === ['This can not be empty.']
-                && $e['sections.1.payload.tone'] === ['Choose one of: info, tip, warning.']);
+                && $e['sections.1.payload.tone'] === ['Choose one of: info, tip, warning, recap, fun-fact.']);
     });
 
     it('reports a missing field on the field itself', function () {

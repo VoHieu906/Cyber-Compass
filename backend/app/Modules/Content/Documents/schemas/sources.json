@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "sources",
+  "description": "The sources behind a section's facts (D68). Shared by every block type, so it is not part of any block schema.",
+  "type": "array",
+  "maxItems": 8,
+  "items": {
+    "type": "object",
+    "required": ["label", "url", "kind"],
+    "additionalProperties": false,
+    "properties": {
+      "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+      "url": { "type": "string", "maxLength": 500, "pattern": "^https?://[^\\s]+$" },
+      "kind": { "enum": ["paper", "rfc", "docs", "article", "book", "community", "other"] },
+      "note": { "type": "string", "minLength": 1, "maxLength": 200 }
+    }
+  }
+}

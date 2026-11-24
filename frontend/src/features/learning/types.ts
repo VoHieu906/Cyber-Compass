@@ -1,8 +1,15 @@
 import type { CourseProgress, LessonStatus } from "@/features/catalog/types";
 
-export type CalloutTone = "info" | "tip" | "warning";
+export type CalloutTone = "info" | "tip" | "warning" | "recap" | "fun-fact";
 
-export type LessonSection =
+export type SourceKind = "paper" | "rfc" | "docs" | "article" | "book" | "community" | "other";
+/** One source behind a section's facts (D68). */
+export type SectionSource = { label: string; url: string; kind: SourceKind; note?: string };
+
+/** Every section may list its sources; null (or absent, in older snapshots) when it has none. */
+export type LessonSection = SectionBody & { sources?: SectionSource[] | null };
+
+type SectionBody =
   | { id: string; type: "prose"; heading: string | null; payload: { text: string } }
   | { id: string; type: "callout"; heading: string | null; payload: { text: string; tone: CalloutTone } }
   | { id: string; type: "steps"; heading: string | null; payload: { items: string[] } }

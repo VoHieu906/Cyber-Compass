@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "diagram",
+  "x-factual": true,
   "description": "A bespoke diagram chosen by key. The data shape depends on the key (schemas/diagrams/<key>.json).",
   "type": "object",
   "required": ["key", "data"],

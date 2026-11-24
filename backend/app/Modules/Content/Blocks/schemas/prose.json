@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "prose",
+  "x-factual": true,
   "description": "Paragraphs separated by blank lines, '- ' bullet lists, **bold** and `inline code`. Rendered as text, never HTML.",
   "type": "object",
   "required": ["text"],

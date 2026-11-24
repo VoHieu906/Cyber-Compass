@@ -1,0 +1,19 @@
+[
+  [{ "label": "No kind", "url": "https://example.com" }],
+  [{ "label": "Bad kind", "url": "https://example.com", "kind": "blog" }],
+  [{ "label": "Script", "url": "javascript:alert(1)", "kind": "other" }],
+  [{ "label": "", "url": "https://example.com", "kind": "docs" }],
+  [{ "label": "Extra", "url": "https://example.com", "kind": "docs", "year": 1984 }],
+  [
+    { "label": "1", "url": "https://example.com/1", "kind": "docs" },
+    { "label": "2", "url": "https://example.com/2", "kind": "docs" },
+    { "label": "3", "url": "https://example.com/3", "kind": "docs" },
+    { "label": "4", "url": "https://example.com/4", "kind": "docs" },
+    { "label": "5", "url": "https://example.com/5", "kind": "docs" },
+    { "label": "6", "url": "https://example.com/6", "kind": "docs" },
+    { "label": "7", "url": "https://example.com/7", "kind": "docs" },
+    { "label": "8", "url": "https://example.com/8", "kind": "docs" },
+    { "label": "9", "url": "https://example.com/9", "kind": "docs" }
+  ],
+  { "label": "Not a list", "url": "https://example.com", "kind": "docs" }
+]

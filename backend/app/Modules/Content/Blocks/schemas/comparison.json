@@ -1,6 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "comparison",
+  "x-factual": true,
   "description": "Side-by-side attributes of 2 to 4 things. Every row has one value per column (checked in ComparisonBlock).",
   "type": "object",
   "required": ["columns", "rows"],
