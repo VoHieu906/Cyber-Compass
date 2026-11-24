@@ -17,6 +17,7 @@ flowchart LR
   F2 --> F3[F3 Course map, Part C dropped]
   F3 --> F4[F4 Networking Fundamentals, expanded]
   F4 --> F5[F5 Networking exercises, done]
+  F5 --> F6[F6 Content packages]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -636,6 +637,25 @@ Graded exercises for the 14 lessons F4 added to Networking Fundamentals, the shi
 - Budgets: unchanged pages; `performance.spec.ts` passed in the full run.
 - Production parity: not checked (content only).
 - Owner action when deploying: nothing.
+
+### F6: Content packages (in progress, started 2026-11-24)
+
+Lessons, blog posts and blocks written with outside chatbots come into the admin console as validated JSON packages that land in a draft, plus a course overview export and an AI authoring guide for the chatbot. Decisions D67 to D71.
+
+**Impact check (CLAUDE.md §5), answered by the owner on 2026-11-24 (all recommended options, with changes):**
+- **Duplicate:** the CLI import and export. Packages reuse the admin working-copy path (`WorkingCopy::validate`, `SaveDraft`, `DocumentDrafts`), the shared key and UUID rules and `ContentFileMedia` reading from any folder; `ContentImporter` stays the PHP-file path (D67).
+- **Conflict risks, resolved:** D19 (an import writes the draft, so the document becomes database-owned; the preview says `content:import` skips it until exported back); D30 and D57 (`remove` and whole-lesson imports are refused through `ExerciseReferences`; the snapshot validation keeps architecture references; UUIDs are never changed); D62 (a new lesson joins no topic; the preview says so); section keys change with headings, so operations accept `key` or `uuid` (D67).
+- **Content model:** section `sources` (D68), callout tones `recap` and `fun-fact`, block `description` and `x-factual` in the schemas (D69).
+- **AWS:** the media distribution may read the whole uploads bucket, so transfers get their own private bucket; the worker gets a 900-second job timeout with one try and a 960-second retry delay (D70). The guide lives in `backend/resources/content-format/` (the api container mounts only `backend/`) with an admin download (D71).
+- **Shift:** none.
+
+**Parts:**
+- **Part A:** content model: section `sources` (migration, core validation, serializer, PHP files, reader, editor), callout tones `recap` and `fun-fact`, schema `description` and `x-factual`.
+- **Part B:** package core and CLI: reader (json, zip, safety caps, `$file`), planner (operations, key and UUID rules, references, warnings, fingerprint), apply through the working copy, document export, the registry contract test, `content:package`.
+- **Part C:** API, storage and queue: SeaweedFS presigned multipart checked first; `content_transfers`, local chunked or S3 multipart upload, jobs with cleanup on failure, scheduled cleanup, policies, audit, route inventory, query budgets, the large-package test.
+- **Part D:** admin UI: import and export in the editor and on the course page, the preview diff, "Copy errors for the chatbot", validate-only, en and vi, Vitest, `e2e/content-packages.spec.ts`.
+- **Part E:** course overview, `content:format-guide` and the guide-is-current test, the AI guide and format spec, the OSI prompt and the tested example package, the "Download AI guide" action.
+- **Part F:** AWS (transfers bucket, IAM, CORS, lifecycle, CSP, preflight, environment examples), DEPLOYMENT_AWS (including the notification delay), docs and the gate.
 
 ## Follow-ups (not scheduled in a phase)
 
