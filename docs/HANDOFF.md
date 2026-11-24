@@ -10,7 +10,7 @@ Where the project stands and what the next phase needs to know. This page only p
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
 - **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4.
-- **F4 (Networking Fundamentals, expanded) is in progress** (D61, D62): Part A (20 lessons in 5 chapters, three new topics, six career templates) is done; Part B (architectures, the map, the D61 renderer change) and Part C (Course map suggestions) are next. Graded exercises for the new lessons are F5.
+- **F4 (Networking Fundamentals, expanded) is in progress** (D61, D62): Parts A (20 lessons in 5 chapters, three new topics, six career templates) and B (architectures, the map, the D61 renderer change) are done; Part C (Course map suggestions) is next. Graded exercises for the new lessons are F5.
 - **Tests:** 785 Pest, 478 Vitest and 33 Playwright end-to-end tests (after the F3 close-out). CI green on c97a519. Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
@@ -45,11 +45,13 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
-## F4: Networking Fundamentals, expanded (Part A, 2026-11-24)
+## F4: Networking Fundamentals, expanded (Parts A and B, 2026-11-24)
 
 - **Course:** 20 lessons, 5 chapters, 335 minutes; the six original lessons are unchanged byte for byte.
 - **Topics** (D62): `local-networks`, `routing-and-transport`, `network-visibility`. New lessons never join an existing topic. The two core topics are in the six careers that rate networking 2.
 - **Tests coupled to the course** now derive counts from the data; generator and career specs list the new topics on purpose.
+- **Course map** (Part B): the first seeded map, so tests that count maps must scope to their course. A wide map draws narrow (D61): 184px nodes, 72px gutters, the goal as a band; keep relation labels to 10 characters and part labels short enough for their shape (pipeline stages get about 78px in the compact footprint), with the detail in the note.
+- **The course page caches its API call for 60 seconds** (`serverGetBody`): after a content import, the first request serves the old page and refreshes it.
 - **Browser checks of lesson pages** in headless Edge: wait by polling `page.evaluate`, because the app's CSP blocks Playwright's `waitForFunction` and some locator waits. Load at most a handful of lessons a minute as one user (the `api` limit is 120 a minute).
 
 ## F3: course map (Parts A and B, 2026-11-23)

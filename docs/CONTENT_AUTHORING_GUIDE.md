@@ -186,6 +186,7 @@ The **course map** sits at the top of a course page. Its rule: **each lesson sol
   | `parallel-to` | independent tracks at the same level |
 
   Add a short `label` (up to 24 characters) when the type alone does not say why. Every lesson also contributes to the big problem; that line is drawn for you.
+- **Wide maps (D61).** A map that would not fit its box draws narrower nodes and a goal band under the lessons. Plan for four columns: lanes stacked, two rows in a lane when it has more than four lessons, and relations between lanes joining neighbouring columns where you can. Keep relation labels to 10 characters (the gutter is 72px) and part labels short for their shape; put the detail in the part's note.
 - **Layout.** `auto` places lessons in columns by how deep they sit in the relations, which suits a chain or converging branches. Use `manual` (`placement` with `col` 0 to 7 and `row` 0 to 9, and optional `lanes` for parallel tracks) only when the arrangement itself teaches something, such as a hub or two lanes.
 
 ### Choosing a shape

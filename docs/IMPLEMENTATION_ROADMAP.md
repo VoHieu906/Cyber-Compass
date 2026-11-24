@@ -540,6 +540,32 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
 - Production parity: not yet; checked at the end of F4.
 - Owner action when deploying: nothing.
 
+**Technical review before Part B (2026-11-24), commit 310c7c8:** a separate reviewer that had not written the lessons checked the 14 new lessons for accuracy only (ports, ranges, header fields, TCP, ARP and NDP, DHCP, NAT, every command and flag, every knowledge check). It found no factual errors and no failing commands, and six imprecise statements, all fixed without changing a heading:
+- the MAC bit field labelled each bit by the meaning of 1 while showing 0 (now "U/L 0: universal", "I/G 0: individual");
+- neighbour discovery: the solicitation is multicast, the advertisement unicast;
+- the fast-retransmit question now says three duplicate ACKs after the first;
+- path MTU discovery: "fragmentation needed" (IPv4) and "packet too big" (IPv6);
+- Wi-Fi: authentication comes before association (SAE in WPA3);
+- DHCP: relays forward the broadcast to other subnets, and renewals are unicast.
+
+**Part B exit, verified (2026-11-24):**
+- **Architectures:** all 20 lessons have one in the course file (18 with a shape, 2 with only their problem: `ethernet-and-mac-addresses` and `application-protocols`, which have no single structure). Shapes: pipeline 4, matrix 4, layers 2, tree 2, stack, queue, cycle, hub, mesh and onion 1 each, so every shape appears. Parts name the section that teaches them by key, and 28 parts lead to another lesson of the course.
+- **Course map:** manual layout, one lane per chapter, four columns, 20 relations (requires, builds-on, contrasts-with). Relations between lanes mostly join neighbouring columns, so they run down one gutter; labels are kept only where they fit the narrow gutter (10 characters or fewer).
+- **D61 renderer:** `layoutCourseMap(…, narrow)` uses 184px nodes and 72px gaps and puts the goal in a band under the lanes, with contribution lines running down the gutters; `CourseMap` switches when the overview at the D59 sizes would not fit its box. Until the box is measured it assumes the box at a 1280 window, so a laptop never reflows on load. Lane labels wrap inside the lane header. Small maps (applied-cryptography's test map) keep the goal column.
+- **Browser check** (Edge, dev server): the overview at 1280 and 1920, light and dark, shows all 20 nodes with no sideways scroll, no page overflow, no overlapping nodes, no clipped titles and no console errors. Focus mode for every lesson in all four combinations (80 states): the page scroll never moves, no node overlaps another or the expanded lesson, unrelated lessons are dimmed, and no part label is cut short (the first pass found cut labels in four lessons; they were shortened and their detail moved to the parts' notes). In focus mode the map's own box scrolls sideways (338px at 1280, 50px at 1920), as D59 allows. Below `md` the outline is the map, as before.
+- **Budgets:** `GET /courses/networking-fundamentals` stays at its query budget with the seeded map, the same count as without a map, and its response is under 40 KB (`QueryBudgetTest`); the roadmap endpoints are unchanged. The page weight and request budget are in the production check below.
+- **Outline fix (an F3 bug the real map exposed):** the text version listed each relation under the lesson it starts from, so "Introduction" read "builds on The OSI model". `requires` and `builds-on` are stored from the earlier lesson to the later one, so they are now listed under the later lesson ("TCP and UDP in depth: builds on IP addressing"); the other types read correctly from their start.
+- **Tests:** 785 Pest, 480 Vitest (two new: the narrow layout and the outline's reading direction). `CourseMapTest` and `E2eCourseMapCommandTest` counted every map in the database; with a seeded map they now count only their own course's.
+- `content:check-graphs`: 0 errors, 0 warnings.
+
+**Deploy notes (Part B):**
+- Migrations: not applicable.
+- Release task: done. The map and architectures arrive with `content:import` in `cybercompass:release`; a map an admin has already edited would be skipped (D58).
+- Configuration, edge, storage and jobs: not applicable.
+- Budgets: as above.
+- Production parity: see the production check.
+- Owner action when deploying: nothing.
+
 ## Follow-ups (not scheduled in a phase)
 
 - **Larger assessment question pool with random selection per attempt** (content task). The Phase 4 bank is fixed at 40 questions, so a retake asks the same questions; D26 limits answer reveals to wrong answers until the pool grows. Scoring and the attempt schema already support it: an attempt would record which questions it drew.
