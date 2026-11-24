@@ -17,7 +17,7 @@ test("an admin adds a lesson, accepts its suggested relation and place, and lear
   test.setTimeout(240_000);
   const run = Date.now();
   const title = `E2E map lesson ${run}`;
-  await signIn(page, account("admin"));
+  await signIn(page, account("mapAdmin"));
 
   const openMap = async () => {
     await page.goto("/admin/courses");

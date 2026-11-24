@@ -139,20 +139,24 @@ test.describe("course map", () => {
     await page.mouse.move(0, 0);
     await expect(other).toHaveAttribute("data-state", "normal");
 
-    // A point on the relation itself, then its name in a tooltip and a thicker line.
-    const at = await map
-      .locator('path[data-edge-hit^="symmetric-asymmetric-encryption>tls-overview"]')
-      .evaluate((p: SVGPathElement) => {
+    // A point on the relation itself, then its name in a tooltip and a thicker line. The point is
+    // measured inside the retry, so a map that shifts once it measures its box is aimed at again.
+    const hit = map.locator('path[data-edge-hit^="symmetric-asymmetric-encryption>tls-overview"]');
+    const line = other.locator("path").first();
+    const before = Number(await line.getAttribute("stroke-width"));
+    await expect(async () => {
+      await page.mouse.move(0, 0);
+      const at = await hit.evaluate((p: SVGPathElement) => {
         p.scrollIntoView({ block: "center", behavior: "instant" });
         const pt = p.getPointAtLength(p.getTotalLength() / 2).matrixTransform(p.getScreenCTM()!);
         return { x: pt.x, y: pt.y };
       });
-    const line = other.locator("path").first();
-    const before = Number(await line.getAttribute("stroke-width"));
-    await page.mouse.move(at.x, at.y);
-    await expect(page.getByTestId("course-map-edge-tip")).toHaveText(
-      /Symmetric and asymmetric.* → feeds into → How TLS protects/,
-    );
+      await page.mouse.move(at.x, at.y);
+      await expect(page.getByTestId("course-map-edge-tip")).toHaveText(
+        /Symmetric and asymmetric.* → feeds into → How TLS protects/,
+        { timeout: 2_000 },
+      );
+    }).toPass();
     expect(Number(await line.getAttribute("stroke-width"))).toBeGreaterThan(before);
   });
 
