@@ -74,12 +74,19 @@ export function CourseMap({
   const [hotPart, setHotPart] = useState<string | null>(null);
   const [selectedPart, setSelectedPart] = useState<string | null>(null);
   // The problem tooltip: after a short pause on hover (no flicker while the pointer crosses the map), or on keyboard focus.
-  const [tip, setTip] = useState<{ slug: string; rect: DOMRect } | null>(null);
+  // The same tooltip names a relation under the pointer (UI Part 2).
+  const [tip, setTip] = useState<{ text: string; rect: DOMRect; kind: "problem" | "edge" } | null>(null);
   const tipTimer = useRef<number | undefined>(undefined);
-  const showTip = (slug: string, el: HTMLElement) => {
+  const later = (next: NonNullable<typeof tip>) => {
     window.clearTimeout(tipTimer.current);
-    tipTimer.current = window.setTimeout(() => setTip({ slug, rect: el.getBoundingClientRect() }), TIP_DELAY);
+    tipTimer.current = window.setTimeout(() => setTip(next), TIP_DELAY);
   };
+  const showTip = (problem: string, el: HTMLElement) =>
+    later({ text: problem, rect: el.getBoundingClientRect(), kind: "problem" });
+  // Hover or keyboard focus on a lesson: its relations and the lessons at their other ends stay, the rest dims.
+  const [hoverLesson, setHoverLesson] = useState<string | null>(null);
+  const [keyLesson, setKeyLesson] = useState<string | null>(null);
+  const [hotEdge, setHotEdge] = useState<string | null>(null);
   const hideTip = useCallback(() => {
     window.clearTimeout(tipTimer.current);
     setTip(null);
@@ -241,8 +248,29 @@ export function CourseMap({
     if (focused && (event.target === event.currentTarget || event.target instanceof SVGElement)) close();
   };
 
+  const hot = (hoverLesson ?? keyLesson) !== focused ? (hoverLesson ?? keyLesson) : null;
+  const near = useMemo(
+    () =>
+      hot
+        ? new Set([
+            hot,
+            ...map.edges.flatMap((e) => (e.from === hot ? [e.to] : e.to === hot ? [e.from] : [])),
+            ...(layout.contributes.some((c) => c.from === hot) ? [GOAL] : []),
+          ])
+        : null,
+    [hot, map, layout],
+  );
   const edgeState = (e: MapEdge): "emphasis" | "dim" | "normal" =>
-    !focused ? "normal" : e.from === focused || e.to === focused ? "emphasis" : "dim";
+    hot
+      ? e.from === hot || e.to === hot
+        ? "emphasis"
+        : "dim"
+      : !focused
+        ? "normal"
+        : e.from === focused || e.to === focused
+          ? "emphasis"
+          : "dim";
+  const edgeName = (e: MapEdge) => `${titles.get(e.from)} → ${t(`edges.${e.type}`)} → ${titles.get(e.to)}`;
 
   return (
     <div className="flex flex-col gap-4" onKeyDown={onMapKey}>
@@ -301,26 +329,31 @@ export function CourseMap({
                 {...EDGE_STYLE.contributes}
                 className={cn(
                   "[transition:d_var(--dur-long),opacity_var(--dur-long)] motion-reduce:transition-none",
-                  focused && "opacity-20",
+                  hot ? c.from !== hot && "opacity-30" : focused && "opacity-20",
                 )}
               />
             ))}
             {layout.edges.map((e) => {
+              const key = `${e.from}>${e.to}>${e.type}`;
               const state = edgeState(e);
-              const label = state === "emphasis" ? (e.label ?? t(`edges.${e.type}`)) : e.label;
+              // Focus mode words the focused lesson's relations; a hover leaves that to the relation's tooltip.
+              const label = state === "emphasis" && !hot ? (e.label ?? t(`edges.${e.type}`)) : e.label;
+              const wide = hotEdge === key ? 1.25 : 0;
               return (
                 <g
-                  key={`${e.from}>${e.to}>${e.type}`}
+                  key={key}
+                  data-edge={key}
+                  data-state={state}
                   className={cn(
-                    "[transition:opacity_var(--dur-long)] motion-reduce:transition-none",
-                    state === "dim" && "opacity-20",
+                    "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
+                    state === "dim" && (hot ? "opacity-30" : "opacity-20"),
                   )}
                 >
                   {e.type === "parallel-to" ? (
                     <path
                       d={e.d}
                       fill="none"
-                      strokeWidth={state === "emphasis" ? 6 : 5}
+                      strokeWidth={(state === "emphasis" ? 6 : 5) + wide}
                       style={{ stroke: state === "emphasis" ? "var(--color-accent)" : "var(--color-rule-2)" }}
                       className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
                     />
@@ -331,13 +364,30 @@ export function CourseMap({
                     {...EDGE_STYLE[e.type]}
                     {...(e.type === "parallel-to"
                       ? { style: { stroke: "var(--color-paper-3)" } }
-                      : state === "emphasis"
+                      : state === "emphasis" || wide
                         ? {
                             style: { stroke: "var(--color-accent)" },
-                            strokeWidth: Number(EDGE_STYLE[e.type].strokeWidth) + 0.75,
+                            strokeWidth: Number(EDGE_STYLE[e.type].strokeWidth) + 0.75 + wide,
                           }
                         : {})}
                     className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
+                  />
+                  {/* A wide invisible stroke takes the pointer: the relation's name after a pause, and a thicker line. */}
+                  <path
+                    d={e.d}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={12}
+                    pointerEvents="stroke"
+                    data-edge-hit={key}
+                    onPointerEnter={(ev) => {
+                      setHotEdge(key);
+                      later({ text: edgeName(e), rect: new DOMRect(ev.clientX, ev.clientY - 6, 0, 12), kind: "edge" });
+                    }}
+                    onPointerLeave={() => {
+                      setHotEdge(null);
+                      hideTip();
+                    }}
                   />
                   {label ? (
                     <text
@@ -381,19 +431,31 @@ export function CourseMap({
                   onFocus={(e) => {
                     setActive(lesson.slug);
                     // Keyboard focus only: a click opens the lesson instead.
-                    if (!isFocused && lesson.problem && e.currentTarget.matches(":focus-visible"))
-                      showTip(lesson.slug, e.currentTarget);
+                    if (!e.currentTarget.matches(":focus-visible")) return;
+                    setKeyLesson(lesson.slug);
+                    if (!isFocused && lesson.problem) showTip(lesson.problem, e.currentTarget);
                   }}
-                  onBlur={hideTip}
-                  onPointerEnter={(e) =>
-                    e.pointerType === "mouse" && !isFocused && lesson.problem && showTip(lesson.slug, e.currentTarget)
-                  }
-                  onPointerLeave={hideTip}
+                  onBlur={() => {
+                    hideTip();
+                    setKeyLesson(null);
+                  }}
+                  onPointerEnter={(e) => {
+                    if (e.pointerType !== "mouse") return;
+                    setHoverLesson(lesson.slug);
+                    if (!isFocused && lesson.problem) showTip(lesson.problem, e.currentTarget);
+                  }}
+                  onPointerLeave={() => {
+                    hideTip();
+                    setHoverLesson(null);
+                  }}
+                  data-hot={hot && !isFocused ? (near!.has(lesson.slug) ? "lit" : "dim") : undefined}
                   onKeyDown={(e) => onNodeKey(e, lesson.slug)}
                   className={cn(
                     "absolute top-0 left-0 flex flex-col items-start justify-center gap-1 rounded-card border p-3 text-left transition-[transform,border-color,background-color,opacity] duration-[var(--dur-long)] motion-reduce:transition-none",
                     isFocused && "z-10",
                     nodeClass(state),
+                    // Faded content on an opaque card, so the lines beneath never show through; the focused lesson never fades.
+                    hot && !isFocused && !near!.has(lesson.slug) && "[&>*]:opacity-30",
                   )}
                   style={{ width: layout.node.width, height: b.nodeHeight, transform: `translate(${b.x}px, ${b.y}px)` }}
                 >
@@ -504,7 +566,11 @@ export function CourseMap({
         </div>
       </div>
       {tip ? (
-        <ProblemTip rect={tip.rect} problem={map.lessons.find((l) => l.slug === tip.slug)?.problem ?? ""} />
+        <MapTip
+          rect={tip.rect}
+          text={tip.text}
+          testId={tip.kind === "edge" ? "course-map-edge-tip" : "course-map-tip"}
+        />
       ) : null}
       <p className="text-sm text-muted">{t("keysHint")}</p>
       <EdgeLegend
@@ -521,9 +587,9 @@ const TIP_DELAY = 300;
  * A lesson's problem beside its node (UI Part 1). Visual only (aria-hidden): screen readers get the
  * problem from the node's description. In a portal, so the map's scroll box never clips it, and
  * kept inside the viewport: above the node, below when there is no room, nudged in from the sides.
- * The problem only: the title is on the node and in its name.
+ * The problem only: the title is on the node and in its name. A relation's tooltip uses it too, at the pointer.
  */
-function ProblemTip({ rect, problem }: { rect: DOMRect; problem: string }) {
+function MapTip({ rect, text, testId }: { rect: DOMRect; text: string; testId: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   useLayoutEffect(() => {
@@ -540,11 +606,11 @@ function ProblemTip({ rect, problem }: { rect: DOMRect; problem: string }) {
     <div
       ref={ref}
       aria-hidden
-      data-testid="course-map-tip"
+      data-testid={testId}
       className="pointer-events-none fixed z-50 max-w-[20rem] rounded-control border border-rule-2 bg-paper-2 px-3 py-2 text-sm text-ink shadow-[var(--shadow-overlay)]"
       style={at ?? { left: 0, top: 0, visibility: "hidden" }}
     >
-      {problem}
+      {text}
     </div>,
     document.body,
   );

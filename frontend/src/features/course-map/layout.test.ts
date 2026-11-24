@@ -269,3 +269,65 @@ describe("the focus panel's detail strip", () => {
     expect(two).toBeLessThan(FRAME.detail);
   });
 });
+
+describe("edge ends on lesson nodes", () => {
+  // A busy lesson like IP addressing: two lessons lead into it, five lead out, and it feeds the goal.
+  const HUB: CourseMapData = {
+    problem: "Get data across",
+    layout: "auto",
+    lanes: [],
+    lessons: ["s1", "s2", "hub", "t1", "t2", "t3", "t4", "t5"].map((s) => lesson(s)),
+    edges: [
+      { from: "s1", to: "hub", type: "requires" },
+      { from: "s2", to: "hub", type: "builds-on" },
+      ...["t1", "t2", "t3", "t4", "t5"].map((to, i) => ({
+        from: "hub",
+        to,
+        type: "requires" as const,
+        ...(i < 3 ? { label: "addresses" } : {}),
+      })),
+    ],
+  };
+  const layout = layoutCourseMap(HUB, null, NODE);
+  const ends = (d: string) => {
+    const n = d.match(/-?\d+(\.\d+)?/g)!.map(Number);
+    return { start: { x: n[0], y: n[1] }, end: { x: n[n.length - 2], y: n[n.length - 1] } };
+  };
+  const lines = [
+    ...layout.edges.map((e) => ({ from: e.from, to: e.to, ...ends(e.d) })),
+    ...layout.contributes.map((c) => ({ from: c.from, to: GOAL, ...ends(c.d) })),
+  ];
+
+  it("spreads the ends sharing a node side, so no two lines or arrowheads meet at one point", () => {
+    const bySide = new Map<string, number[]>();
+    for (const l of lines)
+      for (const [node, p] of [
+        [l.from, l.start],
+        [l.to, l.end],
+      ] as const) {
+        const key = `${node}@${p.x}`;
+        bySide.set(key, [...(bySide.get(key) ?? []), p.y]);
+      }
+    const hubRight = bySide.get(`hub@${layout.boxes.get("hub")!.x + NODE.width}`)!;
+    expect(hubRight).toHaveLength(6);
+    for (const [side, ys] of bySide) {
+      const sorted = [...ys].sort((a, b) => a - b);
+      for (let i = 1; i < sorted.length; i++) expect(sorted[i] - sorted[i - 1], side).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it("orders the ends on a side by where the other end sits, so they do not cross at the node", () => {
+    const out = lines.filter((l) => l.from === "hub" && l.to !== GOAL).sort((a, b) => a.start.y - b.start.y);
+    const targets = out.map((l) => layout.boxes.get(l.to)!.y);
+    expect(targets).toEqual([...targets].sort((a, b) => a - b));
+  });
+
+  it("keeps relation labels apart", () => {
+    const labelled = layout.edges.filter((e) => e.label);
+    for (let i = 0; i < labelled.length; i++)
+      for (let j = i + 1; j < labelled.length; j++) {
+        const [a, b] = [labelled[i].labelAt, labelled[j].labelAt];
+        expect(Math.abs(a.x - b.x) > 80 || Math.abs(a.y - b.y) >= 14, `${i} and ${j}`).toBe(true);
+      }
+  });
+});

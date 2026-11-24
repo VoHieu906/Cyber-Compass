@@ -114,6 +114,48 @@ test.describe("course map", () => {
     await expect(symmetric).toHaveAttribute("aria-expanded", "false");
   });
 
+  test("hovering a lesson dims the relations it is not part of, and hovering a relation names it", async ({ page }) => {
+    await page.goto(COURSE);
+    const map = page.getByRole("group", { name: /Course map of Applied/ });
+    const hashing = map.getByRole("button", { name: "Hashing and password storage" });
+    const own = map.locator('g[data-edge="hashing-and-passwords>symmetric-asymmetric-encryption>contrasts-with"]');
+    const other = map.locator('g[data-edge="symmetric-asymmetric-encryption>tls-overview>feeds-into"]');
+
+    // Hovering before hydration does nothing, and the map settles once its box is measured (the node
+    // can move from under the pointer), so hover again until every check holds at once.
+    await expect(async () => {
+      await page.mouse.move(0, 0);
+      await hashing.hover();
+      await expect(other).toHaveAttribute("data-state", "dim", { timeout: 1_000 });
+      await expect(own).toHaveAttribute("data-state", "emphasis", { timeout: 1_000 });
+      await expect(other).toHaveCSS("opacity", "0.3", { timeout: 1_000 });
+      await expect(map.getByRole("button", { name: /How TLS protects/ })).toHaveAttribute("data-hot", "dim", {
+        timeout: 1_000,
+      });
+      await expect(map.getByRole("button", { name: /Symmetric and asymmetric/ })).toHaveAttribute("data-hot", "lit", {
+        timeout: 1_000,
+      });
+    }).toPass();
+    await page.mouse.move(0, 0);
+    await expect(other).toHaveAttribute("data-state", "normal");
+
+    // A point on the relation itself, then its name in a tooltip and a thicker line.
+    const at = await map
+      .locator('path[data-edge-hit^="symmetric-asymmetric-encryption>tls-overview"]')
+      .evaluate((p: SVGPathElement) => {
+        p.scrollIntoView({ block: "center", behavior: "instant" });
+        const pt = p.getPointAtLength(p.getTotalLength() / 2).matrixTransform(p.getScreenCTM()!);
+        return { x: pt.x, y: pt.y };
+      });
+    const line = other.locator("path").first();
+    const before = Number(await line.getAttribute("stroke-width"));
+    await page.mouse.move(at.x, at.y);
+    await expect(page.getByTestId("course-map-edge-tip")).toHaveText(
+      /Symmetric and asymmetric.* → feeds into → How TLS protects/,
+    );
+    expect(Number(await line.getAttribute("stroke-width"))).toBeGreaterThan(before);
+  });
+
   test("a learner follows a part to the section that teaches it", async ({ page }) => {
     await signIn(page, account("courseMap"));
     await page.goto(COURSE);

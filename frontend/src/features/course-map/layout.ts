@@ -1,4 +1,4 @@
-import { gridEdgePath, layoutGrid, type GridBox, type GridMetrics } from "@/lib/graph/grid";
+import { edgeSides, gridEdgeRoute, layoutGrid, type GridBox, type GridMetrics } from "@/lib/graph/grid";
 import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
 import { roundedPath, routeEdges } from "@/lib/graph/shapes/route";
 import { textWidth } from "@/lib/graph/text";
@@ -182,6 +182,49 @@ export function placeLessons(map: Pick<CourseMapData, "layout" | "lanes" | "less
   return { cells, bands: [] };
 }
 
+/** One end of a line on a node side, and what orders it there: the other end's centre (y, then x). */
+type End = { id: string; node: string; side: "left" | "right"; key: [number, number] };
+
+/** Offsets within a shared channel: the middle first, then alternately below and above (the row gap is 22). */
+const LANES = [0, 4, -4, 8, -8];
+
+/**
+ * Where each end sits on its node side (UI Part 2): the ends that share a side are spread evenly
+ * along the node's height, in the order of the other ends, so lines leave towards their targets
+ * without crossing each other at the node and no two arrowheads land on the same point.
+ */
+export function spreadPorts(ends: End[], boxes: Map<string, GridBox>): Map<string, number> {
+  const groups = new Map<string, End[]>();
+  for (const end of ends)
+    groups.set(`${end.node}|${end.side}`, [...(groups.get(`${end.node}|${end.side}`) ?? []), end]);
+  const ports = new Map<string, number>();
+  for (const list of groups.values()) {
+    const box = boxes.get(list[0].node)!;
+    list.sort((a, b) => a.key[0] - b.key[0] || a.key[1] - b.key[1] || (a.id < b.id ? -1 : 1));
+    list.forEach((end, k) => ports.set(end.id, box.y + (box.nodeHeight * (k + 1)) / (list.length + 1)));
+  }
+  return ports;
+}
+
+/**
+ * Label boxes that would overlap move down a line at a time, so relation labels never sit on each
+ * other: authored labels first (always shown), then the relation's type word that focus mode adds
+ * (sized by the type's English name; the renderer words it).
+ */
+function separateLabels<
+  T extends { label?: string; type: string; labelAt: { x: number; y: number; anchor: "middle" | "end" } },
+>(edges: T[]) {
+  const placed: { x0: number; x1: number; y: number }[] = [];
+  for (const e of [...edges.filter((x) => x.label), ...edges.filter((x) => !x.label)]) {
+    const w = textWidth(e.label ?? e.type, 11) + 8;
+    const x0 = e.labelAt.anchor === "middle" ? e.labelAt.x - w / 2 : e.labelAt.x - w;
+    let y = e.labelAt.y;
+    while (placed.some((p) => x0 < p.x1 && p.x0 < x0 + w && Math.abs(p.y - y) < 14)) y += 14;
+    placed.push({ x0, x1: x0 + w, y });
+    e.labelAt = { ...e.labelAt, y };
+  }
+}
+
 export type MapLayout = {
   /** Every lesson's box, and the goal's. The focused lesson's box is its whole expanded footprint; `nodeHeight` is its title card. */
   boxes: Map<string, GridBox>;
@@ -215,7 +258,7 @@ export function layoutCourseMap(
     0,
     ...map.edges
       .filter((e) => e.label && cells.get(e.from)?.col === 0 && cells.get(e.to)?.col === 0)
-      .map((e) => textWidth(e.label!, 11) + 24),
+      .map((e) => textWidth(e.label!, 11) + 36),
   );
   const left = Math.max(bands.length ? LANE_HEADER : SIDE, sameColumnLabel);
   const cols = Math.max(0, ...[...cells.values()].map((c) => c.col)) + 1;
@@ -240,35 +283,57 @@ export function layoutCourseMap(
   boxes.set(GOAL, goal);
   const width = narrow ? grid.width + metrics.colGap / 2 + 2 : grid.width - NODE.width + GOAL_SIZE.width;
   const height = narrow ? goal.y + goal.height : Math.max(grid.height, GOAL_SIZE.height);
-  const intoGoal = (b: GridBox) => {
-    if (!narrow) return gridEdgePath(b, goal, grid);
-    const y = b.y + b.nodeHeight / 2;
-    const x = b.x + b.width + metrics.colGap / 2;
-    return `M ${b.x + b.width} ${y} L ${x - 8} ${y} Q ${x} ${y} ${x} ${y + 8} L ${x} ${goal.y}`;
-  };
-
-  const edges = map.edges
-    .filter((e) => boxes.has(e.from) && boxes.has(e.to))
-    .map((e) => {
-      const a = boxes.get(e.from)!;
-      const b = boxes.get(e.to)!;
-      const y = (a.y + a.nodeHeight / 2 + b.y + b.nodeHeight / 2) / 2;
-      const sameColumn = a.x === b.x;
-      const leftBox = a.x < b.x ? a : b;
-      // Between the columns for edges across them; beside the bow (gridEdgePath bows 28 to the left) within one.
-      const labelAt = sameColumn
-        ? { x: a.x - 10, y: Math.min(a.y, b.y) + NODE.height * 0.75, anchor: "end" as const }
-        : {
-            x: leftBox.x + leftBox.width + metrics.colGap / 2,
-            y: Math.abs(a.x - b.x) > leftBox.width + metrics.colGap ? leftBox.y + NODE.height / 2 : y,
-            anchor: "middle" as const,
-          };
-      return { ...e, d: gridEdgePath(a, b, grid), labelAt };
-    });
+  const placedEdges = map.edges.filter((e) => boxes.has(e.from) && boxes.has(e.to));
   const outgoing = new Set(map.edges.filter((e) => ORDERING.has(e.type)).map((e) => e.from));
   // Every lesson contributes; with many lessons only the last of each chain draws the line.
   const contributors = map.lessons.length > 8 ? map.lessons.filter((l) => !outgoing.has(l.slug)) : map.lessons;
-  const contributes = contributors.map((l) => ({ from: l.slug, d: intoGoal(boxes.get(l.slug)!) }));
+
+  // Every end on every node side, relations and the lines into the goal alike, spread along it.
+  const mid = (b: GridBox): [number, number] => [b.y + b.nodeHeight / 2, b.x];
+  const ends: End[] = placedEdges.flatMap((e, i) => {
+    const [a, b] = [boxes.get(e.from)!, boxes.get(e.to)!];
+    const [sa, sb] = edgeSides(a, b);
+    return [
+      { id: `${i}>`, node: e.from, side: sa, key: mid(b) },
+      { id: `${i}<`, node: e.to, side: sb, key: mid(a) },
+    ];
+  });
+  for (const l of contributors) {
+    // Narrow: the line turns down the gutter, so it takes the lowest place on the side.
+    ends.push({ id: `goal:${l.slug}>`, node: l.slug, side: "right", key: narrow ? [Infinity, 0] : mid(goal) });
+    if (!narrow) ends.push({ id: `goal:${l.slug}<`, node: GOAL, side: "left", key: mid(boxes.get(l.slug)!) });
+  }
+  const ports = spreadPorts(ends, boxes);
+  const taken = new Map<string, number>();
+  const lane = (col: number, y: number) => {
+    const n = taken.get(`${col}:${y}`) ?? 0;
+    taken.set(`${col}:${y}`, n + 1);
+    return LANES[n % LANES.length];
+  };
+
+  const intoGoal = (slug: string) => {
+    const b = boxes.get(slug)!;
+    const fy = ports.get(`goal:${slug}>`)!;
+    if (!narrow) return gridEdgeRoute(b, goal, grid, 28, { fy, ty: ports.get(`goal:${slug}<`), lane }).d;
+    const x = b.x + b.width + metrics.colGap / 2;
+    return `M ${b.x + b.width} ${fy} L ${x - 8} ${fy} Q ${x} ${fy} ${x} ${fy + 8} L ${x} ${goal.y}`;
+  };
+
+  const edges = placedEdges.map((e, i) => {
+    const route = gridEdgeRoute(boxes.get(e.from)!, boxes.get(e.to)!, grid, 28, {
+      fy: ports.get(`${i}>`),
+      ty: ports.get(`${i}<`),
+      lane,
+    });
+    // Across columns: above the middle of the first stretch; within one: left of the bow.
+    const sameColumn = boxes.get(e.from)!.x === boxes.get(e.to)!.x;
+    const labelAt = sameColumn
+      ? { x: route.mid.x - 6, y: route.mid.y, anchor: "end" as const }
+      : { x: route.mid.x, y: route.mid.y, anchor: "middle" as const };
+    return { ...e, d: route.d, labelAt };
+  });
+  separateLabels(edges);
+  const contributes = contributors.map((l) => ({ from: l.slug, d: intoGoal(l.slug) }));
 
   return {
     boxes,
