@@ -80,6 +80,11 @@ final class PreflightCommand extends Command
                 'set UPLOADS_DISK=s3 and AWS_BUCKET',
             ],
             [
+                ($transfers = (array) config('filesystems.disks.'.config('cybercompass.content_packages.disk'))) && ($transfers['driver'] ?? null) === 's3' && filled($transfers['bucket'] ?? null),
+                'Content packages go to their private S3 bucket',
+                'set TRANSFERS_DISK=transfers and AWS_TRANSFERS_BUCKET (the api and the worker do not share a disk, D70)',
+            ],
+            [
                 $logLevels !== [] && ! in_array('debug', $logLevels, true),
                 'Logs are not at debug level',
                 'set LOG_LEVEL=info or warning',

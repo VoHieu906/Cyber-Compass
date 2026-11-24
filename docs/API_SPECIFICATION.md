@@ -352,6 +352,26 @@ Posts are read by anyone; their sections are the lesson blocks, serialized exact
 
 Covers and `media` blocks use the existing `/admin/content/media` upload. The admin routes sit under `/admin/content/`, so they share the lesson routes' WAF exclusion (D50) and their exemption from `TrimStrings`. Audit actions: `post.created`, `post.published`, `post.draft_discarded`, `post.archived`, `post.unarchived`, `post.deleted`, `post.revision_restored` (subject type `post`).
 
+### Content packages (F6, D67, D70)
+
+All under `/admin/content/` (admin only: `auth:sanctum`, `EnsureAdmin`, `throttle:admin`; the D50 WAF exclusion and the `TrimStrings` exemption apply). A transfer belongs to the admin who started it; another admin's is a 404.
+
+| | Method | Path | Notes |
+|---|---|---|---|
+| 🛡 | POST | `/admin/content/packages/check` | `{json}`: validate-only preview of pasted JSON (≤ 10 MB); stores nothing. Returns the report below |
+| 🛡 | GET | `/admin/content/lessons/{id}/package`, `/admin/content/posts/{id}/package` | The working copy as a `.ccpkg.json` attachment; `?sections=a,b` exports only those keys as `replace` operations. Audited (`lesson.package_exported`, `post.package_exported`) |
+| 🛡 | POST | `/admin/content/transfers` | `{file_name (.json or .zip), size (≤ 250 MB)}` → 201 with `upload: {mode: s3 \| chunked, part_bytes, parts[{number, url}]}`. On S3 the browser PUTs each part to its presigned `url` and keeps the `ETag` header |
+| 🛡 | PUT | `/admin/content/transfers/{id}/parts/{n}` | Chunked mode only (raw body of exactly `part_bytes`, the last part the rest); 404 on S3 |
+| 🛡 | POST | `/admin/content/transfers/{id}/complete` | `{parts?: [{number, etag}]}` (S3). Checks the size, then queues validation: `status` `validating` → `ready` with `report` |
+| 🛡 | GET | `/admin/content/transfers/{id}` | Poll: `{id, direction, status, file_name, size_bytes, report, error, expires_at}`. Statuses: `uploading`, `validating`, `ready`, `applying`, `applied`, `exporting`, `failed` (`error` says why) |
+| 🛡 | POST | `/admin/content/transfers/{id}/validate` | Validate again (after content changed or a failed apply) |
+| 🛡 | POST | `/admin/content/transfers/{id}/apply` | 202; queues the import into drafts. Idempotent: while `applying` or once `applied` it starts nothing. 422 when the report has errors, 409 when not `ready`, 410 when the file expired. A draft changed since the preview ends `failed` with "changed since this preview" |
+| 🛡 | POST | `/admin/content/transfers/exports` | `{type: lesson \| post \| course, id, sections?}` → 202; a `.ccpkg.zip` with images is built on the worker. Audited (`<type>.package_exported`) |
+| 🛡 | GET | `/admin/content/transfers/{id}/download` | `{url}`: a 10-minute presigned S3 link, or locally the API's `…/file` route |
+| 🛡 | DELETE | `/admin/content/transfers/{id}` | Removes the file and the row (409 while a step runs) |
+
+**Report** (`report`): `{kind, generator, valid, errors: {"<package path>": [messages]}, warnings: [{path, message}], documents: [{type, slug, title, id, is_new, chapter, lock_version, fingerprint, changes: [{change: added \| replaced \| removed \| kept, key, uuid, type, heading}]}]}`. Paths name the place in the package (`operations.2.section.payload.text`, `document.minutes`). Applying writes one audit entry per document (`lesson.package_imported`, `post.package_imported`).
+
 ### Search
 
 | | Method | Path |

@@ -28,6 +28,11 @@ return [
     // Most of a large package is images; each JSON document stays small because PHP needs about
     // ten times a document's size in memory to decode it.
     'content_packages' => [
+        // Where uploads and exports live between steps (D70). The api and the worker are separate
+        // containers on AWS, so production needs the S3 `transfers` disk; `local` only on one machine.
+        'disk' => env('TRANSFERS_DISK', 'local'),
+        'part_bytes' => 8 * 1024 * 1024,                // one upload part (S3 needs at least 5 MB)
+        'ttl_days' => 7,                                // files and rows are removed after this
         'max_bytes' => 250 * 1024 * 1024,                // the uploaded file, compressed
         'max_uncompressed_bytes' => 1024 * 1024 * 1024, // every zip entry together
         'max_entries' => 5000,

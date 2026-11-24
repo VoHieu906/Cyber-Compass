@@ -61,6 +61,20 @@ return [
             'report' => false,
         ],
 
+        // Content package uploads and exports (F6, D70): a private bucket of their own with no
+        // CloudFront in front, because the media distribution may read the whole uploads bucket.
+        'transfers' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_TRANSFERS_BUCKET'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*

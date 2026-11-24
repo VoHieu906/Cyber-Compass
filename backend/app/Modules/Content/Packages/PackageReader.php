@@ -20,8 +20,11 @@ use ZipArchive;
  */
 final class PackageReader
 {
-    /** @return array{envelope: array<string, mixed>, root: ?string} */
-    public function read(string $path, string $name): array
+    /**
+     * @param  ?string  $into  unpack a zip here (a folder the caller owns and deletes); default a new folder under workDir()
+     * @return array{envelope: array<string, mixed>, root: ?string}
+     */
+    public function read(string $path, string $name, ?string $into = null): array
     {
         $limits = config('cybercompass.content_packages');
         $size = @filesize($path);
@@ -33,7 +36,7 @@ final class PackageReader
         }
 
         if (str_ends_with(strtolower($name), '.zip')) {
-            $root = $this->unzip($path, $limits);
+            $root = $this->unzip($path, $limits, $into ?? self::workDir().'/'.Str::uuid());
             try {
                 $envelope = $this->decode($root.'/manifest.json', 'manifest.json', $limits);
                 $envelope = $this->resolveFiles($envelope, $root, $limits, 'manifest', 0);
@@ -83,14 +86,13 @@ final class PackageReader
         return storage_path('app/tmp/packages');
     }
 
-    private function unzip(string $path, array $limits): string
+    private function unzip(string $path, array $limits, string $root): string
     {
         $zip = new ZipArchive;
         if ($zip->open($path, ZipArchive::RDONLY | ZipArchive::CHECKCONS) !== true) {
             self::fail('package', 'The file is not a valid zip archive.');
         }
 
-        $root = self::workDir().'/'.Str::uuid();
         File::ensureDirectoryExists($root, 0700);
         $allowed = [...$limits['text_extensions'], ...ContentFileMedia::EXTENSIONS];
         $total = 0;

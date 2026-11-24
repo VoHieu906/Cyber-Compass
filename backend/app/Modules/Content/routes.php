@@ -7,6 +7,8 @@ use App\Modules\Content\Http\Controllers\CourseStructureController;
 use App\Modules\Content\Http\Controllers\LessonAdminController;
 use App\Modules\Content\Http\Controllers\LessonRevisionController;
 use App\Modules\Content\Http\Controllers\MediaController;
+use App\Modules\Content\Http\Controllers\PackageController;
+use App\Modules\Content\Http\Controllers\TransferController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,6 +44,24 @@ Route::middleware(['auth:sanctum', EnsureAdmin::class, 'throttle:admin'])->prefi
         Route::get('{lesson:id}/revisions', [LessonRevisionController::class, 'index'])->whereNumber('lesson')->name('revisions');
         Route::post('{lesson:id}/revisions/{version}/restore', [LessonRevisionController::class, 'restore'])
             ->whereNumber(['lesson', 'version'])->name('revisions.restore');
+    });
+
+    // Content packages (F6, D67, D70). Bodies stay small: package bytes go to S3 by presigned URL in
+    // production, and the local part route exists only for a local transfers disk.
+    Route::post('packages/check', [PackageController::class, 'check'])->name('packages.check');
+    Route::get('lessons/{lesson:id}/package', [PackageController::class, 'lesson'])->whereNumber('lesson')->name('lessons.package');
+    Route::get('posts/{post:id}/package', [PackageController::class, 'post'])->whereNumber('post')->name('posts.package');
+    Route::controller(TransferController::class)->prefix('transfers')->name('transfers.')->group(function () {
+        Route::post('/', 'store')->name('store');
+        Route::post('exports', 'export')->name('export');
+        Route::get('{transfer}', 'show')->whereNumber('transfer')->name('show');
+        Route::put('{transfer}/parts/{part}', 'part')->whereNumber(['transfer', 'part'])->name('part');
+        Route::post('{transfer}/complete', 'complete')->whereNumber('transfer')->name('complete');
+        Route::post('{transfer}/validate', 'validatePackage')->whereNumber('transfer')->name('validate');
+        Route::post('{transfer}/apply', 'apply')->whereNumber('transfer')->name('apply');
+        Route::get('{transfer}/download', 'download')->whereNumber('transfer')->name('download');
+        Route::get('{transfer}/file', 'file')->whereNumber('transfer')->name('file');
+        Route::delete('{transfer}', 'destroy')->whereNumber('transfer')->name('destroy');
     });
 
     Route::get('media', [MediaController::class, 'index'])->name('media.index');

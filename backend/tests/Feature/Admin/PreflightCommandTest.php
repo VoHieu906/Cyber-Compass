@@ -29,6 +29,8 @@ it('fails the deployment on an unsafe setting', function (array $override, strin
     'mail to the log' => [['mail.default' => 'log'], 'Mail is delivered, not logged'],
     'sync queue' => [['queue.default' => 'sync'], 'Jobs go to the queue worker'],
     'local uploads' => [['cybercompass.uploads_disk' => 'public'], 'Uploads go to the private S3 bucket'],
+    'local content packages' => [['cybercompass.content_packages.disk' => 'local'], 'Content packages go to their private S3 bucket'],
+    'no transfers bucket' => [['filesystems.disks.transfers.bucket' => null], 'Content packages go to their private S3 bucket'],
     'debug logs' => [['logging.channels.stderr.level' => 'debug'], 'Logs are not at debug level'],
     'debug logs through a stack' => [['logging.default' => 'stack', 'logging.channels.stack' => ['driver' => 'stack', 'channels' => ['stderr', 'single']], 'logging.channels.single.level' => 'debug'], 'Logs are not at debug level'],
     'no web server token' => [['cybercompass.internal_api_token' => 'short'], 'The web server has its own API token'],

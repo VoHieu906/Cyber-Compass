@@ -66,6 +66,8 @@ function safeProductionConfig(): void
         'queue.default' => 'database',
         'cybercompass.uploads_disk' => 's3',
         'filesystems.disks.s3.bucket' => 'uploads-bucket',
+        'cybercompass.content_packages.disk' => 'transfers',
+        'filesystems.disks.transfers.bucket' => 'transfers-bucket',
         'logging.default' => 'stderr',
         'logging.channels.stderr.level' => 'info',
         'cybercompass.demo_user_password' => null,

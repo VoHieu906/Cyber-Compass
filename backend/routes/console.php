@@ -17,3 +17,7 @@ Schedule::command('notifications:send-reminders')->hourly()->withoutOverlapping(
 // passes on to the container log.
 Schedule::call(fn (QueueMetrics $metrics) => Log::channel('metrics')->info('queue', $metrics->snapshot()))
     ->everyMinute()->name('queue-metrics')->withoutOverlapping()->onOneServer();
+
+// Content package uploads and exports expire after a week (D70); a crashed step's temporary folder
+// is removed too. The S3 lifecycle rule removes the files on AWS as well.
+Schedule::command('content:prune-transfers')->hourly()->withoutOverlapping()->onOneServer();

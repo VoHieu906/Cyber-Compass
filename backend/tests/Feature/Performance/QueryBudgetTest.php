@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ContentTransfer;
 use App\Models\Course;
 use App\Models\CourseGraph;
 use App\Models\Lesson;
@@ -124,4 +125,16 @@ it('serves a course map in the same queries however big it is (F3)', function ()
 
     expect(queriesFor($uri))->toBe($without)->toBe($seeded)->toBeLessThanOrEqual(QUERY_BUDGETS[$uri])
         ->and(strlen($this->getJson($uri)->getContent()))->toBeLessThan(40_000);
+});
+
+it('answers the admin polling a content package transfer in a few queries (F6)', function () {
+    $admin = User::factory()->admin()->create();
+    $transfer = ContentTransfer::query()->create([
+        'user_id' => $admin->id, 'direction' => 'import', 'status' => ContentTransfer::VALIDATING, 'file_name' => 'p.ccpkg.json',
+        'path' => 'imports/1/package', 'expires_at' => now()->addDay(),
+    ]);
+    $this->actingAs($admin);
+
+    // The import dialog polls this while the worker validates or applies.
+    expect(queriesFor("/api/v1/admin/content/transfers/{$transfer->id}"))->toBeLessThanOrEqual(4);
 });

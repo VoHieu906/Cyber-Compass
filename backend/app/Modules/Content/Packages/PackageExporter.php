@@ -2,6 +2,8 @@
 
 namespace App\Modules\Content\Packages;
 
+use App\Enums\LessonStatus;
+use App\Models\Course;
 use App\Models\Lesson;
 use App\Models\Post;
 use App\Modules\Blog\Services\PostWorkingCopy;
@@ -76,6 +78,22 @@ final class PackageExporter
             'cover' => $copy['cover'],
             'sections' => self::withoutUuids($sections),
         ]]);
+    }
+
+    /** Every lesson of a course that is not archived, in course order, each with its chapter title. */
+    public function course(Course $course): array
+    {
+        $lessons = Lesson::query()
+            ->join('course_chapters', 'course_chapters.id', '=', 'lessons.course_chapter_id')
+            ->where('course_chapters.course_id', $course->id)
+            ->where('lessons.status', '!=', LessonStatus::Archived)
+            ->orderBy('course_chapters.position')->orderBy('lessons.position')
+            ->select('lessons.*')->with(['chapter.course', 'draft', 'sections', 'architecture'])->get();
+
+        return self::envelope('course', ['course' => $course->slug], [], ['documents' => $lessons->map(fn (Lesson $lesson) => [
+            'chapter' => $lesson->chapter->title,
+            'document' => $this->lesson($lesson)['document'],
+        ])->all()]);
     }
 
     public static function json(array $envelope): string

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\AssessmentAttempt;
+use App\Models\ContentTransfer;
 use App\Models\ExerciseAttempt;
 use App\Models\Lab;
 use App\Models\Lesson;
@@ -14,6 +15,7 @@ use App\Modules\Assessment\Policies\AssessmentAttemptPolicy;
 use App\Modules\Blog\Policies\PostPolicy;
 use App\Modules\Content\Blocks\BlockRegistry;
 use App\Modules\Content\Events\LessonPublished;
+use App\Modules\Content\Policies\ContentTransferPolicy;
 use App\Modules\Content\Policies\LessonPolicy;
 use App\Modules\Labs\Engines\LabLimits;
 use App\Modules\Labs\Events\LabCompleted;
@@ -83,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserAdminPolicy::class);
         Gate::policy(Lesson::class, LessonPolicy::class);
         Gate::policy(Post::class, PostPolicy::class);
+        Gate::policy(ContentTransfer::class, ContentTransferPolicy::class);
 
         // Learners' own records: another learner's attempt answers 404.
         Gate::policy(AssessmentAttempt::class, AssessmentAttemptPolicy::class);
