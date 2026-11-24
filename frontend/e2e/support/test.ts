@@ -1,5 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
 import { test as base, expect, type Page } from "@playwright/test";
-import type { Account } from "./accounts";
+import { SESSIONS_DIR, type Account } from "./accounts";
 
 /**
  * The suite's `test`: every page fails its test on a console error or an uncaught exception.
@@ -33,6 +35,23 @@ export async function login(page: Page, { email, password }: Account, next?: str
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Log in", exact: true }).click();
   await page.waitForURL(next ?? "/dashboard");
+}
+
+/**
+ * Signs in once per account and run, then reuses that session: the login limit is 20 a minute per
+ * address (production's limiter, never loosened for tests), and the whole suite signs in from one.
+ * Specs about signing in itself use `login`. Sessions live beside the run's accounts, which
+ * global-setup recreates, so a stale session can never be reused.
+ */
+export async function signIn(page: Page, account: Account, next?: string) {
+  const file = path.join(SESSIONS_DIR, `${account.email.replace(/[^a-z0-9]/gi, "_")}.json`);
+  if (fs.existsSync(file)) {
+    await page.context().addCookies(JSON.parse(fs.readFileSync(file, "utf8")));
+    await page.goto(next ?? "/dashboard");
+    if (!new URL(page.url()).pathname.startsWith("/login")) return;
+  }
+  await login(page, account, next);
+  fs.writeFileSync(file, JSON.stringify((await page.context().storageState()).cookies));
 }
 
 /** Pixels the page is wider than the viewport (0 when it fits). */

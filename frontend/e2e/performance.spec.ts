@@ -1,7 +1,7 @@
 import type { Browser, BrowserContextOptions } from "@playwright/test";
 import { account } from "./support/accounts";
 import { longPostSections, publishPost } from "./support/blog";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * Page weight and API traffic per route (Phase 7 Part D, docs/PERFORMANCE.md). Each route is
@@ -83,11 +83,11 @@ async function measure(
 
 test("pages stay within their weight and API budgets", async ({ browser, page }, testInfo) => {
   test.setTimeout(180_000);
-  await login(page, account("perf"));
+  await signIn(page, account("perf"));
   const signedIn = await page.context().storageState();
 
   const admin = await browser.newPage();
-  await login(admin, account("admin"));
+  await signIn(admin, account("admin"));
   const slug = `e2e-perf-post-${Date.now()}`;
   await publishPost(admin, {
     slug,

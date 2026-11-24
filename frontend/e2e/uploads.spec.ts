@@ -1,5 +1,5 @@
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * An upload end to end (Phase 7 Part F): the avatar goes through the API's re-encoding to the
@@ -8,7 +8,7 @@ import { expect, login, test } from "./support/test";
  * removed at the end, so the run leaves no file behind.
  */
 test("an avatar uploads, displays from the uploads origin and is removed", async ({ page }) => {
-  await login(page, account("uploads"));
+  await signIn(page, account("uploads"));
   await page.goto("/settings/profile");
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
 

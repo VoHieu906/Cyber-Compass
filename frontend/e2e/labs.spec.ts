@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * The shell lab on its server engine (D28, ARCHITECTURE §7.1): commands with pipes, the refusals
@@ -29,7 +29,7 @@ test.describe("labs", () => {
   test.use({ allowedConsole: /status of 409/ });
 
   test("the shell lab runs safely on the server and completes", async ({ page, context }) => {
-    await login(page, account("labs"));
+    await signIn(page, account("labs"));
     await page.goto("/labs");
     await expect(page.getByRole("main").locator("ol > li")).toHaveCount(3);
 

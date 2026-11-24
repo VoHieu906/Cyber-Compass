@@ -1,6 +1,6 @@
 import { account } from "./support/accounts";
 import { longPostSections, publishPost } from "./support/blog";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * The blog (F2): guests read posts on the shared lesson blocks, and admins write them with the
@@ -10,7 +10,7 @@ test.describe("blog", () => {
   test("a guest reads a long post and moves around it with the table of contents", async ({ browser, page }) => {
     const slug = `e2e-long-post-${Date.now()}`;
     const admin = await browser.newPage();
-    await login(admin, account("admin"));
+    await signIn(admin, account("admin"));
     await publishPost(admin, {
       slug,
       title: "E2E long read about containers",
@@ -43,7 +43,7 @@ test.describe("blog", () => {
 
   test("an admin drafts, previews and publishes a post; it appears on the blog and in search", async ({ page }) => {
     const title = `E2E post ${Date.now()}`;
-    await login(page, account("admin"));
+    await signIn(page, account("admin"));
     await page.goto("/admin/posts");
     await page.getByRole("button", { name: "New post" }).click();
     const dialog = page.getByRole("dialog");

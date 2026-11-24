@@ -1,5 +1,5 @@
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * Admin console smoke test (D16), read-only so the run leaves no audit rows or content behind.
@@ -7,7 +7,7 @@ import { expect, login, test } from "./support/test";
  */
 test.describe("admin console", () => {
   test("an admin sees the overview, finds a user and lists lessons", async ({ page }) => {
-    await login(page, account("admin"));
+    await signIn(page, account("admin"));
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: "Overview", level: 1 })).toBeVisible();
     await expect(page.getByText("Accounts", { exact: true })).toBeVisible();
@@ -32,7 +32,7 @@ test.describe("admin console", () => {
     test.use({ allowedConsole: /status of 403/ });
 
     test("the console says it is for admins only", async ({ page }) => {
-      await login(page, account("search"));
+      await signIn(page, account("search"));
       await page.goto("/admin");
       await expect(page.getByRole("heading", { name: "Admins only" })).toBeVisible();
       await expect(page.getByText("Accounts", { exact: true })).toBeHidden();

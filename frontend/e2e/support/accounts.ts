@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const ACCOUNTS_FILE = path.resolve(__dirname, "../.auth/accounts.json");
+/** Saved sessions per account (support/test.ts `signIn`), cleared by global-setup. */
+export const SESSIONS_DIR = path.resolve(__dirname, "../.auth/sessions");
 
 /** Written by global-setup: one password for every throwaway account of the run. */
 export type Accounts = { password: string; learners: string[]; admins: string[] };

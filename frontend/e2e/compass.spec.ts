@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /** The compass menu and keyboard shortcuts (Phase 7.5, D51 to D53), on its own account. */
 test.describe.configure({ mode: "serial" });
@@ -23,7 +23,7 @@ async function typeTo(page: Page, key: string, name: string) {
 test.describe("compass", () => {
   // The dark pass signs in as a second account: one account's two passes would pass the API's 120 a minute.
   test.beforeEach(async ({ page }, info) => {
-    await login(page, account(info.title.includes("dark") ? "compass2" : "compass"));
+    await signIn(page, account(info.title.includes("dark") ? "compass2" : "compass"));
   });
 
   test("reaches a settings tab with the keyboard only and marks where the learner is", async ({ page }) => {

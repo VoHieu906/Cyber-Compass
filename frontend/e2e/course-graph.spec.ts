@@ -1,5 +1,5 @@
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * The course map (F3) on the test map that global setup installs on Applied Cryptography
@@ -58,7 +58,7 @@ test.describe("course map", () => {
   });
 
   test("a learner follows a part to the section that teaches it", async ({ page }) => {
-    await login(page, account("courseMap"));
+    await signIn(page, account("courseMap"));
     await page.goto(COURSE);
     const map = page.getByRole("group", { name: /Course map of Applied/ });
     await map.getByRole("button", { name: "Hashing and password storage" }).click();

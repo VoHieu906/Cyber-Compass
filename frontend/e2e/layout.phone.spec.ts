@@ -1,5 +1,5 @@
 import { account } from "./support/accounts";
-import { expect, headerOverflow, login, pageOverflow, test } from "./support/test";
+import { expect, headerOverflow, signIn, pageOverflow, test } from "./support/test";
 
 /**
  * Phone width (390px): the header's primary navigation lives in the Menu button, and the main
@@ -17,7 +17,7 @@ const PAGES = [
 ];
 
 test("signed-in pages fit a phone and the menu holds the navigation", async ({ page }) => {
-  await login(page, account("phone"));
+  await signIn(page, account("phone"));
 
   for (const path of PAGES) {
     await page.goto(path);

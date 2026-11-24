@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /**
  * Browser-side security (Phase 7 Part C, D42, D22): the response headers, a page-by-page check
@@ -52,7 +52,7 @@ test.describe("content security policy", () => {
       expect(await violations(), path).toEqual([]);
     }
 
-    await login(page, account("security"));
+    await signIn(page, account("security"));
     for (const theme of ["dark", "light"]) {
       await page.evaluate((t) => localStorage.setItem("theme", t), theme);
       for (const path of ["/dashboard", "/roadmap", INTRO_LESSON]) {
@@ -65,7 +65,7 @@ test.describe("content security policy", () => {
 
   test("the admin lesson editor and its live preview run under the policy", async ({ page }) => {
     const violations = await watchViolations(page);
-    await login(page, account("admin"));
+    await signIn(page, account("admin"));
     await page.goto("/admin/lessons?q=Introduction");
     await page.getByRole("main").getByRole("link", { name: /Introduction to computer networks/i }).first().click();
     await expect(page).toHaveURL(/\/admin\/lessons\/\d+$/);
@@ -84,7 +84,7 @@ test.describe("3D sandbox", () => {
   test.use({ allowedConsole: /Refused to connect|Content Security Policy|WebSocket|sandbox|SecurityError/i });
 
   test("scene code has no network, storage, cookies or access to the page", async ({ page }) => {
-    await login(page, account("security"));
+    await signIn(page, account("security"));
     await page.goto(INTRO_LESSON);
     // The 3D view loads only when its section comes near the viewport.
     await page.getByRole("heading", { name: "Follow a packet" }).scrollIntoViewIfNeeded();

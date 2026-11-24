@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page, TestInfo } from "@playwright/test";
 import { account } from "./support/accounts";
-import { expect, headerOverflow, login, pageOverflow, test } from "./support/test";
+import { expect, headerOverflow, signIn, pageOverflow, test } from "./support/test";
 
 /**
  * Responsive and accessibility sweep (Phase 7 Part E). Every route, at 1280, 768 and 390px, in
@@ -120,7 +120,7 @@ test.describe("responsive and accessibility sweep", () => {
   });
 
   test("learner routes", async ({ page }, testInfo) => {
-    await login(page, account("sweep"));
+    await signIn(page, account("sweep"));
 
     // Give the learner a result, a goal and a roadmap so those pages show their real content.
     await page.goto("/assessment");
@@ -152,7 +152,7 @@ test.describe("responsive and accessibility sweep", () => {
   test("learning and settings routes", async ({ page }, testInfo) => {
     // A second learner: full page loads skip the client cache, and one account sweeping every
     // route would meet the real 120-a-minute API limit.
-    await login(page, account("sweep2"));
+    await signIn(page, account("sweep2"));
     const findings: Finding[] = [];
     await sweep(
       page,
@@ -175,7 +175,7 @@ test.describe("responsive and accessibility sweep", () => {
   });
 
   test("admin routes", async ({ page }, testInfo) => {
-    await login(page, account("admin"));
+    await signIn(page, account("admin"));
     await page.goto("/admin/users");
     const userHref = await page.getByRole("main").locator('a[href^="/admin/users/"]').first().getAttribute("href");
     await page.goto("/admin/lessons");

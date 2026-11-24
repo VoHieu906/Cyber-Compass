@@ -1,5 +1,5 @@
 import { account } from "./support/accounts";
-import { expect, login, test } from "./support/test";
+import { expect, signIn, test } from "./support/test";
 
 /** Header search (D36): keyboard shortcuts, grouped results, and no drafts reaching learners. */
 test.describe("global search", () => {
@@ -26,7 +26,7 @@ test.describe("global search", () => {
   });
 
   test("Ctrl+K, nothing found, and Escape returning focus to where it was", async ({ page }) => {
-    await login(page, account("search"));
+    await signIn(page, account("search"));
     const before = page.getByRole("banner").getByRole("link", { name: "Courses", exact: true }).first();
     await before.focus();
     await page.keyboard.press("Control+KeyK");
