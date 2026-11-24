@@ -37,7 +37,7 @@ import {
   type NodeState,
 } from "../layout";
 import type { CourseMapData, MapEdge } from "../types";
-import { EdgeLegend, EDGE_STYLE, EdgeMarkers } from "./edge-style";
+import { EdgeLegend, EdgeMarkers, EdgePath, type EdgeKind } from "./edge-style";
 import { ShapeGlyph } from "./shape-glyph";
 
 /** The map's inner width at a 1280 window: the 1440 container minus gutters, scrollbar and the box padding. */
@@ -194,14 +194,34 @@ export function CourseMap({
       fallback: l.fallback || outer[i].fallback,
     }));
   }, [frame, focusedLesson, parts, layout, detail]);
-  const partLinkProps = (id: string) => ({
-    fill: "none",
-    strokeWidth: id === hotPart ? 2.25 : 1.5,
-    strokeDasharray: "4 3",
-    "data-state": hotPart === null ? undefined : id === hotPart ? "lit" : "dim",
-    className: "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
-    style: { stroke: "var(--color-accent)", opacity: hotPart !== null && id !== hotPart ? 0.3 : 1 },
-  });
+  // A legend row (hovered or focused, else clicked) shows only its kind of line on the map.
+  const [legendHover, setLegendHover] = useState<EdgeKind | null>(null);
+  const [legendPin, setLegendPin] = useState<EdgeKind | null>(null);
+  const only = legendHover ?? legendPin;
+  // The kinds this map draws, for the legend: relations, goal lines, and what the architectures hold.
+  const kinds = useMemo<EdgeKind[]>(() => {
+    const shapes = new Set(map.lessons.flatMap((l) => (l.shape && l.nodes.length > 1 ? [l.shape] : [])));
+    return [
+      ...new Set(map.edges.map((e) => e.type)),
+      ...(map.lessons.length ? (["contributes"] as const) : []),
+      ...(map.lessons.some((l) => l.shape && l.edges.length) ? (["part-relation"] as const) : []),
+      ...(shapes.has("pipeline") || shapes.has("cycle") ? (["part-order"] as const) : []),
+      ...(shapes.has("hub") || shapes.has("tree") ? (["part-connector"] as const) : []),
+      ...(map.lessons.some((l) => l.nodes.some((n) => n.lesson && n.lesson !== l.slug))
+        ? (["part-link"] as const)
+        : []),
+    ];
+  }, [map]);
+  const partLinkState = (id: string) => (only ? only === "part-link" : hotPart !== null ? id === hotPart : null);
+  const partLinkProps = (id: string) => {
+    const on = partLinkState(id);
+    return {
+      emphasis: on === true,
+      "data-state": on === null ? undefined : on ? "lit" : "dim",
+      className: "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
+      style: { opacity: on === false ? 0.3 : 1 },
+    };
+  };
   useEffect(() => {
     if (process.env.NODE_ENV !== "production")
       for (const l of partLinks.filter((l) => l.fallback))
@@ -260,6 +280,10 @@ export function CourseMap({
   };
 
   const onMapKey = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (legendPin && event.key === "Escape") {
+      event.preventDefault();
+      return setLegendPin(null);
+    }
     if (focused && pressed(event, "courseMap.close")) {
       event.preventDefault();
       close();
@@ -284,15 +308,19 @@ export function CourseMap({
     [hot, map, layout],
   );
   const edgeState = (e: MapEdge): "emphasis" | "dim" | "normal" =>
-    hot
-      ? e.from === hot || e.to === hot
+    only
+      ? e.type === only
         ? "emphasis"
         : "dim"
-      : !focused
-        ? "normal"
-        : e.from === focused || e.to === focused
+      : hot
+        ? e.from === hot || e.to === hot
           ? "emphasis"
-          : "dim";
+          : "dim"
+        : !focused
+          ? "normal"
+          : e.from === focused || e.to === focused
+            ? "emphasis"
+            : "dim";
   const edgeName = (e: MapEdge) => `${titles.get(e.from)} → ${t(`edges.${e.type}`)} → ${titles.get(e.to)}`;
 
   return (
@@ -309,7 +337,7 @@ export function CourseMap({
           style={{ width: layout.width, height: layout.height }}
         >
           <svg width={layout.width} height={layout.height} className="absolute inset-0 overflow-visible" aria-hidden>
-            <EdgeMarkers />
+            <EdgeMarkers prefix="cm" />
             {layout.bands.map((b) => (
               <g key={b.label}>
                 <rect
@@ -339,25 +367,33 @@ export function CourseMap({
               {frame ? (
                 <g>
                   {partLinks.map((l) => (
-                    <path
+                    <EdgePath
                       key={l.id}
+                      kind="part-link"
                       d={l.outer}
+                      prefix="cm"
+                      heads="end"
                       data-link-out={l.id}
-                      markerEnd="url(#cm-solid)"
                       {...partLinkProps(l.id)}
                     />
                   ))}
                 </g>
               ) : null}
               {layout.contributes.map((c) => (
-                <path
+                <EdgePath
                   key={c.from}
+                  kind="contributes"
                   d={c.d}
-                  fill="none"
-                  {...EDGE_STYLE.contributes}
+                  prefix="cm"
+                  emphasis={only === "contributes"}
+                  data-goal-line={c.from}
                   className={cn(
-                    "[transition:d_var(--dur-long),opacity_var(--dur-long)] motion-reduce:transition-none",
-                    hot ? c.from !== hot && "opacity-30" : focused && "opacity-20",
+                    "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
+                    only
+                      ? only !== "contributes" && "opacity-30"
+                      : hot
+                        ? c.from !== hot && "opacity-30"
+                        : focused && "opacity-20",
                   )}
                 />
               ))}
@@ -365,8 +401,9 @@ export function CourseMap({
                 const key = `${e.from}>${e.to}>${e.type}`;
                 const state = edgeState(e);
                 // Focus mode words the focused lesson's relations; a hover leaves that to the relation's tooltip.
-                const label = state === "emphasis" && !hot && !e.quiet ? (e.label ?? t(`edges.${e.type}`)) : e.label;
-                const wide = hotEdge === key ? 1.25 : 0;
+                const label =
+                  state === "emphasis" && !hot && !only && !e.quiet ? (e.label ?? t(`edges.${e.type}`)) : e.label;
+                const pointed = hotEdge === key;
                 return (
                   <g
                     key={key}
@@ -374,32 +411,11 @@ export function CourseMap({
                     data-state={state}
                     className={cn(
                       "[transition:opacity_var(--dur-micro)] motion-reduce:transition-none",
-                      state === "dim" && (hot ? "opacity-30" : "opacity-20"),
+                      state === "dim" && (hot || only ? "opacity-30" : "opacity-20"),
                     )}
                   >
-                    {e.type === "parallel-to" ? (
-                      <path
-                        d={e.d}
-                        fill="none"
-                        strokeWidth={(state === "emphasis" ? 6 : 5) + wide}
-                        style={{ stroke: state === "emphasis" ? "var(--color-accent)" : "var(--color-rule-2)" }}
-                        className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
-                      />
-                    ) : null}
-                    <path
-                      d={e.d}
-                      fill="none"
-                      {...EDGE_STYLE[e.type]}
-                      {...(e.type === "parallel-to"
-                        ? { style: { stroke: "var(--color-paper-3)" } }
-                        : state === "emphasis" || wide
-                          ? {
-                              style: { stroke: "var(--color-accent)" },
-                              strokeWidth: Number(EDGE_STYLE[e.type].strokeWidth) + 0.75 + wide,
-                            }
-                          : {})}
-                      className="[transition:d_var(--dur-long)] motion-reduce:transition-none"
-                    />
+                    {/* Its own colour always: a highlight (or the pointer on it) only makes it heavier. */}
+                    <EdgePath kind={e.type} d={e.d} prefix="cm" emphasis={state === "emphasis" || pointed} />
                     {/* A wide invisible stroke takes the pointer: the relation's name after a pause, and a thicker line. */}
                     <path
                       d={e.d}
@@ -544,7 +560,15 @@ export function CourseMap({
                       aria-hidden
                     >
                       {partLinks.map((l) => (
-                        <path key={l.id} d={l.inner} data-link={l.id} {...partLinkProps(l.id)} />
+                        <EdgePath
+                          key={l.id}
+                          kind="part-link"
+                          d={l.inner}
+                          prefix="cm"
+                          heads="start"
+                          data-link={l.id}
+                          {...partLinkProps(l.id)}
+                        />
                       ))}
                     </svg>
                     <ExpandedLesson
@@ -560,6 +584,7 @@ export function CourseMap({
                       selected={selectedPart}
                       onSelect={setSelectedPart}
                       detail={detail}
+                      only={only}
                       onFocusLesson={(slug) => (
                         open(slug),
                         requestAnimationFrame(() => nodes.current.get(slug)?.focus())
@@ -607,8 +632,12 @@ export function CourseMap({
       ) : null}
       <p className="text-sm text-muted">{t("keysHint")}</p>
       <EdgeLegend
-        types={[...new Set(map.edges.map((e) => e.type))]}
+        kinds={kinds}
         shapes={[...new Set(map.lessons.flatMap((l) => (l.shape ? [l.shape] : [])))]}
+        active={only}
+        pinned={legendPin}
+        onPreview={setLegendHover}
+        onPin={setLegendPin}
       />
     </div>
   );

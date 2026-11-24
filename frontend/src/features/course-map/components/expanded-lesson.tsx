@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { EXPANDED } from "../layout";
 import type { MapLesson } from "../types";
 import { ArchitectureView } from "./architecture-view";
+import type { EdgeKind } from "./edge-style";
 
 /**
  * The inside of the focused lesson's node (F3 focus mode, D59): its actions beside the title card,
@@ -30,6 +31,7 @@ export default function ExpandedLesson({
   selected,
   onSelect,
   detail,
+  only,
 }: {
   lesson: MapLesson;
   titles: Map<string, string>;
@@ -49,6 +51,8 @@ export default function ExpandedLesson({
   onSelect: (id: string) => void;
   /** The detail strip's height. */
   detail: number;
+  /** A legend row's kind, shown alone. */
+  only: EdgeKind | null;
 }) {
   const t = useTranslations("courseMap");
   const parsed = useMemo(
@@ -120,6 +124,7 @@ export default function ExpandedLesson({
             onSelect={onSelect}
             label={t("parts", { title: lesson.title })}
             onHot={onHotPart}
+            only={only}
             onLayout={(rects) =>
               onParts(new Map([...rects].map(([id, r]) => [id, { ...r, x: r.x + areaLeft, y: r.y + areaTop }])))
             }

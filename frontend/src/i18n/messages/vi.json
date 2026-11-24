@@ -1910,7 +1910,11 @@
       "feeds-into": "cung cấp cho",
       "contrasts-with": "đối lập với",
       "parallel-to": "song song với",
-      "contributes": "góp phần giải vấn đề lớn"
+      "contributes": "góp phần giải vấn đề lớn",
+      "part-relation": "liên quan đến",
+      "part-order": "tiếp theo (thứ tự của dạng)",
+      "part-connector": "nối với (nan, nhánh)",
+      "part-link": "dẫn tới bài học khác"
     },
     "markers": {
       "push": "đẩy vào",
@@ -1921,7 +1925,12 @@
       "outer": "vòng ngoài"
     },
     "legend": "Chú giải",
-    "legendLines": "Quan hệ",
+    "legendHint": "Di chuột hoặc chọn một dòng để chỉ xem loại đường đó trên bản đồ; nhấn để giữ lại.",
+    "legendScopes": {
+      "lesson": "Giữa các bài học",
+      "part": "Bên trong một bài học",
+      "link": "Từ một phần tới một bài học"
+    },
     "legendShapes": "Các dạng trong khóa học",
     "back": "Quay lại toàn cảnh",
     "open": "Mở bài học",

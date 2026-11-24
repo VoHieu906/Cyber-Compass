@@ -7,6 +7,7 @@ import { layoutShape } from "@/lib/graph/shapes/registry";
 import type { Architecture } from "@/lib/graph/shapes/schemas";
 import { pressed } from "@/lib/shortcuts/registry";
 import { cn } from "@/lib/utils";
+import { EdgeMarkers, EdgePath, partKind, type EdgeKind } from "./edge-style";
 
 /**
  * A lesson's architecture drawn in its shape (F3, D59): decorations and connectors as static SVG,
@@ -24,6 +25,7 @@ export function ArchitectureView({
   label,
   onLayout,
   onHot,
+  only = null,
 }: {
   architecture: Architecture & { shape: NonNullable<Architecture["shape"]> };
   box: Box;
@@ -34,9 +36,11 @@ export function ArchitectureView({
   onLayout?: (parts: Map<string, Rect>) => void;
   /** The part under the pointer or keyboard focus, for edges drawn outside this box. */
   onHot?: (id: string | null) => void;
+  /** A legend row's kind: only those lines stay, heavier; the rest dims. */
+  only?: EdgeKind | null;
 }) {
   const t = useTranslations("courseMap");
-  const marker = `arch-arrow-${useId().replace(/:/g, "")}`;
+  const marker = `arch-${useId().replace(/:/g, "")}`;
   const layout = useMemo(
     () =>
       layoutShape(
@@ -93,25 +97,7 @@ export function ArchitectureView({
   return (
     <div role="group" aria-label={label} className="relative mx-auto" style={{ width: box.width, height: box.height }}>
       <svg width={box.width} height={box.height} className="absolute inset-0 overflow-visible" aria-hidden>
-        <defs>
-          {(["line", "hot"] as const).map((kind) => (
-            <marker
-              key={kind}
-              id={`${marker}-${kind}`}
-              viewBox="0 0 10 10"
-              refX="9"
-              refY="5"
-              markerWidth="6"
-              markerHeight="6"
-              orient="auto-start-reverse"
-            >
-              <path
-                d="M 0 0 L 10 5 L 0 10 z"
-                style={{ fill: kind === "hot" ? "var(--color-accent)" : "var(--color-ink-2)" }}
-              />
-            </marker>
-          ))}
-        </defs>
+        <EdgeMarkers prefix={marker} />
         {layout.decorations.map((d, i) => {
           if (d.kind === "ellipse")
             return (
@@ -146,24 +132,19 @@ export function ArchitectureView({
           );
         })}
         {layout.edges.map((e, i) => {
-          const lit = hot !== null && (e.from === hot || e.to === hot);
+          const kind = partKind(e);
+          // A legend row wins over a hovered part; either keeps its own lines and dims the rest.
+          const on = only ? kind === only : hot !== null ? e.from === hot || e.to === hot : null;
+          const lit = on === true;
           return (
             <g
               key={i}
               data-edge={`${e.from}>${e.to}`}
-              data-state={hot === null ? undefined : lit ? "lit" : "dim"}
+              data-state={on === null ? undefined : lit ? "lit" : "dim"}
               className="[transition:opacity_var(--dur-micro)] motion-reduce:transition-none"
-              style={{ opacity: hot !== null && !lit ? 0.3 : 1 }}
+              style={{ opacity: on === false ? 0.3 : 1 }}
             >
-              <path
-                d={e.d}
-                fill="none"
-                style={{
-                  stroke: lit ? "var(--color-accent)" : e.implicit ? "var(--color-rule-2)" : "var(--color-ink-2)",
-                }}
-                strokeWidth={(e.implicit ? 1.25 : 1.5) + (lit ? 0.75 : 0)}
-                markerEnd={e.directed ? `url(#${marker}-${lit ? "hot" : "line"})` : undefined}
-              />
+              <EdgePath kind={kind} d={e.d} prefix={marker} emphasis={lit} gap="var(--color-paper-2)" />
               {e.label && e.labelAt ? (
                 <text
                   x={e.labelAt.x}

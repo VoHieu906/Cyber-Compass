@@ -1910,7 +1910,11 @@
       "feeds-into": "feeds into",
       "contrasts-with": "contrasts with",
       "parallel-to": "runs parallel to",
-      "contributes": "contributes to the big problem"
+      "contributes": "contributes to the big problem",
+      "part-relation": "relates to",
+      "part-order": "comes next (the shape's order)",
+      "part-connector": "joins (spokes, branches)",
+      "part-link": "leads to another lesson"
     },
     "markers": {
       "push": "push",
@@ -1921,7 +1925,12 @@
       "outer": "outer ring"
     },
     "legend": "Legend",
-    "legendLines": "Relations",
+    "legendHint": "Hover or focus a row to see only that kind of line on the map; click it to keep it.",
+    "legendScopes": {
+      "lesson": "Between lessons",
+      "part": "Inside a lesson",
+      "link": "From a part to a lesson"
+    },
     "legendShapes": "Shapes in this course",
     "back": "Back to overview",
     "open": "Open lesson",

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { renderWithProviders } from "@/test/render";
 import type { CourseMapData } from "../types";
 import { CourseMap } from "./course-map";
+import { EDGE_STYLES, EdgePath, type EdgeKind } from "./edge-style";
 import { CourseMapOutline } from "./outline";
 
 vi.mock("@/features/catalog/hooks", () => ({
@@ -80,7 +81,13 @@ describe("CourseMap", () => {
     setup();
     expect(node("Hashing")).toHaveAccessibleDescription("Store passwords safely.. Shape: Pipeline. Completed");
     expect(node("TLS")).toHaveAccessibleDescription(/In progress/);
-    expect(screen.getAllByRole("button").filter((b) => b.tabIndex === 0)).toHaveLength(1);
+    // The map is one tab stop (the legend's rows after it are their own controls).
+    const canvas = screen.getByRole("group", { name: /Course map of/ });
+    expect(
+      within(canvas)
+        .getAllByRole("button")
+        .filter((b) => b.tabIndex === 0),
+    ).toHaveLength(1);
     expect(screen.getByRole("group", { name: "The big problem" })).toHaveTextContent("Keep data secret");
     expect(screen.getByText("contrasts with")).toBeInTheDocument(); // legend
   });
@@ -165,4 +172,68 @@ describe("CourseMapOutline", () => {
     expect(within(item("Encryption")).getByText("feeds into TLS")).toBeInTheDocument();
     expect(within(item("Encryption")).queryByText(/requires/)).toBeNull();
   });
+});
+
+describe("one style map for the map and its legend", () => {
+  // What a drawn line looks like, with the arrowheads' document-specific prefix taken off.
+  const look = (p: Element) => ({
+    stroke: (p as SVGPathElement).style.stroke,
+    width: p.getAttribute("stroke-width"),
+    dash: p.getAttribute("stroke-dasharray"),
+    cap: p.getAttribute("stroke-linecap"),
+    start: p.getAttribute("marker-start")?.replace(/url\(#[^-]+-/, "") ?? null,
+    end: p.getAttribute("marker-end")?.replace(/url\(#[^-]+-/, "") ?? null,
+  });
+
+  it("draws each relation on the map exactly as its legend row shows it, both from EDGE_STYLES", () => {
+    const { container } = setup();
+    const kinds = [...new Set(MAP.edges.map((e) => e.type))];
+    for (const kind of kinds) {
+      const onMap = container.querySelector(`g[data-edge] path[data-kind="${kind}"]`)!;
+      const inLegend = container.querySelector(`button[data-legend="${kind}"] path[data-kind="${kind}"]`)!;
+      expect(onMap, kind).not.toBeNull();
+      expect(inLegend, kind).not.toBeNull();
+      expect(look(onMap), kind).toEqual(look(inLegend));
+      expect(look(onMap).stroke, kind).toBe(EDGE_STYLES[kind].color);
+      expect(Number(look(onMap).width), kind).toBe(EDGE_STYLES[kind].width);
+    }
+  });
+
+  it("tells every kind apart by more than colour: weight, line or arrowheads", () => {
+    const cue = (k: EdgeKind) => {
+      const s = EDGE_STYLES[k];
+      return `${s.width}|${s.line}|${s.start ?? ""}|${s.end ?? ""}|${s.small ? "s" : ""}`;
+    };
+    const all = Object.keys(EDGE_STYLES) as EdgeKind[];
+    expect(new Set(all.map(cue)).size).toBe(all.length);
+  });
+
+  it("highlights only a legend row's kind on the map while the row is hovered, and keeps it on click", async () => {
+    const user = userEvent.setup();
+    const { container } = setup();
+    const row = screen.getByRole("button", { name: /feeds into/ });
+    const state = (kind: string) => container.querySelector(`g[data-edge$=">${kind}"]`)!.getAttribute("data-state");
+    await user.hover(row);
+    expect(state("feeds-into")).toBe("emphasis");
+    expect(state("contrasts-with")).toBe("dim");
+    await user.unhover(row);
+    expect(state("contrasts-with")).toBe("normal");
+    await user.click(row);
+    expect(row).toHaveAttribute("aria-pressed", "true");
+    await user.unhover(row);
+    expect(state("contrasts-with")).toBe("dim");
+    await user.keyboard("{Escape}");
+    expect(row).toHaveAttribute("aria-pressed", "false");
+  });
+});
+
+it("keeps a line's colour when a caller adds its own style (a dimmed part link stays teal)", () => {
+  const { container } = renderWithProviders(
+    <svg aria-hidden>
+      <EdgePath kind="part-link" d="M 0 0 H 10" prefix="t" style={{ opacity: 0.3 }} />
+    </svg>,
+  );
+  const path = container.querySelector("path")!;
+  expect(path.style.stroke).toBe(EDGE_STYLES["part-link"].color);
+  expect(path.style.opacity).toBe("0.3");
 });
