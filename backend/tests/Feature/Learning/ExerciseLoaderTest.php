@@ -41,8 +41,10 @@ function loadWith(array $extra): array
 
 it('loads every seeded exercise file without errors', function () {
     $report = loadWith([]);
+    // One exercise per lesson in the files, so adding a course's exercises never edits this test.
+    $files = collect(glob(database_path('seeders/content/exercises/*.php')))->sum(fn ($f) => count(require $f));
 
-    expect($report['exercises'])->toBe(10)
+    expect($report['exercises'])->toBe($files)->toBeGreaterThan(20)
         ->and($report['questions'])->toBe(ExerciseQuestion::query()->where('is_archived', false)->count())
         ->and(ExerciseQuestion::query()->whereNull('lesson_section_id')->count())->toBe(0);
 });
