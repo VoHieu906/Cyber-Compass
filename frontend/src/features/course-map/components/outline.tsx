@@ -2,6 +2,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { CourseMapData } from "../types";
 
+/** Relations whose sentence is about the lesson the edge points to (CONTENT_AUTHORING_GUIDE §4d). */
+const BY_TARGET = new Set(["requires", "builds-on"]);
+
 /**
  * The course map as a nested list (F3): the big problem, each lesson's problem, its relations
  * and its architecture with links to the sections. The full text alternative of the drawn map,
@@ -19,7 +22,10 @@ export function CourseMapOutline({ map }: { map: CourseMapData }) {
       </p>
       <ol className="flex flex-col gap-4">
         {map.lessons.map((lesson) => {
-          const relations = map.edges.filter((e) => e.from === lesson.slug);
+          // Each relation reads as a sentence about this lesson: "B requires A" and "B builds on A" are stored A → B.
+          const relations = map.edges.flatMap((e) =>
+            (BY_TARGET.has(e.type) ? e.to : e.from) === lesson.slug ? [{ ...e, other: BY_TARGET.has(e.type) ? e.from : e.to }] : [],
+          );
           return (
             <li key={lesson.slug} className="flex flex-col gap-1.5 border-l-2 border-rule pl-3">
               <Link
@@ -34,8 +40,8 @@ export function CourseMapOutline({ map }: { map: CourseMapData }) {
                   <p className="text-sm text-muted">{t("relations")}</p>
                   <ul className="list-disc pl-5 text-sm leading-6 text-ink-2">
                     {relations.map((e) => (
-                      <li key={`${e.to}-${e.type}`}>
-                        {t(`edges.${e.type}`)} {titles.get(e.to)}
+                      <li key={`${e.other}-${e.type}`}>
+                        {t(`edges.${e.type}`)} {titles.get(e.other)}
                         {e.label ? ` (${e.label})` : ""}
                       </li>
                     ))}

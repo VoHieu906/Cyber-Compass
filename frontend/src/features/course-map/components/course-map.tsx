@@ -8,13 +8,17 @@ import { statusIcon } from "@/features/catalog/components/curriculum";
 import { useCourseProgress } from "@/features/catalog/hooks";
 import { goTo, useCompassPageItems } from "@/features/compass/page-items";
 import { SHAPE_BOX, fitBox } from "@/lib/graph/shapes/sizes";
+import { wrapLabel } from "@/lib/graph/text";
 import { pressed } from "@/lib/shortcuts/registry";
 import { cn } from "@/lib/utils";
 import { borderPoint, centre, type Rect } from "@/lib/graph/shapes/geometry";
-import { GOAL, NODE, expandedSize, layoutCourseMap, moveFrom, nodeState, type NodeState } from "../layout";
+import { GOAL, NARROW_NODE, NODE, expandedSize, layoutCourseMap, moveFrom, nodeState, type NodeState } from "../layout";
 import type { CourseMapData, MapEdge } from "../types";
 import { EdgeLegend, EDGE_STYLE, EdgeMarkers } from "./edge-style";
 import { ShapeGlyph } from "./shape-glyph";
+
+/** The map's inner width at a 1280 window: the 1440 container minus gutters, scrollbar and the box padding. */
+const BOX_AT_1280 = 1104;
 
 const ExpandedLesson = dynamic(() => import("./expanded-lesson"), { ssr: false });
 
@@ -40,7 +44,8 @@ export function CourseMap({
   const { data: progress } = useCourseProgress(courseSlug);
   const [focused, setFocused] = useState<string | null>(null);
   const [active, setActive] = useState<string>(map.lessons[0]?.slug ?? GOAL);
-  const [boxWidth, setBoxWidth] = useState(Infinity);
+  // Until measured (and on the server): the box at a 1280 window, so the common laptop never reflows on load.
+  const [boxWidth, setBoxWidth] = useState(BOX_AT_1280);
   const wrapper = useRef<HTMLDivElement>(null);
   const nodes = useRef(new Map<string, HTMLElement>());
   const expandedHeading = useId();
@@ -57,15 +62,21 @@ export function CourseMap({
   const focusedLesson = map.lessons.find((l) => l.slug === focused);
   const fit = (footprint: { width: number; height: number }) =>
     fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint);
-  const overviewWidth = useMemo(() => layoutCourseMap(map, null, NODE).width, [map]);
+  // D61: narrower nodes and a goal band when the overview would not fit the box at the D59 sizes.
+  const narrow = useMemo(() => layoutCourseMap(map, null, NODE).width > boxWidth, [map, boxWidth]);
+  const node = narrow ? NARROW_NODE : NODE;
+  const overviewWidth = useMemo(() => layoutCourseMap(map, null, node, narrow).width, [map, node, narrow]);
   // The wide footprint when the map still fits its box with it, else the compact one (and the box scrolls sideways).
-  const wide = overviewWidth + expandedSize(fit(SHAPE_BOX.wide)).width - NODE.width <= boxWidth;
+  const wide = overviewWidth + expandedSize(fit(SHAPE_BOX.wide), node).width - node.width <= boxWidth;
   const footprint = wide ? SHAPE_BOX.wide : SHAPE_BOX.compact;
   const box = useMemo(
     () => fitBox(focusedLesson?.shape ?? null, focusedLesson?.nodes.length ?? 0, focusedLesson?.rows?.length ?? 0, footprint),
     [focusedLesson, footprint],
   );
-  const layout = useMemo(() => layoutCourseMap(map, focused, expandedSize(box)), [map, focused, box]);
+  const layout = useMemo(
+    () => layoutCourseMap(map, focused, expandedSize(box, node), narrow),
+    [map, focused, box, node, narrow],
+  );
 
   // Bring the expanded node into view inside the map's own box: only its scrollLeft moves, never the page.
   useEffect(() => {
@@ -177,8 +188,13 @@ export function CourseMap({
                   rx={8}
                   style={{ fill: "var(--color-paper)", stroke: "var(--color-rule)" }}
                 />
+                {/* Wrapped to the lane header, so a long chapter name never runs under the first column. */}
                 <text x={12} y={b.y + 14} fontSize={12} style={{ fill: "var(--color-ink-2)", fontWeight: 600 }}>
-                  {b.label}
+                  {wrapLabel(b.label, 12, 3).map((line, i) => (
+                    <tspan key={i} x={12} dy={i ? 16 : 0}>
+                      {line}
+                    </tspan>
+                  ))}
                 </text>
               </g>
             ))}
@@ -274,7 +290,7 @@ export function CourseMap({
                     isFocused && "z-10",
                     nodeClass(state),
                   )}
-                  style={{ width: NODE.width, height: b.nodeHeight, transform: `translate(${b.x}px, ${b.y}px)` }}
+                  style={{ width: layout.node.width, height: b.nodeHeight, transform: `translate(${b.x}px, ${b.y}px)` }}
                 >
                   <span className="flex w-full items-start gap-2">
                     {lesson.shape ? (
@@ -351,7 +367,7 @@ export function CourseMap({
                       titles={titles}
                       box={box}
                       width={b.width}
-                      card={{ width: NODE.width, height: b.nodeHeight }}
+                      card={{ width: layout.node.width, height: b.nodeHeight }}
                       headingId={expandedHeading}
                       onClose={close}
                       onParts={setParts}
@@ -388,7 +404,7 @@ export function CourseMap({
               <Target aria-hidden className="size-4" />
               {t("goal")}
             </span>
-            <span className="line-clamp-4 text-[14px] leading-snug text-ink">{map.problem}</span>
+            <span className={cn("text-[14px] leading-snug text-ink", narrow ? "line-clamp-2" : "line-clamp-4")}>{map.problem}</span>
           </div>
         </div>
       </div>

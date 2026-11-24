@@ -15,6 +15,11 @@ export const GOAL = "@goal";
 const ORDERING = new Set(["requires", "builds-on", "feeds-into"]);
 
 export const NODE = { width: 224, height: 132 };
+/** D61: the node of a map that would not fit its box at the D59 sizes. */
+export const NARROW_NODE = { width: 184, height: 132 };
+const NARROW_GAP = 72;
+/** The goal band under the lanes of a narrow map. */
+const BAND = { gap: 48, height: 96 };
 const METRICS: GridMetrics = {
   left: 0,
   top: 0,
@@ -100,6 +105,8 @@ export type MapLayout = {
   /** Lighter "contributes to" lines into the goal. */
   contributes: { from: string; d: string }[];
   bands: { label: string; y: number; height: number }[];
+  /** The lesson node's size: NODE, or NARROW_NODE when the map is narrow (D61). */
+  node: { width: number; height: number };
   width: number;
   height: number;
 };
@@ -110,7 +117,14 @@ export type MapLayout = {
  * rest), and the grid reflows around it: its column widens, so later columns move right, and its
  * row grows, so later rows move down (layoutGrid). No zoom: everything keeps its size.
  */
-export function layoutCourseMap(map: CourseMapData, focused: string | null, expanded: { width: number; height: number }): MapLayout {
+export function layoutCourseMap(
+  map: CourseMapData,
+  focused: string | null,
+  expanded: { width: number; height: number },
+  narrow = false,
+): MapLayout {
+  const node = narrow ? NARROW_NODE : NODE;
+  const metrics = narrow ? { ...METRICS, colWidth: node.width, colGap: NARROW_GAP } : METRICS;
   const { cells, bands } = placeLessons(map);
   // Room on the left for edges that bow out of the first column, and for the longest label beside such a bow.
   const sameColumnLabel = Math.max(
@@ -123,14 +137,23 @@ export function layoutCourseMap(map: CourseMapData, focused: string | null, expa
   const grid = layoutGrid(
     [...cells].map(([id, c]) => ({ id, row: c.row, col: c.col, children: 0, ...(id === focused ? expanded : {}) })),
     rows,
-    cols + 1,
-    { ...METRICS, left },
+    narrow ? cols : cols + 1,
+    { ...metrics, left },
   );
   const boxes = new Map(grid.items);
-  const goal = { x: grid.columns[cols].x, y: Math.max(0, (grid.height - GOAL_SIZE.height) / 2), width: GOAL_SIZE.width, height: GOAL_SIZE.height, nodeHeight: GOAL_SIZE.height };
+  // Narrow (D61): the goal is a band under the lessons, and the lines into it run down the gutter right of each column.
+  const goal = narrow
+    ? { x: left, y: grid.height + BAND.gap, width: grid.width - left, height: BAND.height, nodeHeight: BAND.height }
+    : { x: grid.columns[cols].x, y: Math.max(0, (grid.height - GOAL_SIZE.height) / 2), width: GOAL_SIZE.width, height: GOAL_SIZE.height, nodeHeight: GOAL_SIZE.height };
   boxes.set(GOAL, goal);
-  const width = grid.width - NODE.width + GOAL_SIZE.width;
-  const height = Math.max(grid.height, GOAL_SIZE.height);
+  const width = narrow ? grid.width + metrics.colGap / 2 + 2 : grid.width - NODE.width + GOAL_SIZE.width;
+  const height = narrow ? goal.y + goal.height : Math.max(grid.height, GOAL_SIZE.height);
+  const intoGoal = (b: GridBox) => {
+    if (!narrow) return gridEdgePath(b, goal, grid);
+    const y = b.y + b.nodeHeight / 2;
+    const x = b.x + b.width + metrics.colGap / 2;
+    return `M ${b.x + b.width} ${y} L ${x - 8} ${y} Q ${x} ${y} ${x} ${y + 8} L ${x} ${goal.y}`;
+  };
 
   const edges = map.edges
     .filter((e) => boxes.has(e.from) && boxes.has(e.to))
@@ -144,8 +167,8 @@ export function layoutCourseMap(map: CourseMapData, focused: string | null, expa
       const labelAt = sameColumn
         ? { x: a.x - 10, y: Math.min(a.y, b.y) + NODE.height * 0.75, anchor: "end" as const }
         : {
-            x: leftBox.x + leftBox.width + METRICS.colGap / 2,
-            y: Math.abs(a.x - b.x) > leftBox.width + METRICS.colGap ? leftBox.y + NODE.height / 2 : y,
+            x: leftBox.x + leftBox.width + metrics.colGap / 2,
+            y: Math.abs(a.x - b.x) > leftBox.width + metrics.colGap ? leftBox.y + NODE.height / 2 : y,
             anchor: "middle" as const,
           };
       return { ...e, d: gridEdgePath(a, b, grid), labelAt };
@@ -153,7 +176,7 @@ export function layoutCourseMap(map: CourseMapData, focused: string | null, expa
   const outgoing = new Set(map.edges.filter((e) => ORDERING.has(e.type)).map((e) => e.from));
   // Every lesson contributes; with many lessons only the last of each chain draws the line.
   const contributors = map.lessons.length > 8 ? map.lessons.filter((l) => !outgoing.has(l.slug)) : map.lessons;
-  const contributes = contributors.map((l) => ({ from: l.slug, d: gridEdgePath(boxes.get(l.slug)!, goal, grid) }));
+  const contributes = contributors.map((l) => ({ from: l.slug, d: intoGoal(boxes.get(l.slug)!) }));
 
   return {
     boxes,
@@ -164,6 +187,7 @@ export function layoutCourseMap(map: CourseMapData, focused: string | null, expa
       const last = grid.rows[b.row + b.rows - 1];
       return { label: b.label, y: top, height: last.y + last.height - top };
     }),
+    node,
     width,
     height,
   };

@@ -153,4 +153,13 @@ describe("CourseMapOutline", () => {
     expect(screen.getByRole("link", { name: "Unique salt" })).toHaveAttribute("href", `/learn/hashing#${SECTION}`);
     expect(screen.getByText(/Go to Encryption/)).toBeInTheDocument();
   });
+
+  it("reads every relation as a sentence about the lesson it is listed under", () => {
+    renderWithProviders(<CourseMapOutline map={{ ...MAP, edges: [...MAP.edges, { from: "crypto", to: "tls", type: "requires" }] }} />);
+    const item = (title: string) => screen.getByRole("link", { name: title }).closest("li")!;
+    // Stored Encryption → TLS: "TLS requires Encryption", while "Encryption feeds into TLS".
+    expect(within(item("TLS")).getByText("requires Encryption")).toBeInTheDocument();
+    expect(within(item("Encryption")).getByText("feeds into TLS")).toBeInTheDocument();
+    expect(within(item("Encryption")).queryByText(/requires/)).toBeNull();
+  });
 });

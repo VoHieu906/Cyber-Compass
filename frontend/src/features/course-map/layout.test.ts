@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { overlaps } from "@/lib/graph/shapes/geometry";
-import { GOAL, layoutCourseMap, moveFrom, nodeState, placeLessons, relatedTo } from "./layout";
+import { GOAL, NARROW_NODE, NODE, layoutCourseMap, moveFrom, nodeState, placeLessons, relatedTo } from "./layout";
 import type { CourseMapData, MapLesson } from "./types";
 
 const lesson = (slug: string, extra: Partial<MapLesson> = {}): MapLesson => ({
@@ -124,6 +124,31 @@ describe("layoutCourseMap", () => {
       edges: [{ from: "a", to: "b", type: "requires" }],
     };
     expect(layoutCourseMap(big, null, PANEL).contributes.map((c) => c.from)).not.toContain("a");
+  });
+
+  it("narrow (D61): smaller nodes, the goal as a band under every lesson, lines running down into it", () => {
+    const wide = layoutCourseMap(MAP, null, NODE);
+    const narrow = layoutCourseMap(MAP, null, NARROW_NODE, true);
+    const goal = narrow.boxes.get(GOAL)!;
+    const lessons = ["a", "b", "c", "d", "e"].map((s) => narrow.boxes.get(s)!);
+
+    expect(narrow.node).toEqual(NARROW_NODE);
+    expect(lessons.every((b) => b.width === NARROW_NODE.width)).toBe(true);
+    expect(narrow.width).toBeLessThan(wide.width);
+    // Under the lowest lesson, spanning from the first column to the last.
+    expect(goal.y).toBeGreaterThan(Math.max(...lessons.map((b) => b.y + b.height)));
+    expect(goal.x).toBe(Math.min(...lessons.map((b) => b.x)));
+    expect(goal.x + goal.width).toBe(Math.max(...lessons.map((b) => b.x + b.width)));
+    expect(narrow.height).toBe(goal.y + goal.height);
+    // Every contribution ends on the band's top edge.
+    for (const c of narrow.contributes) expect(c.d.endsWith(` ${goal.y}`)).toBe(true);
+
+    // Focus still grows in place without overlaps, and the band follows the reflow.
+    const focus = layoutCourseMap(MAP, "b", EXPANDED, true);
+    const boxes = [...focus.boxes];
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) expect(overlaps(boxes[i][1], boxes[j][1]), `${boxes[i][0]} and ${boxes[j][0]}`).toBe(false);
+    expect(focus.boxes.get(GOAL)!.width).toBeGreaterThan(goal.width);
   });
 });
 
