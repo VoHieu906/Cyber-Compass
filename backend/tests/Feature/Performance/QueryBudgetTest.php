@@ -100,10 +100,17 @@ it('runs the same number of queries however much the learner has done', function
 
 it('serves a course map in the same queries however big it is (F3)', function () {
     $uri = '/api/v1/courses/networking-fundamentals';
-    $without = queriesFor($uri);
-
     $course = Course::query()->where('slug', 'networking-fundamentals')->firstOrFail();
     $lessons = $course->lessons()->with('sections:id,lesson_id,uuid')->get();
+
+    // The seeded map (F4: 20 lessons, every one with an architecture) stays within the budget too.
+    $seeded = queriesFor($uri);
+    expect($seeded)->toBeLessThanOrEqual(QUERY_BUDGETS[$uri])
+        ->and(strlen($this->getJson($uri)->getContent()))->toBeLessThan(40_000);
+
+    CourseGraph::query()->where('course_id', $course->id)->delete();
+    LessonArchitecture::query()->whereIn('lesson_id', $lessons->modelKeys())->delete();
+    $without = queriesFor($uri);
     CourseGraph::query()->create(['course_id' => $course->id, 'graph' => [
         'version' => 1, 'problem' => 'Move data between machines reliably.', 'layout' => 'auto',
         'edges' => $lessons->skip(1)->values()->map(fn (Lesson $l, int $i) => ['from' => $lessons[$i]->slug, 'to' => $l->slug, 'type' => 'builds-on'])->all(),
@@ -115,6 +122,6 @@ it('serves a course map in the same queries however big it is (F3)', function ()
         ]]);
     }
 
-    expect(queriesFor($uri))->toBe($without)->toBeLessThanOrEqual(QUERY_BUDGETS[$uri])
+    expect(queriesFor($uri))->toBe($without)->toBe($seeded)->toBeLessThanOrEqual(QUERY_BUDGETS[$uri])
         ->and(strlen($this->getJson($uri)->getContent()))->toBeLessThan(40_000);
 });

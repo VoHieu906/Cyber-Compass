@@ -11,12 +11,14 @@ use App\Models\User;
 use App\Modules\Content\Services\ContentExporter;
 use App\Modules\Content\Services\ContentImporter;
 use App\Modules\Content\Services\LessonWorkingCopy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 /*
 | The course map (F3, D57, D58): content files, what readers see, integrity when lessons
 | change, the admin panel, the lesson snapshot and the health check. Built on a copy of the
-| applied-cryptography course file with a small test map; no seeded course has one yet.
+| applied-cryptography course file with a small test map. Networking Fundamentals has a seeded map
+| since F4, so every query here is scoped to the test course.
 */
 
 const MAP_COURSE = 'applied-cryptography';
@@ -54,6 +56,16 @@ function mapCourseFile(): array
     ];
 
     return $course;
+}
+
+function mapGraphs(): Builder
+{
+    return CourseGraph::query()->whereHas('course', fn ($q) => $q->where('slug', MAP_COURSE));
+}
+
+function mapArchitectures(): Builder
+{
+    return LessonArchitecture::query()->whereHas('lesson.chapter.course', fn ($q) => $q->where('slug', MAP_COURSE));
 }
 
 function importMap(array $course, bool $force = false): array
@@ -139,7 +151,7 @@ it('refuses a content file whose map names what is not there, writing nothing', 
     $break($file);
 
     expect(fn () => importMap($file))->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey($key));
-    expect(CourseGraph::query()->count())->toBe(0)->and(LessonArchitecture::query()->count())->toBe(0);
+    expect(mapGraphs()->count())->toBe(0)->and(mapArchitectures()->count())->toBe(0);
 })->with([
     'an edge to a lesson of another course' => [fn (&$f) => $f['graph']['edges'][0]['to'] = 'cia-triad', 'courses.'.MAP_COURSE.'.graph.edges.0.to'],
     'an unknown section key' => [fn (&$f) => $f['chapters'][0]['lessons'][0]['architecture']['nodes'][0]['section'] = 'no-such-section', 'lessons.hashing-and-passwords.architecture.nodes.0.section'],
@@ -149,7 +161,7 @@ it('refuses a content file whose map names what is not there, writing nothing', 
 
 it('exports the map and re-imports it unchanged, section keys included', function () {
     importMap(mapCourseFile());
-    $before = [CourseGraph::query()->first()->graph, LessonArchitecture::query()->orderBy('lesson_id')->pluck('architecture')->all()];
+    $before = [mapGraphs()->first()->graph, mapArchitectures()->orderBy('lesson_id')->pluck('architecture')->all()];
 
     $export = app(ContentExporter::class)->export(Course::query()->where('slug', MAP_COURSE)->firstOrFail());
     $file = tempnam(sys_get_temp_dir(), 'map').'.php';
@@ -161,7 +173,7 @@ it('exports the map and re-imports it unchanged, section keys included', functio
         ->and($data['chapters'][0]['lessons'][0]['architecture']['nodes'][0]['section'])->toBe('what-a-hash-does');
 
     importMap($data);
-    expect([CourseGraph::query()->first()->graph, LessonArchitecture::query()->orderBy('lesson_id')->pluck('architecture')->all()])->toEqual($before);
+    expect([mapGraphs()->first()->graph, mapArchitectures()->orderBy('lesson_id')->pluck('architecture')->all()])->toEqual($before);
 });
 
 it('removes a map or architecture that left the file', function () {
@@ -169,7 +181,7 @@ it('removes a map or architecture that left the file', function () {
     $file = require database_path('seeders/content/courses/'.MAP_COURSE.'.php');
     importMap($file);
 
-    expect(CourseGraph::query()->count())->toBe(0)->and(LessonArchitecture::query()->count())->toBe(0);
+    expect(mapGraphs()->count())->toBe(0)->and(mapArchitectures()->count())->toBe(0);
 });
 
 describe('admin panel', function () {
@@ -191,7 +203,7 @@ describe('admin panel', function () {
     });
 
     it('saves live, audits, refuses a stale copy and makes imports skip the map', function () {
-        $graph = CourseGraph::query()->first()->graph;
+        $graph = mapGraphs()->first()->graph;
         $graph['edges'][] = ['from' => 'hashing-and-passwords', 'to' => 'gone-lesson', 'type' => 'requires'];
 
         $data = $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => $graph, 'lock_version' => 1])->assertOk()->json('data');
@@ -207,20 +219,20 @@ describe('admin panel', function () {
         $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => $graph, 'lock_version' => 1])->assertStatus(409);
 
         $report = importMap(mapCourseFile());
-        expect($report['graphs_skipped'])->toBe([MAP_COURSE])->and(CourseGraph::query()->first()->graph['edges'])->toHaveCount(3);
+        expect($report['graphs_skipped'])->toBe([MAP_COURSE])->and(mapGraphs()->first()->graph['edges'])->toHaveCount(3);
         importMap(mapCourseFile(), force: true);
-        expect(CourseGraph::query()->first()->graph['edges'])->toHaveCount(2);
+        expect(mapGraphs()->first()->graph['edges'])->toHaveCount(2);
     });
 
     it('rejects an invalid map at its field', function () {
         $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => ['version' => 1, 'problem' => '', 'layout' => 'auto', 'edges' => []], 'lock_version' => 1])
             ->assertJsonValidationErrors('graph.problem');
-        $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => CourseGraph::query()->first()->graph])
+        $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => mapGraphs()->first()->graph])
             ->assertJsonValidationErrors('lock_version');
     });
 
     it('restores the map before or after an audited change', function () {
-        $seeded = CourseGraph::query()->first()->graph;
+        $seeded = mapGraphs()->first()->graph;
         $changed = [...$seeded, 'problem' => 'A different big problem.'];
         $this->actingAs($this->admin, 'web')->putJson($this->url, ['graph' => $changed, 'lock_version' => 1])->assertOk();
         $entry = AdminAuditLog::query()->where('action', 'course_graph.saved')->firstOrFail();
@@ -309,7 +321,7 @@ describe('content:check-graphs', function () {
 
     it('fails on a broken stored map and only warns in the release mode', function () {
         importMap(mapCourseFile());
-        CourseGraph::query()->first()->update(['graph' => ['version' => 1, 'problem' => '', 'layout' => 'auto', 'edges' => []]]);
+        mapGraphs()->first()->update(['graph' => ['version' => 1, 'problem' => '', 'layout' => 'auto', 'edges' => []]]);
 
         $this->artisan('content:check-graphs')->assertFailed();
         $this->artisan('content:check-graphs', ['--warn-only' => true])->assertSuccessful();

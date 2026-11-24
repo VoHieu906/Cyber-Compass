@@ -4,17 +4,29 @@ use App\Models\Course;
 use App\Models\CourseGraph;
 use App\Models\LessonArchitecture;
 use App\Modules\Admin\Console\E2eCourseMapCommand;
+use Illuminate\Database\Eloquent\Builder;
 
-/* The test course map for Playwright (F3): installs where nothing exists, removes only itself. */
+/* The test course map for Playwright (F3): installs where nothing exists, removes only itself. Counts are
+   scoped to its course, because Networking Fundamentals has a seeded map (F4). */
+
+function e2eGraphs(): Builder
+{
+    return CourseGraph::query()->whereHas('course', fn ($q) => $q->where('slug', E2eCourseMapCommand::COURSE));
+}
+
+function e2eArchitectures(): Builder
+{
+    return LessonArchitecture::query()->whereHas('lesson.chapter.course', fn ($q) => $q->where('slug', E2eCourseMapCommand::COURSE));
+}
 
 it('installs a valid map and removes exactly what it installed', function () {
     $this->artisan('cybercompass:e2e-course-map install')->assertSuccessful();
-    expect(CourseGraph::query()->count())->toBe(1)->and(LessonArchitecture::query()->count())->toBe(3);
+    expect(e2eGraphs()->count())->toBe(1)->and(e2eArchitectures()->count())->toBe(3);
     $this->artisan('content:check-graphs')->assertSuccessful();
     $this->getJson('/api/v1/courses/'.E2eCourseMapCommand::COURSE)->assertJsonPath('data.graph.lessons.0.shape', 'pipeline');
 
     $this->artisan('cybercompass:e2e-course-map remove')->assertSuccessful();
-    expect(CourseGraph::query()->count())->toBe(0)->and(LessonArchitecture::query()->count())->toBe(0);
+    expect(e2eGraphs()->count())->toBe(0)->and(e2eArchitectures()->count())->toBe(0);
 });
 
 it('never touches a real map', function () {
@@ -25,11 +37,11 @@ it('never touches a real map', function () {
     $this->artisan('cybercompass:e2e-course-map install')->assertSuccessful();
     $this->artisan('cybercompass:e2e-course-map remove')->assertSuccessful();
 
-    expect(CourseGraph::query()->first()->graph)->toEqual($real);
+    expect(e2eGraphs()->first()->graph)->toEqual($real);
 });
 
 it('refuses to run in production', function () {
     app()->detectEnvironment(fn () => 'production');
     $this->artisan('cybercompass:e2e-course-map install')->assertFailed();
-    expect(CourseGraph::query()->count())->toBe(0);
+    expect(e2eGraphs()->count())->toBe(0);
 });
