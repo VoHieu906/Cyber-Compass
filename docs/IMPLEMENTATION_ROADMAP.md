@@ -601,3 +601,25 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
 
 ## Open decisions
 | O4 | **Email verification required before learning?** | Not required in the MVP. No verification email yet. | Auth flow |
+
+
+#### Course map UI round (owner request after F4, done 2026-11-24)
+
+Rendering only: no course data, relation types, map JSON or `content:check-graphs` changed. Each part was approved on screenshots before the next. Decisions D64 and D65.
+
+- **Part 0:** the static sloplint focus-ring flags on the admin panels came from linting files one at a time; with `globals.css` (the global `:focus-visible` ring) they pass, and a keyboard check found the ring on all 40 controls of each panel. Floor gate 26a cannot be waived, so no exception was added.
+- **Part 1:** lesson nodes show icon, title and status (92px high); the problem is in a tooltip (300ms hover, keyboard focus, Escape, inside the viewport, problem only) and stays the node's description. Follow-ups: relations between parts routed around the other parts with their own ports and a part hover highlight; no lines from a card to its own parts; Open lesson and Back to overview as 40×40 icon actions with name tooltips; the shape line and the "Choose a part" hint removed, and the detail strip sized to its content.
+- **Part 2:** spread ports on every node side, lanes for shared runs, labels kept apart, a hover or keyboard highlight that fades the rest to 30%, and a relation tooltip.
+- **Part 3:** focus mode routes every line around every node (D64). Overview: curves kept, after measuring that they cross no node.
+- **Part 4:** one style map with colour by scope and an interactive legend (D65); deuteranopia and protanopia checked in simulation.
+
+**Exit, verified (2026-11-24):**
+- **Timings:** overview 0.30ms (1.97ms if routed); slowest focus state 1.40ms; routing between parts 3ms for the largest test shape. No worker or cache needed.
+- **Browser sweep** (Edge, 1920 and 1280): the overview and all 20 focus states have no line through a node, no label on a node and no fallback route.
+- **Tests run (scope agreed with the owner: the course map only):** Vitest for the course map, graph libraries and admin editor 151 of 151 (new: routing, ports, label separation, strip height, the shared style map, distinct cues per kind, the legend's preview and pin); Playwright `course-graph.spec` and `course-map-suggestions.spec` 6 of 6 (new: tooltip on hover and focus, hover dimming, the relation tooltip, part hover, icon actions); sloplint render pass on the course page 0 FAIL in light and dark. Pest and the other end-to-end specs were not run (no backend change).
+
+**Deploy notes:**
+- Migrations, release task, configuration, edge, storage and jobs: not applicable (frontend rendering only).
+- Budgets: the course page's weight was not re-measured in this round; `performance.spec.ts` checks it on the next full run.
+- Production parity: not checked in this round.
+- Owner action when deploying: nothing.
