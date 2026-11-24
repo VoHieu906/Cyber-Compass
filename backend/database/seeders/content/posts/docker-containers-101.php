@@ -47,6 +47,8 @@ MD],
                 ['when' => '2023', 'title' => 'BuildKit and Compose v2 by default', 'detail' => 'Docker Engine 23.0 makes BuildKit the default builder. Compose v1 (docker-compose) stops receiving updates; the docker compose plugin replaces it.'],
                 ['when' => '2025', 'title' => 'containerd image store by default', 'detail' => 'Docker Engine 29 stores images through containerd on new installations, the same storage Kubernetes nodes use.'],
             ],
+        ], 'sources' => [
+            ['label' => 'Open Container Initiative: About', 'url' => 'https://opencontainers.org/about/overview/', 'kind' => 'docs', 'note' => 'Backs the 2015 entry only; the other dates are not checked by this source.'],
         ]],
 
         // 3. Containers vs virtual machines
@@ -116,6 +118,7 @@ Docker's vocabulary is small, and each word names one thing. These are the ones 
 - **Docker Compose** describes a multi-container application in one file, `compose.yaml`, and runs it with `docker compose up`.
 - The **OCI image and runtime specifications** are the open standards underneath: any OCI image runs on any OCI runtime, so images built by Docker run on Podman, containerd or Kubernetes unchanged.
 MD],
+        ['callout', 'Like a shipping container', 'A container image works like a shipping container: the crane, the ship and the truck never need to know what is inside, only that the box has the standard size and corners. Docker does the same for servers: any host with a container runtime can run any image, whatever language or libraries are packed inside.', 'fun-fact'],
         ['media', 'Three containers on one kernel', ['media' => ['file' => "{$media}/anatomy.png", 'alt' => 'Three containers, web, db and proxy, on one shared Linux kernel. Each has a writable layer over read-only image layers; db also has a volume. Namespaces, cgroups, capabilities, seccomp and overlayfs fence them.'], 'caption' => 'web runs gunicorn over a venv and python:3.13-slim; db keeps its data in the db-data volume; proxy runs nginx. Each writable layer belongs to one container; the image layers and the kernel are shared.']],
 
         // 5. What a container really is on Linux
@@ -142,7 +145,9 @@ A **namespace** wraps one kind of global resource so that the processes inside s
 - **user**: maps user IDs, so root inside can be an unprivileged user outside. Docker does **not** do this by default; you turn it on with `userns-remap` or by running Docker in **rootless mode**.
 
 You can see the namespaces of any process under `/proc/<pid>/ns`. Inside a container, `ps` sees only the container's own processes, and the first of them is PID 1.
-MD],
+MD, 'sources' => [
+            ['label' => 'namespaces(7), Linux manual page', 'url' => 'https://man7.org/linux/man-pages/man7/namespaces.7.html', 'kind' => 'docs'],
+        ]],
         ['code', 'See the namespaces yourself', <<<'SH'
 # The namespaces of the shell inside a fresh container
 docker run --rm alpine:3.20 ls /proc/self/ns
@@ -160,7 +165,9 @@ SH, 'bash'],
 **Control groups** put processes in a group and apply limits and accounting to the whole group: memory, CPU time, number of processes, block I/O. Every modern distribution uses **cgroup v2**, a single unified tree mounted at `/sys/fs/cgroup`, and Docker creates one group per container.
 
 Without limits, a container may use all the host's memory and CPU, so one runaway process can starve every other container: a denial of service from the inside. The `docker run` flags translate directly into cgroup files: `--memory 256m` becomes `memory.max` (in bytes), `--cpus 0.5` becomes `cpu.max` (50 ms of CPU in every 100 ms period), `--pids-limit 100` becomes `pids.max`. When a container hits its memory limit, the kernel's out-of-memory killer ends a process inside it, not some innocent process elsewhere on the host.
-MD],
+MD, 'sources' => [
+            ['label' => 'Control Group v2, Linux kernel documentation', 'url' => 'https://docs.kernel.org/admin-guide/cgroup-v2.html', 'kind' => 'docs'],
+        ]],
         ['code', 'Watch a limit become a cgroup file', <<<'SH'
 docker run --rm --memory 256m --cpus 0.5 --pids-limit 100 alpine:3.20 \
   cat /sys/fs/cgroup/memory.max /sys/fs/cgroup/cpu.max /sys/fs/cgroup/pids.max
@@ -177,7 +184,9 @@ Traditionally, Linux had two kinds of process: root, which could do anything, an
 Root inside a container is **not** full root. Docker starts containers with a short allow-list of 14 capabilities and drops the rest, including `CAP_SYS_ADMIN`, `CAP_NET_ADMIN`, `CAP_SYS_MODULE` (loading kernel modules) and `CAP_SYS_PTRACE`. You can read the result from the kernel: the `CapEff` line of `/proc/self/status` is a hexadecimal bitmask of the **effective** capabilities, one bit per capability number.
 
 In a default container on Docker Engine 29 it reads `00000000a80425fb`. The top 32 bits are all zero (capabilities 32 to 40, such as `CAP_BPF`, are all dropped). The block below decodes the low 32 bits, most significant byte first: each lit bit is a capability the container keeps.
-MD],
+MD, 'sources' => [
+            ['label' => 'capabilities(7), Linux manual page', 'url' => 'https://man7.org/linux/man-pages/man7/capabilities.7.html', 'kind' => 'docs'],
+        ]],
         ['bitfield', 'Decoding CapEff a80425fb', [
             'rows' => [
                 ['label' => 'Byte 3 (a8): bits 31-24', 'fields' => [
@@ -231,14 +240,18 @@ MD],
 Even with few capabilities, a process talks to the kernel through **system calls**, and every system call is attack surface. **Seccomp** (secure computing mode) attaches a filter to a process that the kernel checks on every system call. Docker applies a **default seccomp profile** that blocks about 44 of the more than 300 system calls, ones containers rarely need but attackers love: `kexec_load` (load a new kernel), `reboot`, `open_by_handle_at` (used in a well-known 2014 escape), `keyctl`, `mount`, and more.
 
 You can confirm it is on: `docker info` lists `name=seccomp,profile=builtin` under Security Options, and inside a container `/proc/self/status` shows `Seccomp: 2` (filter mode). Running with `--security-opt seccomp=unconfined` removes the filter, and `--privileged` removes it *together with* every capability limit and device restriction. Treat both as "this is not a container any more".
-MD],
+MD, 'sources' => [
+            ['label' => 'Docker docs: Seccomp security profiles for Docker', 'url' => 'https://docs.docker.com/engine/security/seccomp/', 'kind' => 'docs'],
+        ]],
         ['prose', 'Overlayfs: a container\'s own root directory', <<<'MD'
 An image is a stack of read-only layers, but a running program needs to write files. **Overlayfs**, a union filesystem in the Linux kernel, solves this without copying anything: it stacks directories and presents them as one.
 
 The read-only image layers are the **lowerdirs**. On top sits the container's **upperdir**, its writable layer. The **merged** directory is the combined view that becomes the container's `/`. Reading a file finds the topmost layer that has it. Writing to a file from a lower layer first **copies it up** into the upperdir, then changes the copy; the image itself is never modified. Deleting a file from a lower layer creates a **whiteout** marker in the upperdir that hides it.
 
 Docker Engine 29 keeps these layers through containerd's **overlayfs snapshotter** (older installations use Docker's own `overlay2` driver, which works the same way). Select a node in the tree to read what each part does.
-MD],
+MD, 'sources' => [
+            ['label' => 'Overlay Filesystem, Linux kernel documentation', 'url' => 'https://docs.kernel.org/filesystems/overlayfs.html', 'kind' => 'docs'],
+        ]],
         ['tree', 'The layers behind a container\'s /', [
             'nodes' => [
                 ['id' => 'merged', 'label' => 'merged: the container sees /', 'note' => 'union view', 'detail' => 'Not stored anywhere: the kernel builds this view by looking through the layers from the top. It is mounted as the root of the container\'s mount namespace.'],
@@ -347,7 +360,9 @@ MD],
 BuildKit caches the result of every instruction. Before running an instruction it checks whether it has run **the same instruction on the same parent** before, and for `COPY` and `ADD` it also compares a checksum of the files being copied. If everything matches, it reuses the stored layer; the first instruction that differs, and **every instruction after it**, runs again.
 
 That one rule explains most Dockerfile advice: put what changes rarely (the base image, system packages, dependency lists) first, and what changes often (your source code) last. The walkthrough below builds the post's example image instruction by instruction. Watch the "re-run after editing app.py?" value: the goal is for it to stay "no" until the very last step.
-MD],
+MD, 'sources' => [
+            ['label' => 'Docker docs: Docker build cache', 'url' => 'https://docs.docker.com/build/cache/', 'kind' => 'docs'],
+        ]],
         ['step-through', 'Building the example image, one instruction at a time', [
             'steps' => [
                 ['title' => 'FROM python:3.13-slim AS build', 'text' => 'The build stage starts from the official slim Python image. Its layers are pulled once and reused by every later build on this host. Nothing is created yet.', 'parts' => [['label' => 'python:3.13-slim', 'tone' => 'muted']], 'state' => [['label' => 'Stage', 'value' => 'build'], ['label' => 'This step adds', 'value' => 'nothing (base image)'], ['label' => 'Re-run after editing app.py?', 'value' => 'no']]],
@@ -361,7 +376,12 @@ MD],
                 ['title' => 'COPY app.py .', 'text' => 'The code goes in last. Editing app.py changes this checksum, so this is the only instruction that runs again: a rebuild takes seconds instead of minutes.', 'parts' => [['label' => 'python:3.13-slim', 'tone' => 'muted'], ['label' => 'user app', 'tone' => 'plain'], ['label' => '/venv', 'tone' => 'accent'], ['label' => '/app', 'tone' => 'plain'], ['label' => 'app.py', 'tone' => 'attn']], 'state' => [['label' => 'Stage', 'value' => 'runtime'], ['label' => 'This step adds', 'value' => 'a layer (a few KB)'], ['label' => 'Re-run after editing app.py?', 'value' => 'yes: the first step that changes']]],
                 ['title' => 'USER, EXPOSE, HEALTHCHECK, CMD', 'text' => 'These only write the image config: run as app, document port 8000, how to check health, and the command in exec form. The final image is the runtime stage\'s layers plus this config; the build stage is left behind.', 'parts' => [['label' => 'python:3.13-slim', 'tone' => 'muted'], ['label' => 'user app', 'tone' => 'plain'], ['label' => '/venv', 'tone' => 'accent'], ['label' => '/app', 'tone' => 'plain'], ['label' => 'app.py', 'tone' => 'attn'], ['label' => 'config', 'tone' => 'muted']], 'state' => [['label' => 'Stage', 'value' => 'runtime (final image)'], ['label' => 'This step adds', 'value' => 'config only'], ['label' => 'Re-run after editing app.py?', 'value' => 'config is rewritten, instantly']]],
             ],
+        ], 'sources' => [
+            ['label' => 'Docker docs: Dockerfile reference', 'url' => 'https://docs.docker.com/reference/dockerfile/', 'kind' => 'docs'],
+            ['label' => 'Docker docs: Multi-stage builds', 'url' => 'https://docs.docker.com/build/building/multi-stage/', 'kind' => 'docs'],
         ]],
+        // "In other words" (F6 dogfood run): the recap after the densest block, pinned to the section the import created.
+        ['callout', null, 'Picture the Dockerfile as a stack of plates: change one plate and every plate above it has to be washed again, while the plates below stay clean. So put what rarely changes (the base image, the dependencies) at the bottom and your own code at the top. The second FROM is a clean table: only what you carry over with COPY --from reaches the image you ship.', 'recap', 'uuid' => '99530de3-fd85-55f2-91b8-125d3c68b3c4'],
 
         // 7. How the concepts connect: runtime side
         ['prose', 'What happens on docker run', <<<'MD'
