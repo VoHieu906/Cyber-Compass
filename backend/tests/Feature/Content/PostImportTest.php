@@ -19,12 +19,14 @@ use Illuminate\Validation\ValidationException;
 */
 
 beforeEach(function () {
+    // A writable stand-in for database/seeders/content (CI's checkout is not writable by the app user).
+    // Set first, so a failure below can never leave the real content as the root afterEach deletes.
+    $this->root = storage_path('framework/testing/content-'.uniqid());
+    config(['cybercompass.content_root' => $this->root]);
     Storage::fake(config('cybercompass.uploads_disk'));
     // Only this test's images and posts: the seeded blog (and its images) would otherwise be archived or counted.
     Post::query()->delete();
     LessonMedia::query()->delete();
-    // A writable stand-in for database/seeders/content (CI's checkout is not writable by the app user).
-    config(['cybercompass.content_root' => storage_path('framework/testing/content-'.uniqid())]);
     $this->dir = 'posts/media/test';
     File::makeDirectory(ContentFileMedia::root().'/'.$this->dir, 0777, true);
     $image = imagecreatetruecolor(40, 20);
@@ -33,7 +35,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    File::deleteDirectory(ContentFileMedia::root());
+    // Only the stand-in this test made, never whatever the root is now (an interrupted run once wiped the real content).
+    if (isset($this->root) && str_starts_with($this->root, storage_path('framework/testing/'))) {
+        File::deleteDirectory($this->root);
+    }
 });
 
 function postFile(string $dir, array $changes = []): array
