@@ -238,7 +238,9 @@ Sub-nodes (2 to 12, fewer for some shapes) have an `id`, a short `label` (up to 
 
 `section` names a block by its key (the heading as a slug) or, for admin-made blocks, by UUID; export writes the key back whenever it can. The import refuses the whole run if a map names a lesson outside its course file, a section that does not exist, or breaks a shape's rules, and reports unplaced, unconnected and problem-less lessons as warnings.
 
-### Maintaining a course map
+### Maintaining a course graph
+
+- **Suggestions (D63).** The Course map panel lists a suggestion under each issue it resolves: a relation and a place for a new lesson, a problem and a shape for a lesson's architecture, or, for a course without a map, "Start from the course structure". Accept puts it in the form (Accept all does every relation or every place at once) and the preview shows it; nothing is saved until you save the map. Problem and shape suggestions open the lesson's Architecture panel, where Use fills the draft: edit the drafted problem before you save. Dismiss hides a suggestion in your browser; "Show dismissed" brings it back. `content:check-graphs` lists the same suggestions as information.
 
 - **Adding a lesson.** It appears on the map at once, placed automatically and unconnected. The admin panel and the import list it as `unplaced` (manual layout) and `unconnected`; give it a place and its relations.
 - **Archiving, unpublishing or deleting a lesson.** Learners stop seeing its node, relations and the links to it immediately (the server drops them). The panel lists the leftovers as `dangling` and `link_outside`; clean them up when convenient. Nothing blocks saving.

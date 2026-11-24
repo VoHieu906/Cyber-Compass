@@ -501,7 +501,7 @@ A map at the top of every course page: each lesson node solves one problem, and 
 - Docs: no change to DEPLOYMENT_AWS.md.
 - Owner action when deploying: nothing.
 
-### F4: Networking Fundamentals, expanded (in progress, 2026-11-24)
+### F4: Networking Fundamentals, expanded (done, 2026-11-24)
 
 Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-confident course of 20 lessons in 5 chapters (335 minutes), mainly so its Course map has real structure: parallel tracks, converging branches, contrasts and every architecture shape. Part C adds rule-based Course map suggestions for admins. Decisions D61 and D62 (D63 with Part C).
 
@@ -564,6 +564,26 @@ Networking Fundamentals grows from 6 lessons in 2 chapters to a beginner-to-conf
 - Configuration, edge, storage and jobs: not applicable.
 - Budgets: as above. On the production images `/courses/networking-fundamentals` loads 199 KB of JavaScript and makes 1 API request (budget 250 KB and 2), the same as before the map.
 - Production parity: checked with `docker-compose.prod.yml` (fresh secrets, migrations, content seed): 32 of 33 end-to-end tests passed in one run; the avatar upload test failed on a 429 from the login rate limit (every login in the run comes from one address) and passed when rerun with the course map specs (4 of 4).
+- Owner action when deploying: nothing.
+
+**Folded into Part C at the owner's request (2026-11-24):**
+- **The login flake, fixed on the test side.** `signIn()` (e2e/support/test.ts) signs in through the form once per account and run, saves the session cookies beside the run's accounts and reuses them; specs about signing in keep the form. The production limiter (20 a minute per address) is unchanged.
+- **Interface names.** Every lesson whose commands use `eth0`, `wlan0` or `wan0` (8 lessons) has a tip after the code: names are predictable (`enp0s3`, `wlp2s0`), find yours with `ip -br link`. No heading changed.
+- **Sample outputs checked on a real system.** Every command in the networking lessons ran in a throwaway Debian 13 container with NET_ADMIN (iproute2, `ss`, `bridge`, the VLAN commands, `ip neigh`, `nft`, `tracepath`, `tcpdump -w/-r`, `getent`). All ran without error and every comment about their output held; the only sample that differed was `ip route get`, which also prints a `cache` line, now added.
+- **Hallmark sloplint on the course page with the wide map:** render tier, light and dark: 0 FAIL (two REFLEX notes: 132px nodes are taller than a control, and the text `line-clamp` hides; a WARN that the map is hidden on phones, where the outline replaces it, as designed). Static tier: one FAIL, no explicit focus ring in `architecture-view.tsx` (the global ring applied); the part buttons now state it.
+
+**Part C exit, verified (2026-11-24):** Course map suggestions for admins (D63).
+- **Service:** `CourseMapSuggestions` beside `CourseMap::issues()`; `suggestions` on the admin graph response, `architecture_suggestions` on the admin lesson; information lines in `content:check-graphs`. Deterministic and local: no AI, no network.
+- **Panel:** each suggestion sits under its issue with Accept and Dismiss; "Accept all" for relations and for places; "Start from the course structure" for a course without a map; the preview follows the form; Save is the normal audited, lock-checked save. The Architecture panel offers the drafted problem and a shape per matching block, with Use and Dismiss. Shapes are suggested only while the architecture is not started, so a lesson whose author chose no shape (Ethernet, Application protocols) is not nagged.
+- **Tests:** 807 Pest (22 new: every rule, loops and duplicates refused, the 8 × 10 grid and the lanes respected, the first lesson of the course, an empty course, a hidden lesson never suggested as subject or neighbour, the endpoints, an accepted suggestion saved and audited, the purge), 486 Vitest (6 new: accept, dismiss remembered, accept all skipping a taken cell, start from structure, use in the architecture), 34 Playwright (one new: an admin starts a map, places every lesson, adds and publishes a lesson, accepts its relation and place, saves, and the public course page shows it related to the lesson before it). The e2e purge also removes the course maps the suite saved and its `e2e-*` lessons.
+- **Production check, three runs in a row on `docker-compose.prod.yml`:** 34 of 34 each time (4.8, 4.9 and 4.6 minutes), with no 429 from the login limit; `/courses/networking-fundamentals` loads 199 KB of JavaScript with 1 API request in every run. CI green on e235eb7.
+
+**Deploy notes (Part C):**
+- Migrations: not applicable.
+- Release task: unchanged; `content:check-graphs --warn-only` now also prints suggestions as information.
+- Configuration, edge, storage and jobs: not applicable (dismissals are in the admin's browser).
+- Budgets: the course page is unchanged (suggestions are admin-only).
+- Production parity: as above.
 - Owner action when deploying: nothing.
 
 ## Follow-ups (not scheduled in a phase)

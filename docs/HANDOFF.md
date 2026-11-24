@@ -10,8 +10,8 @@ Where the project stands and what the next phase needs to know. This page only p
 - **F1 (compass menu and keyboard shortcuts, formerly Phase 7.5) is complete** (D51 to D53).
 - **F2 (Blog) is complete** (D55, D56): the feature (Part A) and the first post, "Docker & Containers 101" (Part B, `content/posts/docker-containers-101.php`, every block type).
 - **F3 (Course map), Parts A and B are done** (D57 to D60): data, validation, import and export, API and health check, then the renderer, focus mode and admin panels. Part C (map content for the courses) waits for F4.
-- **F4 (Networking Fundamentals, expanded) is in progress** (D61, D62): Parts A (20 lessons in 5 chapters, three new topics, six career templates) and B (architectures, the map, the D61 renderer change) are done; Part C (Course map suggestions) is next. Graded exercises for the new lessons are F5.
-- **Tests:** 785 Pest, 480 Vitest and 33 Playwright end-to-end tests (after F4 Part B). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
+- **F4 (Networking Fundamentals, expanded) is done** (D61 to D63): 20 lessons in 5 chapters with three new topics, architectures and the course map, the wide-map layout, and rule-based Course map suggestions for admins. Graded exercises for the new lessons are F5; maps for the other courses are F3 Part C.
+- **Tests:** 807 Pest, 486 Vitest and 34 Playwright end-to-end tests (after F4). Pint, tsc, ESLint and Hallmark sloplint are clean, and the production build passes.
 
 ## Read first
 
@@ -45,7 +45,10 @@ Where the project stands and what the next phase needs to know. This page only p
 - **Security guards to keep green:** `RouteInventoryTest` (a new public route goes on its list on purpose; a new expensive route gets a limiter there) and `cybercompass:preflight` (a new production setting gets a check).
 - **E2E rules:** each spec signs in as its own account (the `api` limit is per user: reloading the dashboard in a loop hits 120 a minute; poll the API instead with `apiGet`); register through the UI at most once per run (the limit is 10 an hour per IP); never read answer keys from the database.
 
-## F4: Networking Fundamentals, expanded (Parts A and B, 2026-11-24)
+## F4: Networking Fundamentals, expanded (2026-11-24)
+
+- **Suggestions (D63):** `CourseMapSuggestions` is the only place the rules live; the panel and `content:check-graphs` show its output, and accepting goes through the normal save. Dismissals are in local storage (`cybercompass.dismissedSuggestions.*`).
+- **E2E sign-in:** specs use `signIn()` (one form login per account and run, then the saved session); only the specs about signing in use `login()`. The purge removes maps saved by e2e accounts and lessons named `e2e-*`.
 
 - **Course:** 20 lessons, 5 chapters, 335 minutes; the six original lessons are unchanged byte for byte.
 - **Topics** (D62): `local-networks`, `routing-and-transport`, `network-visibility`. New lessons never join an existing topic. The two core topics are in the six careers that rate networking 2.
