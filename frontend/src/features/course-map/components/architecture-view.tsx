@@ -175,7 +175,7 @@ export function ArchitectureView({
             onClick={() => onSelect(node.id)}
             onKeyDown={(e) => onKeyDown(e, node.id)}
             className={cn(
-              "absolute flex items-center justify-center overflow-hidden rounded-control border px-2 text-center text-[12px] leading-[14px] text-ink transition-colors duration-[var(--dur-micro)]",
+              "absolute flex items-center justify-center overflow-hidden rounded-control border px-2 text-center text-[12px] leading-[14px] text-ink transition-colors duration-[var(--dur-micro)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
               isSelected ? "border-accent bg-accent-soft" : "border-rule-2 bg-paper-2 hover:border-ink-2",
               node.section || node.note || node.lesson ? "cursor-pointer" : "",
             )}
