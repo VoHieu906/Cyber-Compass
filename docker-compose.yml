@@ -60,7 +60,12 @@ services:
 
   worker:
     <<: *api-common
-    command: ["php", "/var/www/html/artisan", "queue:work", "--tries=3", "--sleep=3"]
+    # One job per process, and a fresh process after 60 idle seconds: Docker restarts it with the
+    # current code, so backend edits apply without queue:restart. queue:listen would do that too,
+    # but it runs jobs with --once, where Laravel never arms a job's own timeout (the content
+    # package jobs' 900 s, D70). Production keeps a long-running queue:work: deploys replace tasks.
+    command: ["php", "/var/www/html/artisan", "queue:work", "--tries=3", "--sleep=3", "--max-jobs=1", "--max-time=60"]
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "healthcheck-queue"]
       start_period: 10s
@@ -70,6 +75,7 @@ services:
   scheduler:
     <<: *api-common
     command: ["php", "/var/www/html/artisan", "schedule:work"]
+    restart: unless-stopped
     healthcheck:
       disable: true
 

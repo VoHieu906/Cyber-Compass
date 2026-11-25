@@ -17,7 +17,7 @@ flowchart LR
   F2 --> F3[F3 Course map, Part C dropped]
   F3 --> F4[F4 Networking Fundamentals, expanded]
   F4 --> F5[F5 Networking exercises, done]
-  F5 --> F6[F6 Content packages]
+  F5 --> F6[F6 Content packages, dev-complete]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -640,7 +640,7 @@ Graded exercises for the 14 lessons F4 added to Networking Fundamentals, the shi
 - Production parity: not checked (content only).
 - Owner action when deploying: nothing.
 
-### F6: Content packages (in progress, started 2026-11-24)
+### F6: Content packages ✅ (dev-complete 2026-11-24, D72; AWS steps on the deferred list)
 
 Lessons, blog posts and blocks written with outside chatbots come into the admin console as validated JSON packages that land in a draft, plus a course overview export and an AI authoring guide for the chatbot. Decisions D67 to D71.
 
@@ -713,6 +713,17 @@ Lessons, blog posts and blocks written with outside chatbots come into the admin
 - **Tests:** Pest `ContentFormatTest` (guide current and complete, served to admins only, overview gaps and keys, the draft marker, no exercise answers, Markdown and JSON downloads, the OSI example valid, the example overview); Vitest `guide-includes.test.ts`; the Playwright spec now downloads the overview and the guide from the course page first. Browser check (light and dark, 1280 and 390): the action row wraps, both downloads arrive, no overflow, no console errors; 16 of 16.
 - **Totals:** 1033 Pest, 553 Vitest, 37 Playwright; Pint, tsc and ESLint clean. No migration or new setting.
 
+**Dogfood run (2026-11-24, separate content commit):** the Docker post gained a recap, a fun fact and sources on eight sections through the package flow; details and what it taught are in HANDOFF.
+
+**Part F (done, 2026-11-24, dev-only, D72):**
+- **The development stack, end to end:** the local transfers disk is the bind-mounted `storage/` shared by api, worker and scheduler; a real two-part zip goes through nginx, PHP-FPM and the worker in the Playwright spec; `content:prune-transfers` is listed by the scheduler service hourly and, run from the scheduler container, removed an expired transfer's row and file and a stale work folder.
+- **Found and fixed:** a long-running dev worker kept old code (the dogfood preview showed it), and `queue:restart` left it down because the dev compose file had no restart policy. Owner review: the worker must pick up code changes by itself while a long import still stops at its 900 s timeout. `queue:listen` fails the second part: it runs each job with `--once`, where Laravel never arms the job's own timeout (a probe with a 5-second timeout ran 20 seconds), so only the listener's process limit would stop a stuck import, and that crashes the listener and leaves the job reserved until `retry_after`. The worker now runs `queue:work --max-jobs=1 --max-time=60` with `restart: unless-stopped`: the same probe stopped at 5 seconds and ended `failed` with the timeout reason and no folder left, a 75-second job ran to the end, and an edited job ran its new code 6 seconds after the edit, with no restart by hand. The scheduler restarts by itself too.
+- **Docs:** D67 to D72 in ARCHITECTURE; this report; HANDOFF; the CLAUDE.md §3 row; the CONTENT_AUTHORING_GUIDE pointer to [content-format](content-format/README.md); API_SPECIFICATION (content packages); DATABASE_SCHEMA (`sources`, `content_transfers`).
+
+**Exit (F6):**
+- **Tests:** 1033 Pest, 553 Vitest, 37 Playwright (the full suite on the final dev stack, 2026-11-25); Pint, tsc, ESLint and the Hallmark sloplint static pass clean.
+- **Deploy notes:** migrations `add_sources_to_sections` and `create_content_transfers_table`, both expand-only and run by `cybercompass:release`. Everything AWS needs is on [Deferred until first deployment](#deferred-until-first-deployment) (D72): the transfers bucket, IAM, CORS, lifecycle, CSP origin, task definition variables, the SeaweedFS and 413 checks, the parity run and the DEPLOYMENT_AWS step. The production code for it exists and is configuration-driven.
+
 ## Deferred until first deployment
 
 The app has not been deployed. Features finish on the development stack and list here what the first deployment must add (D72, an exception to the D54 gate). Do these before or during the first deployment with [DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md), and tick them off there.
@@ -728,6 +739,7 @@ The app has not been deployed. Features finish on the development stack and list
 - [ ] **413 check on the production image:** a 9 MB request reaches PHP through nginx and a 17 MB one gets 413 (limits from the Dockerfile base stage, 16M and 8M).
 - [ ] **Production-parity run:** import a multi-part zip, apply, export, on `docker-compose.prod.yml` with SeaweedFS.
 - [ ] **DEPLOYMENT_AWS:** a step for the transfers bucket (template, CORS, lifecycle, IAM), the new variables, and the 960-second queue retry: a crashed notification job is retried after up to 16 minutes instead of 90 seconds, and a large package job delays notifications on the single worker while it runs.
+- [ ] **Worker command:** production keeps a long-running `queue:work --tries=3` in `ecs/task-worker.json` (deploys replace the tasks, so stale code is not a concern there); the development stack's one-job `queue:work --max-jobs=1 --max-time=60` stays a development setting.
 - [ ] **WAF:** nothing expected (package bytes go straight to S3; JSON calls sit under the `/api/v1/admin/content/` exclusion); confirm during the Count-mode trial (D50).
 
 ## Follow-ups (not scheduled in a phase)
