@@ -237,6 +237,7 @@ Actions by engine (each engine validates its own; a refused shell command is out
 | every engine | `{type: "answer", checkpoint, value}` (≤ 200 characters; compared ignoring case and spacing) | `{checkpoint, correct}` |
 | every engine | `{type: "conclude", checkpoint, option, cited: [ids]}` (a `conclusion` checkpoint: at most 6 ids; right only when the option is the answer, enough of the cited items are among the lab's evidence, no more than `max_cited` are cited, and each is citable now) | `{checkpoint, correct}`: right or not yet, never which half was wrong |
 | `evidence-review` | `{type: "mark", artifact, view, line, on}` (line from 1) | `{marked, count}` |
+| `incident-response` | `{type: "choose", choice}` (422 when the choice is unknown, not open in the current state, or the incident has ended) | `{consequence, attacker, changes: [{label, from, to}]}`; the attempt's `state` carries `situation`, `vars`, `choices` [{id, label, available}], `timeline`, `ended` and `dead_end` (`{unreachable: [task ids]}` or null) |
 | `linux-shell` | `{type: "command", command}` (≤ 500 characters, ≤ 5 pipe stages) | `{text, error, clear?}` (≤ 64 KB) |
 | `firewall-rules` | `add_rule {rule, position?}`, `remove_rule {index}`, `move_rule {from, to}`, `set_default {policy}`, `test {packet}` | `{verdict, rule}` for a test |
 | `http-inspector` | `{type: "send", request: {method, path, headers?, cookies?, body?}}` | `{response: {status, headers, body}}` |

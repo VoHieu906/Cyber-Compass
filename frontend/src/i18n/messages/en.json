@@ -1668,7 +1668,8 @@
       "linux-shell": "Linux shell",
       "firewall-rules": "Firewall",
       "http-inspector": "HTTP inspector",
-      "evidence-review": "Evidence review"
+      "evidence-review": "Evidence review",
+      "incident-response": "Incident response"
     },
     "checkpoints": "{passed} of {total} tasks done",
     "completed": "Completed",
@@ -1782,7 +1783,30 @@
       "wrong": "Marked, but not evidence",
       "noneWrong": "None. Every line you marked was evidence.",
       "verdict": "{title}",
-      "tries": "Reached in {count, plural, one {# try} other {# tries}}."
+      "tries": "Reached in {count, plural, one {# try} other {# tries}}.",
+      "path": "Your path",
+      "step": "Decision {number}",
+      "instead": "Instead you could have chosen:",
+      "keepsOpen": "every task stays possible",
+      "closesDoor": "a task becomes impossible",
+      "finalState": "Final state"
+    },
+    "incident": {
+      "state": "Incident state",
+      "timeline": "Timeline",
+      "step": "Decision {number}",
+      "to": "became",
+      "attacker": "Attacker's next move:",
+      "noDecisions": "No decisions yet. Choose the first action below.",
+      "now": "Now",
+      "ended": "The incident has ended",
+      "choices": "Actions you can take",
+      "unavailable": "Not available in the current state",
+      "deadEnd": "This path can no longer complete every task. Out of reach: {tasks}",
+      "deadEndTogether": "This path can no longer complete every task together.",
+      "deadEndReset": "Start over to try a different approach.",
+      "changed": "What changed: {changes}.",
+      "attackerNext": "The attacker's next move: {text}"
     }
   },
   "dashboard": {
@@ -2206,7 +2230,8 @@
         "traffic": "Packets get the right verdict",
         "request": "Send a request that succeeds",
         "findings": "Mark the right evidence",
-        "conclusion": "A verdict with cited evidence"
+        "conclusion": "A verdict with cited evidence",
+        "outcome": "The incident reaches a state"
       },
       "title": "Task",
       "titleHint": "As the learner reads it.",

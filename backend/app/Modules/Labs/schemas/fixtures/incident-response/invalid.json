@@ -1,0 +1,12 @@
+[
+  { "name": "an event with no text", "check": "schema", "set": { "scenario.nodes.0.event": "" }, "error": "scenario.nodes.0.event" },
+  { "name": "an outcome with nothing to hold", "check": "schema", "set": { "scenario.checkpoints.0.when": {} }, "error": "scenario.checkpoints.0" },
+  { "name": "a variable with one value", "check": "schema", "set": { "scenario.variables.0.values": [{ "id": "connected", "label": "Connected" }] }, "error": "scenario.variables.0.values" },
+  { "name": "start names a node that does not exist", "check": "reference", "set": { "scenario.start": "nowhere" }, "error": "scenario.start" },
+  { "name": "a choice leads to a node that does not exist", "check": "reference", "set": { "scenario.nodes.0.choices.0.next": "nowhere" }, "error": "scenario.nodes.0.choices.0.next" },
+  { "name": "an effect sets a value the variable does not have", "check": "reference", "set": { "scenario.nodes.0.choices.0.effects": { "network": "nope" } }, "error": "scenario.nodes.0.choices.0.effects" },
+  { "name": "an outcome names a variable that does not exist", "check": "reference", "set": { "scenario.checkpoints.0.when": { "nothing": "x" } }, "error": "scenario.checkpoints.0.when" },
+  { "name": "a node with no choices that is not an ending", "check": "reference", "set": { "scenario.nodes.1.ending": false }, "error": "scenario.nodes.1.choices" },
+  { "name": "a node nothing leads to", "check": "reference", "set": { "scenario.nodes.3": { "id": "orphan", "event": "Never reached.", "ending": true } }, "error": "scenario.nodes.3" },
+  { "name": "a task no sequence of choices makes true", "check": "reference", "set": { "scenario.nodes.0.choices.0.effects": {} }, "error": "scenario.checkpoints.0" }
+]

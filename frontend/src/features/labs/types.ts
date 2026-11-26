@@ -3,7 +3,7 @@
  * only what the learner may see; answers, hidden packets and routes stay on the server.
  */
 
-export type Engine = "linux-shell" | "firewall-rules" | "http-inspector" | "evidence-review";
+export type Engine = "linux-shell" | "firewall-rules" | "http-inspector" | "evidence-review" | "incident-response";
 
 /** `passed` and `total` count tasks only; `holds` counts conditions already true at the start (to keep, not earn). */
 export type LabProgress = { started: boolean; completed: boolean; passed: number; total: number; holds: number };
@@ -66,11 +66,27 @@ export type EvidenceScenario = {
 /** Marks are `artifact:view:line` keys (line from 1). */
 export type EvidenceState = { marks: string[] };
 
+/** Incident response: the scenario shows only the variables; everything else arrives through the view as the learner plays. */
+export type IncidentScenario = { variables: { id: string; label: string; values: { id: string; label: string }[] }[] };
+export type IncidentChange = { label: string; from: string; to: string };
+export type IncidentState = {
+  situation: string;
+  ended: boolean;
+  vars: { id: string; label: string; value: string; value_label: string }[];
+  choices: { id: string; label: string; available: boolean }[];
+  timeline: { decision: string; consequence: string; attacker: string; changes: IncidentChange[] }[];
+  /** Tasks no sequence of choices can pass from here, said only when the lab can no longer be completed. */
+  dead_end: { unreachable: string[] } | null;
+};
+
 type DebriefLine = { artifact: string; view: string; line: number; text: string };
 /** What a learner may read once the lab is complete (D80). Never present during play. */
 export type Debrief = {
   indicators?: { id: string; title: string; explanation: string; required: boolean; found: boolean; lines: DebriefLine[] }[];
   wrong?: DebriefLine[];
+  /** Incident response: the learner's path, each decision with its trade-off and where another choice would have led. */
+  path?: { decision: string; tradeoff: string; alternatives: { label: string; tradeoff: string; keeps_open: boolean }[] }[];
+  final?: { label: string; value: string }[];
   /** `tries` counts the submissions up to the right one. */
   conclusions: { checkpoint: string; title: string; explanation: string | null; tries: number | null }[];
 };
@@ -87,7 +103,7 @@ export type LabAttempt<S = unknown> = {
 
 export type LabDetail = LabSummary & {
   briefing: string;
-  scenario: ShellScenario | FirewallScenario | HttpScenario | EvidenceScenario;
+  scenario: ShellScenario | FirewallScenario | HttpScenario | EvidenceScenario | IncidentScenario;
   checkpoints: Checkpoint[];
   attempt: LabAttempt | null;
 };
@@ -102,7 +118,8 @@ export type LabAction =
   | { type: "test"; packet: Packet }
   | { type: "send"; request: HttpRequest }
   | { type: "mark"; artifact: string; view: string; line: number; on: boolean }
-  | { type: "conclude"; checkpoint: string; option: string; cited: string[] };
+  | { type: "conclude"; checkpoint: string; option: string; cited: string[] }
+  | { type: "choose"; choice: string };
 
 export type LabActionResult = {
   output: {
@@ -114,6 +131,9 @@ export type LabActionResult = {
     response?: HttpMessage;
     checkpoint?: string;
     correct?: boolean;
+    consequence?: string;
+    attacker?: string;
+    changes?: IncidentChange[];
   };
   newly_passed: string[];
   checkpoints: Checkpoint[];

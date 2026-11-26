@@ -1668,7 +1668,8 @@
       "linux-shell": "Shell Linux",
       "firewall-rules": "Tường lửa",
       "http-inspector": "Phân tích HTTP",
-      "evidence-review": "Phân tích chứng cứ"
+      "evidence-review": "Phân tích chứng cứ",
+      "incident-response": "Ứng phó sự cố"
     },
     "checkpoints": "Đã xong {passed}/{total} nhiệm vụ",
     "completed": "Đã hoàn thành",
@@ -1782,7 +1783,30 @@
       "wrong": "Đã đánh dấu nhưng không phải chứng cứ",
       "noneWrong": "Không có. Mọi dòng bạn đánh dấu đều là chứng cứ.",
       "verdict": "{title}",
-      "tries": "Đạt được sau {count, plural, other {# lần thử}}."
+      "tries": "Đạt được sau {count, plural, other {# lần thử}}.",
+      "path": "Hành trình của bạn",
+      "step": "Quyết định {number}",
+      "instead": "Thay vào đó bạn có thể đã chọn:",
+      "keepsOpen": "mọi nhiệm vụ vẫn khả thi",
+      "closesDoor": "một nhiệm vụ trở nên bất khả thi",
+      "finalState": "Trạng thái cuối"
+    },
+    "incident": {
+      "state": "Trạng thái sự cố",
+      "timeline": "Dòng thời gian",
+      "step": "Quyết định {number}",
+      "to": "trở thành",
+      "attacker": "Bước tiếp theo của kẻ tấn công:",
+      "noDecisions": "Chưa có quyết định nào. Hãy chọn hành động đầu tiên bên dưới.",
+      "now": "Hiện tại",
+      "ended": "Sự cố đã kết thúc",
+      "choices": "Các hành động bạn có thể thực hiện",
+      "unavailable": "Không khả dụng ở trạng thái hiện tại",
+      "deadEnd": "Hướng này không còn hoàn thành được mọi nhiệm vụ. Ngoài tầm với: {tasks}",
+      "deadEndTogether": "Hướng này không còn hoàn thành được tất cả nhiệm vụ cùng nhau.",
+      "deadEndReset": "Hãy bắt đầu lại để thử một cách tiếp cận khác.",
+      "changed": "Những gì đã thay đổi: {changes}.",
+      "attackerNext": "Bước tiếp theo của kẻ tấn công: {text}"
     }
   },
   "dashboard": {
@@ -2206,7 +2230,8 @@
         "traffic": "Gói tin nhận đúng kết quả",
         "request": "Gửi một yêu cầu thành công",
         "findings": "Đánh dấu đúng chứng cứ",
-        "conclusion": "Kết luận kèm chứng cứ"
+        "conclusion": "Kết luận kèm chứng cứ",
+        "outcome": "Sự cố đạt đến một trạng thái"
       },
       "title": "Nhiệm vụ",
       "titleHint": "Đúng như người học đọc.",

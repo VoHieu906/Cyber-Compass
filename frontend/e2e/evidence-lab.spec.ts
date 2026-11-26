@@ -20,7 +20,7 @@ async function mark(page: Page, name: RegExp, line: number) {
 
 test.describe("evidence lab", () => {
   test("marks evidence, concludes and reads the debrief", async ({ page }) => {
-    await signIn(page, account("labs"));
+    await signIn(page, account("evidence"));
     await page.goto(LAB);
     await page.getByRole("button", { name: "Start the lab" }).click();
     await expect(page.getByRole("listbox", { name: /Raw message, lines of The message/ })).toBeVisible();

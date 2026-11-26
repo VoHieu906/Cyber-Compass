@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "incident-response",
+  "type": "object",
+  "required": ["variables", "start", "nodes", "checkpoints"],
+  "additionalProperties": false,
+  "properties": {
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "values", "initial"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "initial": { "$ref": "#/$defs/id" },
+          "values": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "$ref": "#/$defs/id" },
+                "label": { "type": "string", "minLength": 1, "maxLength": 80 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "start": { "$ref": "#/$defs/id" },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "required": ["id", "event"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "event": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "ending": { "type": "boolean" },
+          "choices": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "object",
+              "required": ["id", "label", "consequence", "attacker", "tradeoff", "next"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "$ref": "#/$defs/id" },
+                "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+                "requires": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/conditions" } },
+                "effects": { "$ref": "#/$defs/assignments" },
+                "consequence": { "type": "string", "minLength": 1, "maxLength": 400 },
+                "attacker": { "type": "string", "minLength": 1, "maxLength": 400 },
+                "tradeoff": { "type": "string", "minLength": 1, "maxLength": 600 },
+                "next": { "$ref": "#/$defs/id" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/answer" },
+          {
+            "type": "object",
+            "required": ["id", "title", "kind", "when"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "title": { "$ref": "#/$defs/title" },
+              "hint": { "$ref": "#/$defs/hint" },
+              "kind": { "const": "outcome" },
+              "when": { "$ref": "#/$defs/conditions" },
+              "ending": { "type": "boolean" }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 60 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "hint": { "type": "string", "maxLength": 500 },
+    "conditions": { "type": "object", "minProperties": 1, "maxProperties": 8, "additionalProperties": { "$ref": "#/$defs/id" } },
+    "assignments": {
+      "anyOf": [
+        { "type": "object", "maxProperties": 8, "additionalProperties": { "$ref": "#/$defs/id" } },
+        { "type": "array", "maxItems": 0 }
+      ]
+    },
+    "answer": {
+      "type": "object",
+      "required": ["id", "title", "kind", "answers"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/title" },
+        "hint": { "$ref": "#/$defs/hint" },
+        "kind": { "const": "answer" },
+        "answers": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "type": "string", "minLength": 1, "maxLength": 200 } }
+      }
+    }
+  }
+}

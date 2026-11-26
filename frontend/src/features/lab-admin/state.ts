@@ -53,6 +53,7 @@ export const KIND_TEMPLATES: Record<string, Record<string, unknown>> = {
   traffic: { packets: [{ proto: "tcp", port: 80, source: "203.0.113.1", expect: "allow" }] },
   request: { route: "" },
   findings: { indicators: [] },
+  outcome: { when: {} },
   conclusion: {
     question: "",
     options: [

@@ -188,11 +188,67 @@ const evidence = z.strictObject({
   ),
 });
 
+const conditions = z
+  .record(id, id)
+  .refine((c) => Object.keys(c).length >= 1 && Object.keys(c).length <= 8, "Use 1 to 8 conditions.");
+// An empty object reaches the server as an empty list once PHP has handled it.
+const assignments = z.union([
+  z.record(id, id).refine((a) => Object.keys(a).length <= 8, "Use at most 8."),
+  z.array(z.never()).max(0),
+]);
+
+const incident = z.strictObject({
+  variables: z
+    .array(
+      z.strictObject({
+        id,
+        label: z.string().min(1).max(80),
+        initial: id,
+        values: z
+          .array(z.strictObject({ id, label: z.string().min(1).max(80) }))
+          .min(2)
+          .max(5),
+      }),
+    )
+    .min(1)
+    .max(8),
+  start: id,
+  nodes: z
+    .array(
+      z.strictObject({
+        id,
+        event: z.string().min(1).max(600),
+        ending: z.boolean().optional(),
+        choices: z
+          .array(
+            z.strictObject({
+              id,
+              label: z.string().min(1).max(200),
+              requires: z.array(conditions).max(6).optional(),
+              effects: assignments.optional(),
+              consequence: z.string().min(1).max(400),
+              attacker: z.string().min(1).max(400),
+              tradeoff: z.string().min(1).max(600),
+              next: id,
+            }),
+          )
+          .max(10)
+          .optional(),
+      }),
+    )
+    .min(1)
+    .max(40),
+  checkpoints: checkpoints(
+    z.strictObject({ id, title, hint, kind: z.literal("outcome"), when: conditions, ending: z.boolean().optional() }),
+  ),
+});
+
 export const scenarioSchemas: Record<Engine, z.ZodType> = {
   "linux-shell": shell,
   "firewall-rules": firewall,
   "http-inspector": http,
   "evidence-review": evidence,
+  "incident-response": incident,
 };
 
 /** The schema problems of a scenario, keyed by path in the definition (`scenario.checkpoints.0.kind`). */

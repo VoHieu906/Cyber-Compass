@@ -6,6 +6,7 @@ use App\Models\Lab;
 use App\Modules\Labs\Engines\EvidenceReviewEngine;
 use App\Modules\Labs\Engines\FirewallRulesEngine;
 use App\Modules\Labs\Engines\HttpInspectorEngine;
+use App\Modules\Labs\Engines\IncidentResponseEngine;
 use App\Modules\Labs\Engines\LabActionRejected;
 use App\Modules\Labs\Engines\LabEngine;
 use App\Modules\Labs\Engines\LabLimits;
@@ -26,9 +27,9 @@ final class SimulatedLabProvider implements LabProvider
     /** @var array<string, LabEngine> */
     private array $engines;
 
-    public function __construct(LinuxShellEngine $shell, FirewallRulesEngine $firewall, HttpInspectorEngine $http, EvidenceReviewEngine $evidence)
+    public function __construct(LinuxShellEngine $shell, FirewallRulesEngine $firewall, HttpInspectorEngine $http, EvidenceReviewEngine $evidence, IncidentResponseEngine $incident)
     {
-        foreach ([$shell, $firewall, $http, $evidence] as $engine) {
+        foreach ([$shell, $firewall, $http, $evidence, $incident] as $engine) {
             $this->engines[$engine->key()] = $engine;
         }
     }

@@ -22,6 +22,8 @@ export const LEARNER = {
   compass: 9,
   compass2: 10,
   courseMap: 11,
+  evidence: 12,
+  incident: 13,
 } as const;
 
 export type Account = { email: string; password: string };

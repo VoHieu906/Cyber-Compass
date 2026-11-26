@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, FileSearch, Globe, Shield, SquareTerminal } from "lucide-react";
+import { ArrowRight, Check, FileSearch, Globe, Shield, ShieldAlert, SquareTerminal } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Alert } from "@/components/ui/alert";
@@ -16,6 +16,7 @@ export const ENGINE_ICON: Record<Engine, typeof Shield> = {
   "firewall-rules": Shield,
   "http-inspector": Globe,
   "evidence-review": FileSearch,
+  "incident-response": ShieldAlert,
 };
 
 /** The labs on offer, with my progress in each. */

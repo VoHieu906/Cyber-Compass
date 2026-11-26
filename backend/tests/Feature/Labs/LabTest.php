@@ -38,7 +38,7 @@ it('requires a session', function (string $method, string $uri) {
 it('lists the labs in order with my progress and their lessons', function () {
     $labs = $this->actingAs($this->user, 'web')->getJson('/api/v1/labs')->assertOk()->json('data');
 
-    expect(collect($labs)->pluck('slug')->all())->toBe(['investigate-a-suspicious-login', 'lock-down-a-web-server', 'inspect-a-shop-session', 'spot-the-phishing-email'])
+    expect(collect($labs)->pluck('slug')->all())->toBe(['investigate-a-suspicious-login', 'lock-down-a-web-server', 'inspect-a-shop-session', 'spot-the-phishing-email', 'contain-a-ransomware-incident'])
         ->and($labs[0])->toMatchArray(['engine' => 'linux-shell', 'lesson' => ['slug' => 'linux-logs', 'title' => Lesson::query()->where('slug', 'linux-logs')->value('title')]])
         ->and($labs[0]['progress'])->toBe(['started' => false, 'completed' => false, 'passed' => 0, 'total' => 5, 'holds' => 0]);
 });

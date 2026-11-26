@@ -27,6 +27,7 @@ import type {
   FirewallState,
   HttpScenario,
   HttpState,
+  IncidentState,
   LabAction,
   LabActionResult,
   LabDetail,
@@ -37,6 +38,7 @@ import { Debrief } from "./debrief";
 import { EvidenceConsole } from "./evidence-console";
 import { FirewallConsole } from "./firewall-console";
 import { HttpConsole } from "./http-console";
+import { IncidentConsole } from "./incident-console";
 import { DIFFICULTY, ENGINE_ICON } from "./labs-list";
 import { Terminal } from "./terminal";
 
@@ -171,6 +173,9 @@ const CONSOLES: Record<Engine, (props: ConsoleProps) => ReactNode> = {
   "http-inspector": ({ lab, state, busy, send }) => (
     <HttpConsole scenario={lab.scenario as HttpScenario} state={state as HttpState} busy={busy} onAction={send} />
   ),
+  "incident-response": ({ lab, state, busy, send }) => (
+    <IncidentConsole state={state as IncidentState} checkpoints={lab.checkpoints} busy={busy} onAction={send} />
+  ),
   "evidence-review": ({ lab, state, busy, send }) => (
     <EvidenceConsole
       scenario={lab.scenario as EvidenceScenario}
@@ -276,9 +281,12 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
         />
         <div
           id="lab-console"
+          // A region that scrolls must be reachable from the keyboard even when nothing inside it takes focus (an ended incident).
+          {...(lab.engine !== "linux-shell" ? { role: "region", tabIndex: 0, "aria-label": tc("pageConsole") } : {})}
           className={cn(
             "flex min-w-0 flex-col gap-3 lg:min-h-0",
-            lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1",
+            lab.engine !== "linux-shell" &&
+              "focus-visible:outline-2 focus-visible:outline-accent lg:-m-1 lg:overflow-y-auto lg:p-1",
           )}
         >
           {notice ? <Alert tone="error">{notice}</Alert> : null}

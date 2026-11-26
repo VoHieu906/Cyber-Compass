@@ -99,6 +99,19 @@ final class LabDefinition
         foreach ($scenario['indicators'] ?? [] as $i => $indicator) {
             unset($scenario['indicators'][$i]['title'], $scenario['indicators'][$i]['explanation']);
         }
+        // An incident's wording (what a choice says, what happens, the author's trade-off) is not what a state is built from.
+        foreach ($scenario['nodes'] ?? [] as $i => $node) {
+            unset($scenario['nodes'][$i]['event']);
+            foreach ($node['choices'] ?? [] as $j => $choice) {
+                unset($scenario['nodes'][$i]['choices'][$j]['label'], $scenario['nodes'][$i]['choices'][$j]['consequence'], $scenario['nodes'][$i]['choices'][$j]['attacker'], $scenario['nodes'][$i]['choices'][$j]['tradeoff']);
+            }
+        }
+        foreach ($scenario['variables'] ?? [] as $i => $variable) {
+            unset($scenario['variables'][$i]['label']);
+            foreach ($variable['values'] as $j => $value) {
+                unset($scenario['variables'][$i]['values'][$j]['label']);
+            }
+        }
 
         return hash('sha256', self::canonical(['engine' => $def['engine'], 'scenario' => $scenario]));
     }

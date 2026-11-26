@@ -1,0 +1,56 @@
+{
+  "scenario": {
+    "variables": [
+      {
+        "id": "network",
+        "label": "Host network",
+        "initial": "connected",
+        "values": [
+          { "id": "connected", "label": "Connected" },
+          { "id": "isolated", "label": "Isolated" }
+        ]
+      }
+    ],
+    "start": "alert",
+    "nodes": [
+      {
+        "id": "alert",
+        "event": "The IDS reports web-01 sending data to 203.0.113.50 every few seconds.",
+        "choices": [
+          {
+            "id": "isolate",
+            "label": "Disable web-01's switch port",
+            "effects": { "network": "isolated" },
+            "consequence": "The connection to 203.0.113.50 drops.",
+            "attacker": "The attacker has no path back to web-01.",
+            "tradeoff": "Stops the transfer at once and leaves the host and its memory as they are.",
+            "next": "done"
+          },
+          {
+            "id": "watch",
+            "label": "Keep watching the traffic for another hour",
+            "consequence": "The transfer continues.",
+            "attacker": "The attacker copies the rest of the database.",
+            "tradeoff": "Gives more data to look at, and gives the attacker the whole database.",
+            "next": "lost"
+          }
+        ]
+      },
+      { "id": "done", "event": "web-01 is isolated.", "ending": true },
+      { "id": "lost", "event": "The transfer ended with the data gone.", "ending": true }
+    ],
+    "checkpoints": [
+      {
+        "id": "contained",
+        "kind": "outcome",
+        "title": "web-01 is isolated from the network.",
+        "when": { "network": "isolated" },
+        "ending": true
+      }
+    ]
+  },
+  "solutions": {
+    "solutions": [{ "name": "Isolate the host", "actions": [{ "type": "choose", "choice": "isolate" }] }],
+    "decoys": [{ "name": "Keep watching", "actions": [{ "type": "choose", "choice": "watch" }] }]
+  }
+}

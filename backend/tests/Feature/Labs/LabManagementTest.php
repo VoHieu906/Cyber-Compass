@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Event;
 | pinned to a scenario version, and an admin preview with no learner side effects.
 */
 
-const LAB_ENGINES = ['linux-shell', 'firewall-rules', 'http-inspector', 'evidence-review'];
+const LAB_ENGINES = ['linux-shell', 'firewall-rules', 'http-inspector', 'evidence-review', 'incident-response'];
 
 beforeEach(function () {
     $this->admin = User::factory()->admin()->create();
@@ -142,7 +142,7 @@ describe('the admin API', function () {
         labAdmin();
         $json = $this->getJson('/api/v1/admin/content/labs')->assertOk()->json();
 
-        expect(collect($json['data'])->pluck('slug')->all())->toBe(['investigate-a-suspicious-login', 'lock-down-a-web-server', 'inspect-a-shop-session', 'spot-the-phishing-email'])
+        expect(collect($json['data'])->pluck('slug')->all())->toBe(['investigate-a-suspicious-login', 'lock-down-a-web-server', 'inspect-a-shop-session', 'spot-the-phishing-email', 'contain-a-ransomware-incident'])
             ->and($json['data'][0])->toMatchArray(['status' => 'published', 'has_draft' => false, 'owned' => false])
             ->and(collect($json['meta']['engines'])->pluck('key')->all())->toBe(LAB_ENGINES);
     });

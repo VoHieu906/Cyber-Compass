@@ -59,6 +59,60 @@ export function Debrief({ debrief }: { debrief: DebriefData }) {
         </ul>
       ) : null}
 
+      {debrief.path ? (
+        <div className="flex flex-col gap-3">
+          <h4 className="text-sm font-medium text-ink">{t("path")}</h4>
+          <ol className="flex flex-col gap-3">
+            {debrief.path.map((step, i) => (
+              <li key={i} className="flex flex-col gap-1.5 rounded-card border border-rule bg-paper-2 p-4">
+                <p className="text-sm font-medium text-ink">
+                  <span className="sr-only">{t("step", { number: i + 1 })}: </span>
+                  {step.decision}
+                </p>
+                <p className="measured text-sm">{step.tradeoff}</p>
+                {step.alternatives.length ? (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium text-ink">{t("instead")}</p>
+                    <ul className="flex flex-col gap-1.5 text-xs">
+                      {step.alternatives.map((a) => (
+                        <li key={a.label} className="flex flex-col gap-0.5">
+                          <span className="text-ink">
+                            {a.label}{" "}
+                            <span
+                              className={cn(
+                                "rounded-control border px-1.5 py-0.5 font-medium",
+                                a.keeps_open ? "border-accent text-ink" : "border-bad text-bad",
+                              )}
+                            >
+                              {a.keeps_open ? t("keepsOpen") : t("closesDoor")}
+                            </span>
+                          </span>
+                          <span>{a.tradeoff}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
+
+      {debrief.final ? (
+        <div className="flex flex-col gap-1.5">
+          <h4 className="text-sm font-medium text-ink">{t("finalState")}</h4>
+          <dl className="grid gap-1 text-sm sm:grid-cols-2">
+            {debrief.final.map((f) => (
+              <div key={f.label} className="flex gap-2">
+                <dt className="text-muted">{f.label}:</dt>
+                <dd className="text-ink">{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
+
       {debrief.wrong ? (
         <div className="flex flex-col gap-1.5">
           <h4 className="text-sm font-medium text-ink">{t("wrong")}</h4>
