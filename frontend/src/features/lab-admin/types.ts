@@ -70,4 +70,10 @@ export type AdminLab = {
 export type PathMessages = Record<string, string[]>;
 export type CheckReport = { errors: PathMessages; warnings: PathMessages; valid: boolean };
 
-export type LabRevision = { id: number; version: number; note: string | null; created_by: number | null; created_at: string };
+export type LabRevision = {
+  id: number;
+  version: number;
+  note: string | null;
+  created_by: number | null;
+  created_at: string;
+};

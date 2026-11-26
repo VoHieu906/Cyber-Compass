@@ -58,11 +58,21 @@ export function LabsAdminView() {
             <caption className="sr-only">{t("title")}</caption>
             <thead className="max-md:sr-only">
               <tr className="border-b border-rule text-xs text-muted">
-                <th scope="col" className="px-5 py-3 font-medium">{t("columns.lab")}</th>
-                <th scope="col" className="px-3 py-3 font-medium">{t("columns.status")}</th>
-                <th scope="col" className="px-3 py-3 font-medium">{t("columns.owner")}</th>
-                <th scope="col" className="px-3 py-3 text-right font-medium">{t("columns.learners")}</th>
-                <th scope="col" className="px-5 py-3 text-right font-medium">{t("columns.actions")}</th>
+                <th scope="col" className="px-5 py-3 font-medium">
+                  {t("columns.lab")}
+                </th>
+                <th scope="col" className="px-3 py-3 font-medium">
+                  {t("columns.status")}
+                </th>
+                <th scope="col" className="px-3 py-3 font-medium">
+                  {t("columns.owner")}
+                </th>
+                <th scope="col" className="px-3 py-3 text-right font-medium">
+                  {t("columns.learners")}
+                </th>
+                <th scope="col" className="px-5 py-3 text-right font-medium">
+                  {t("columns.actions")}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -83,7 +93,14 @@ export function LabsAdminView() {
       )}
       {order.isError ? <Alert tone="error">{t("orderError")}</Alert> : null}
 
-      {labs.data ? <NewLabDialog open={creating} onClose={() => setCreating(false)} domains={labs.data.meta.domains} engines={labs.data.meta.engines} /> : null}
+      {labs.data ? (
+        <NewLabDialog
+          open={creating}
+          onClose={() => setCreating(false)}
+          domains={labs.data.meta.domains}
+          engines={labs.data.meta.engines}
+        />
+      ) : null}
     </div>
   );
 }
@@ -138,13 +155,27 @@ function LabTableRow({
           <p className="max-w-[22rem] text-xs text-muted">{t("ownerFileHint")}</p>
         ) : null}
       </td>
-      <td className="px-3 py-3 text-right tabular-nums max-md:p-0 max-md:text-left">{t("learnersCount", { started: lab.started, completed: lab.completed })}</td>
+      <td className="px-3 py-3 text-right tabular-nums max-md:p-0 max-md:text-left">
+        {t("learnersCount", { started: lab.started, completed: lab.completed })}
+      </td>
       <td className="px-5 py-3 max-md:p-0">
         <div className="flex justify-end gap-1 max-md:justify-start">
-          <Button variant="ghost" size="sm" disabled={busy || first} onClick={() => onMove(-1)} aria-label={t("moveUp", { title: lab.title })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy || first}
+            onClick={() => onMove(-1)}
+            aria-label={t("moveUp", { title: lab.title })}
+          >
             <ArrowUp aria-hidden />
           </Button>
-          <Button variant="ghost" size="sm" disabled={busy || last} onClick={() => onMove(1)} aria-label={t("moveDown", { title: lab.title })}>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={busy || last}
+            onClick={() => onMove(1)}
+            aria-label={t("moveDown", { title: lab.title })}
+          >
             <ArrowDown aria-hidden />
           </Button>
           <Button variant="ghost" size="sm" disabled={busy} onClick={onArchive}>
@@ -156,7 +187,17 @@ function LabTableRow({
   );
 }
 
-function NewLabDialog({ open, onClose, domains, engines }: { open: boolean; onClose: () => void; domains: DomainInfo[]; engines: EngineInfo[] }) {
+function NewLabDialog({
+  open,
+  onClose,
+  domains,
+  engines,
+}: {
+  open: boolean;
+  onClose: () => void;
+  domains: DomainInfo[];
+  engines: EngineInfo[];
+}) {
   const t = useTranslations("labAdmin.create");
   const tc = useTranslations("common");
   const te = useTranslations("labs.engines");
@@ -177,7 +218,10 @@ function NewLabDialog({ open, onClose, domains, engines }: { open: boolean; onCl
         className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          create.mutate({ slug, engine, title: title.trim(), domain }, { onSuccess: (lab) => router.push(`/admin/labs/${lab.id}`) });
+          create.mutate(
+            { slug, engine, title: title.trim(), domain },
+            { onSuccess: (lab) => router.push(`/admin/labs/${lab.id}`) },
+          );
         }}
       >
         <label htmlFor={ids.title} className="flex flex-col gap-1.5 text-sm font-medium text-ink">
@@ -214,7 +258,12 @@ function NewLabDialog({ open, onClose, domains, engines }: { open: boolean; onCl
         <div className="grid gap-4 sm:grid-cols-2">
           <label htmlFor={ids.engine} className="flex flex-col gap-1.5 text-sm font-medium text-ink">
             {t("engine")}
-            <select id={ids.engine} value={engine} onChange={(e) => setEngine(e.target.value as EngineInfo["key"])} className={controlClasses(false)}>
+            <select
+              id={ids.engine}
+              value={engine}
+              onChange={(e) => setEngine(e.target.value as EngineInfo["key"])}
+              className={controlClasses(false)}
+            >
               {engines.map((e) => (
                 <option key={e.key} value={e.key}>
                   {te(e.key)}
@@ -224,7 +273,12 @@ function NewLabDialog({ open, onClose, domains, engines }: { open: boolean; onCl
           </label>
           <label htmlFor={ids.domain} className="flex flex-col gap-1.5 text-sm font-medium text-ink">
             {t("domain")}
-            <select id={ids.domain} value={domain} onChange={(e) => setDomain(e.target.value)} className={controlClasses(false)}>
+            <select
+              id={ids.domain}
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              className={controlClasses(false)}
+            >
               {domains.map((d) => (
                 <option key={d.slug} value={d.slug}>
                   {d.name}
@@ -233,7 +287,9 @@ function NewLabDialog({ open, onClose, domains, engines }: { open: boolean; onCl
             </select>
           </label>
         </div>
-        {create.isError && !slugErrors.slug && !slugErrors.title ? <Alert tone="error">{errorMessage(create.error)}</Alert> : null}
+        {create.isError && !slugErrors.slug && !slugErrors.title ? (
+          <Alert tone="error">{errorMessage(create.error)}</Alert>
+        ) : null}
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>
             {tc("cancel")}

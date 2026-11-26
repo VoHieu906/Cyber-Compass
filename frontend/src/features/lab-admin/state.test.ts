@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { canonical, entryStatus, kindFields, messagesAt, mergeMessages, newCheckpoint, sameContent, withoutCheckpoints } from "./state";
+import {
+  canonical,
+  entryStatus,
+  kindFields,
+  messagesAt,
+  mergeMessages,
+  newCheckpoint,
+  sameContent,
+  withoutCheckpoints,
+} from "./state";
 
 describe("lab editor state", () => {
   it("does not call a different key order a change", () => {
@@ -9,8 +18,16 @@ describe("lab editor state", () => {
   });
 
   it("picks the messages at a path and below it, not a path that only starts alike", () => {
-    const all = { "scenario.checkpoints.0.path": ["x"], "scenario.checkpoints": ["y"], "scenario.checkpointsX": ["z"], title: ["t"] };
-    expect(Object.keys(messagesAt(all, "scenario.checkpoints"))).toEqual(["scenario.checkpoints.0.path", "scenario.checkpoints"]);
+    const all = {
+      "scenario.checkpoints.0.path": ["x"],
+      "scenario.checkpoints": ["y"],
+      "scenario.checkpointsX": ["z"],
+      title: ["t"],
+    };
+    expect(Object.keys(messagesAt(all, "scenario.checkpoints"))).toEqual([
+      "scenario.checkpoints.0.path",
+      "scenario.checkpoints",
+    ]);
     expect(Object.keys(messagesAt(all, "title", "summary"))).toEqual(["title"]);
   });
 

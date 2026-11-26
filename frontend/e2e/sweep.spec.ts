@@ -181,10 +181,13 @@ test.describe("responsive and accessibility sweep", () => {
     await page.goto("/admin/lessons");
     const lessonHref = await page.getByRole("main").locator('a[href^="/admin/lessons/"]').first().getAttribute("href");
 
+    await page.goto("/admin/labs");
+    const labHref = await page.getByRole("main").locator('a[href^="/admin/labs/"]').first().getAttribute("href");
+
     const findings: Finding[] = [];
     await sweep(
       page,
-      ["/admin", "/admin/users", userHref!, "/admin/audit", "/admin/lessons", lessonHref!, "/admin/courses"],
+      ["/admin", "/admin/users", userHref!, "/admin/audit", "/admin/lessons", lessonHref!, "/admin/courses", "/admin/labs", labHref!],
       findings,
     );
     await report(testInfo, findings);

@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { Alert } from "@/components/ui/alert";
 import { controlClasses } from "@/components/ui/input";
 import { checkScenario } from "../schemas";
 import { messagesAt, mergeMessages, parseJson, toJsonText, withoutCheckpoints } from "../state";
 import type { LabDefinition, PathMessages, Scenario } from "../types";
 import { ENGINE_FORMS } from "./engine-forms";
+import { ViewSwitch, type View } from "./forms/view-switch";
 import { PathList, useValidity, type ValidityReporter } from "./parts";
 
 /**
@@ -28,23 +29,44 @@ export function ScenarioPanel({
 }) {
   const t = useTranslations("labAdmin.scenario");
   const Form = ENGINE_FORMS[def.engine];
+  const [view, setView] = useState<View>("form");
+  // Whether the JSON box holds text that does not parse: the form cannot take over from it until it does.
+  const [jsonBad, setJsonBad] = useState(false);
+  const reportValidity = useCallback<ValidityReporter>(
+    (key, invalid) => {
+      setJsonBad(invalid);
+      onValidity(key, invalid);
+    },
+    [onValidity],
+  );
   // The checkpoints tab owns scenario.checkpoints.
-  const own = (m: PathMessages) => Object.fromEntries(Object.entries(m).filter(([p]) => !p.startsWith("scenario.checkpoints")));
+  const own = (m: PathMessages) =>
+    Object.fromEntries(Object.entries(m).filter(([p]) => !p.startsWith("scenario.checkpoints")));
   const live = checkScenario(def.engine, def.scenario);
-  const messages = own(mergeMessages(messagesAt(errors, "scenario"), live));
+  const all = mergeMessages(messagesAt(errors, "scenario"), live);
+  const messages = own(all);
+  const showForm = Form !== undefined && view === "form";
 
   return (
     <div className="flex flex-col gap-4">
       <Alert tone="info">{t("secret")}</Alert>
       {Form ? (
-        <Form scenario={def.scenario} errors={errors} onChange={onChange} />
+        <ViewSwitch view={view} onChange={setView} blocked={view === "json" && jsonBad} label={t("view")} />
+      ) : null}
+      {showForm ? (
+        <Form scenario={def.scenario} errors={all} onChange={onChange} />
       ) : (
-        <JsonScenario def={def} onChange={onChange} onValidity={onValidity} />
+        <JsonScenario def={def} onChange={onChange} onValidity={reportValidity} />
       )}
-      <PathList messages={messages} label={t("problems")} />
+      {/* A form shows each problem beside its field; this list is for the ones no field owns, and for the JSON view. */}
+      <PathList messages={showForm ? onlyUnowned(messages) : messages} label={t("problems")} />
     </div>
   );
 }
+
+/** Problems about the scenario as a whole, which no field of a form shows. */
+const onlyUnowned = (m: PathMessages): PathMessages =>
+  Object.fromEntries(Object.entries(m).filter(([p]) => p === "scenario"));
 
 function JsonScenario({
   def,

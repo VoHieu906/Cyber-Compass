@@ -219,6 +219,7 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
             <Button
               variant="ghost"
               size="sm"
+              className="-my-1.5"
               onClick={() => {
                 setRestarted(false);
                 transport.dismissRestart?.();
@@ -369,7 +370,8 @@ function CheckpointItem({
         </span>
       </p>
       {holding ? (
-        <p className={cn("pl-6 text-xs font-medium", checkpoint.passed ? "text-muted" : "text-bad")}>
+        // Said once to a screen reader (in the task's own label); the visible line is for everyone else.
+        <p aria-hidden className={cn("pl-6 text-xs font-medium", checkpoint.passed ? "text-muted" : "text-bad")}>
           {checkpoint.passed ? t("holdingOk") : t("holdingBroken")}
         </p>
       ) : null}

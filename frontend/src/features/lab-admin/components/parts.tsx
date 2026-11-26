@@ -39,7 +39,11 @@ export function Field({
       <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
-      {children({ id, invalid, describedBy: [hint ? hintId : null, invalid ? errorId : null].filter(Boolean).join(" ") || undefined })}
+      {children({
+        id,
+        invalid,
+        describedBy: [hint ? hintId : null, invalid ? errorId : null].filter(Boolean).join(" ") || undefined,
+      })}
       {hint ? (
         <p id={hintId} className="text-xs text-muted">
           {hint}
@@ -55,7 +59,15 @@ export function Field({
 }
 
 /** Messages by path under a part of the definition: `scenario.checkpoints.0.path: Use…`. Never the values themselves. */
-export function PathList({ messages, tone = "error", label }: { messages: PathMessages; tone?: "error" | "warning"; label: string }) {
+export function PathList({
+  messages,
+  tone = "error",
+  label,
+}: {
+  messages: PathMessages;
+  tone?: "error" | "warning";
+  label: string;
+}) {
   const entries = Object.entries(messages).flatMap(([path, list]) => list.map((m) => ({ path, m })));
   if (entries.length === 0) return null;
   return (
@@ -63,7 +75,9 @@ export function PathList({ messages, tone = "error", label }: { messages: PathMe
       role={tone === "error" ? "alert" : "status"}
       className={cn(
         "flex flex-col gap-1.5 rounded-control border px-3.5 py-3 text-sm text-ink",
-        tone === "error" ? "border-[color-mix(in_oklab,var(--color-bad)_45%,var(--color-rule))] bg-bad-soft" : "border-[color-mix(in_oklab,var(--color-attn)_45%,var(--color-rule))] bg-attn-soft",
+        tone === "error"
+          ? "border-[color-mix(in_oklab,var(--color-bad)_45%,var(--color-rule))] bg-bad-soft"
+          : "border-[color-mix(in_oklab,var(--color-attn)_45%,var(--color-rule))] bg-attn-soft",
       )}
     >
       <p className="font-medium">{label}</p>

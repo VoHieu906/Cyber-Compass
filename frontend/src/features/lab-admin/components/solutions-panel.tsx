@@ -39,9 +39,13 @@ export function SolutionsPanel({
   const found = report?.errors ?? errors;
   const edit = (kind: Kind, i: number, next: Solution) =>
     onChange({ ...solutions, [kind]: solutions[kind].map((s, j) => (j === i ? next : s)) });
-  const remove = (kind: Kind, i: number) => onChange({ ...solutions, [kind]: solutions[kind].filter((_, j) => j !== i) });
+  const remove = (kind: Kind, i: number) =>
+    onChange({ ...solutions, [kind]: solutions[kind].filter((_, j) => j !== i) });
   const add = (kind: Kind) =>
-    onChange({ ...solutions, [kind]: [...solutions[kind], { name: t(kind === "solutions" ? "newSolution" : "newDecoy"), actions: [] }] });
+    onChange({
+      ...solutions,
+      [kind]: [...solutions[kind], { name: t(kind === "solutions" ? "newSolution" : "newDecoy"), actions: [] }],
+    });
 
   return (
     <div className="flex flex-col gap-6">
@@ -53,7 +57,11 @@ export function SolutionsPanel({
         </Button>
         {report ? (
           <p role="status" className="flex items-center gap-2 text-sm text-ink">
-            {report.valid ? <CircleCheck aria-hidden className="size-4 text-ok" /> : <CircleAlert aria-hidden className="size-4 text-bad" />}
+            {report.valid ? (
+              <CircleCheck aria-hidden className="size-4 text-ok" />
+            ) : (
+              <CircleAlert aria-hidden className="size-4 text-bad" />
+            )}
             {report.valid ? t("allPass") : t("someFail")}
           </p>
         ) : null}
@@ -80,20 +88,39 @@ export function SolutionsPanel({
                       )
                     ) : null}
                     {report ? (
-                      <span className="sr-only">{entryStatus(found, kind, i) === "pass" ? t("passes") : t("fails")}: </span>
+                      <span className="sr-only">
+                        {entryStatus(found, kind, i) === "pass" ? t("passes") : t("fails")}:{" "}
+                      </span>
                     ) : null}
                     {t(`${kind}Number`, { number: i + 1 })}
                   </p>
-                  <Button variant="ghost" size="sm" onClick={() => remove(kind, i)} aria-label={t("remove", { number: i + 1 })}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove(kind, i)}
+                    aria-label={t("remove", { number: i + 1 })}
+                  >
                     <Trash2 aria-hidden />
                   </Button>
                 </div>
                 <Field label={t("name")} messages={found[`solutions.${kind}.${i}.name`]}>
                   {({ id, invalid }) => (
-                    <input id={id} value={s.name} maxLength={100} onChange={(e) => edit(kind, i, { ...s, name: e.target.value })} className={controlClasses(invalid)} />
+                    <input
+                      id={id}
+                      value={s.name}
+                      maxLength={100}
+                      onChange={(e) => edit(kind, i, { ...s, name: e.target.value })}
+                      className={controlClasses(invalid)}
+                    />
                   )}
                 </Field>
-                <ActionsField solution={s} label={t("actions")} hint={t("actionsHint")} onChange={(next) => edit(kind, i, next)} onValidity={onValidity} />
+                <ActionsField
+                  solution={s}
+                  label={t("actions")}
+                  hint={t("actionsHint")}
+                  onChange={(next) => edit(kind, i, next)}
+                  onValidity={onValidity}
+                />
                 <PathList messages={messagesAt(found, `solutions.${kind}.${i}`)} label={t("problems")} />
               </li>
             ))}
@@ -105,7 +132,15 @@ export function SolutionsPanel({
         </section>
       ))}
       <PathList messages={report?.warnings ?? {}} tone="warning" label={t("warnings")} />
-      <PathList messages={messagesAt(found, "solutions.solutions")} label={t("problems")} />
+      {/* Problems of one entry are shown on that entry; only the ones about the lists themselves are here. */}
+      <PathList
+        messages={Object.fromEntries(
+          Object.entries(messagesAt(found, "solutions")).filter(
+            ([p]) => !/^solutions\.(solutions|decoys)\.\d+/.test(p),
+          ),
+        )}
+        label={t("problems")}
+      />
     </div>
   );
 }

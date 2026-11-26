@@ -2158,7 +2158,8 @@
       "json": "Kịch bản (JSON, không gồm các nhiệm vụ)",
       "jsonHint": "Các vấn đề được liệt kê theo đường dẫn bên dưới, khi bạn gõ và sau mỗi lần lưu.",
       "notObject": "Kịch bản là một đối tượng JSON.",
-      "parseError": "Đây chưa phải JSON hợp lệ: {message}"
+      "parseError": "Đây chưa phải JSON hợp lệ: {message}",
+      "view": "Cách sửa kịch bản"
     },
     "checkpoints": {
       "intro": "Các nhiệm vụ người học phải hoàn thành. Bài xong khi mọi nhiệm vụ đều đạt. Lời người học đọc đặt ở tiêu đề và gợi ý; đáp án chỉ để trong phần đáp án chấp nhận.",
@@ -2185,7 +2186,8 @@
       "notObject": "Các trường này là một đối tượng JSON.",
       "parseError": "Đây chưa phải JSON hợp lệ: {message}",
       "add": "Thêm nhiệm vụ",
-      "problems": "Vấn đề trong các nhiệm vụ"
+      "problems": "Vấn đề trong các nhiệm vụ",
+      "view": "Cách sửa các trường của nhiệm vụ {number}"
     },
     "solutions": {
       "secret": "Lời giải là đáp án. Chúng được chạy lại trên máy chủ để chứng minh bài chạy được và không bao giờ gửi cho người học.",
@@ -2232,6 +2234,66 @@
       "restore": "Khôi phục",
       "restoreTitle": "Khôi phục phiên bản {version}?",
       "restoreBody": "Phiên bản được chép vào bản nháp. Người học chưa thấy gì cho đến khi bạn xuất bản."
+    },
+    "forms": {
+      "viewForm": "Biểu mẫu",
+      "viewJson": "JSON",
+      "fixJsonFirst": "Hãy sửa JSON trước: biểu mẫu chỉ hiển thị được văn bản hợp lệ.",
+      "shell": {
+        "hostname": "Tên máy",
+        "hostnameHint": "Hiện trong dấu nhắc. Chữ thường, chữ số và dấu gạch ngang.",
+        "user": "Người dùng",
+        "userHint": "Tài khoản người học đang đăng nhập.",
+        "home": "Thư mục nhà",
+        "homeHint": "Nơi cd không đối số đi tới. Phải là một thư mục của máy.",
+        "cwd": "Thư mục bắt đầu",
+        "cwdHint": "Nơi người học bắt đầu. Phải là một thư mục của máy.",
+        "files": "Tệp",
+        "filesIntro": "Các tệp ảo người học có thể đọc. Thư mục của chúng tồn tại vì có tệp bên trong. Không có tệp thật nào ở đây, và người học chỉ thấy nội dung khi đọc nó.",
+        "addFile": "Thêm tệp",
+        "path": "Đường dẫn",
+        "pathHint": "Tuyệt đối, ví dụ /var/log/auth.log.",
+        "content": "Nội dung",
+        "contentHint": "Văn bản của tệp.",
+        "removeFile": "Xóa tệp này",
+        "dirs": "Thư mục thêm (không bắt buộc)",
+        "dirsHint": "Mỗi dòng một thư mục, cho các thư mục rỗng mà tệp chưa tạo ra."
+      },
+      "firewall": {
+        "serverName": "Tên máy chủ",
+        "serverIp": "Địa chỉ máy chủ",
+        "serverIpHint": "Một địa chỉ IPv4.",
+        "default": "Chính sách mặc định",
+        "defaultHint": "Điều xảy ra với gói tin không khớp quy tắc nào.",
+        "allow": "Cho phép",
+        "deny": "Chặn",
+        "rules": "Quy tắc ban đầu",
+        "rulesIntro": "Kiểm tra từ trên xuống; quy tắc khớp đầu tiên quyết định. Tối đa {max}.",
+        "noRules": "Không có quy tắc: chính sách mặc định quyết định tất cả.",
+        "action": "Hành động",
+        "proto": "Giao thức",
+        "any": "bất kỳ",
+        "port": "Cổng",
+        "portHint": "Để trống cho mọi cổng.",
+        "source": "Nguồn",
+        "sourceHint": "any, một địa chỉ hoặc một dải như 10.0.0.0/24.",
+        "moveUp": "Chuyển quy tắc {number} lên",
+        "moveDown": "Chuyển quy tắc {number} xuống",
+        "removeRule": "Xóa quy tắc {number}",
+        "addRule": "Thêm quy tắc"
+      },
+      "packets": {
+        "legend": "Gói tin thử",
+        "hint": "Mỗi gói tin phải nhận đúng kết quả mong đợi thì nhiệm vụ mới đạt.",
+        "proto": "Giao thức của gói tin {number}",
+        "port": "Cổng của gói tin {number}",
+        "source": "Nguồn của gói tin {number}",
+        "expect": "Kết quả mong đợi của gói tin {number}",
+        "allow": "Cho phép",
+        "deny": "Chặn",
+        "remove": "Xóa gói tin {number}",
+        "add": "Thêm gói tin"
+      }
     }
   }
 }

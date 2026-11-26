@@ -2158,7 +2158,8 @@
       "json": "Scenario (JSON, without the checkpoints)",
       "jsonHint": "Problems are listed by path below, as you type and again after a save.",
       "notObject": "The scenario is a JSON object.",
-      "parseError": "This is not valid JSON yet: {message}"
+      "parseError": "This is not valid JSON yet: {message}",
+      "view": "How to edit the scenario"
     },
     "checkpoints": {
       "intro": "The tasks a learner completes. A lab is finished when every checkpoint passes. Put the words the learner reads in the title and the hint; keep answers in the accepted answers only.",
@@ -2185,7 +2186,8 @@
       "notObject": "These fields are a JSON object.",
       "parseError": "This is not valid JSON yet: {message}",
       "add": "Add a checkpoint",
-      "problems": "Problems in the checkpoints"
+      "problems": "Problems in the checkpoints",
+      "view": "How to edit the fields of checkpoint {number}"
     },
     "solutions": {
       "secret": "Solutions are answer keys. They are replayed on the server to prove the lab works, and never sent to learners.",
@@ -2232,6 +2234,66 @@
       "restore": "Restore",
       "restoreTitle": "Restore version {version}?",
       "restoreBody": "It is copied into the draft. Learners see nothing until you publish."
+    },
+    "forms": {
+      "viewForm": "Form",
+      "viewJson": "JSON",
+      "fixJsonFirst": "Fix the JSON first: the form can only show text that parses.",
+      "shell": {
+        "hostname": "Host name",
+        "hostnameHint": "Shown in the prompt. Lowercase letters, digits and hyphens.",
+        "user": "User",
+        "userHint": "Who the learner is logged in as.",
+        "home": "Home directory",
+        "homeHint": "Where cd with no argument goes. Must be a directory of the machine.",
+        "cwd": "Starting directory",
+        "cwdHint": "Where the learner starts. Must be a directory of the machine.",
+        "files": "Files",
+        "filesIntro": "The virtual files the learner can read. Their folders exist because a file is in them. Nothing here is a real file, and none of it reaches the learner until they read it.",
+        "addFile": "Add a file",
+        "path": "Path",
+        "pathHint": "Absolute, such as /var/log/auth.log.",
+        "content": "Content",
+        "contentHint": "The text of the file.",
+        "removeFile": "Remove this file",
+        "dirs": "Extra directories (optional)",
+        "dirsHint": "One per line, for empty folders a file does not already create."
+      },
+      "firewall": {
+        "serverName": "Server name",
+        "serverIp": "Server address",
+        "serverIpHint": "An IPv4 address.",
+        "default": "Default policy",
+        "defaultHint": "What happens to a packet no rule matches.",
+        "allow": "Allow",
+        "deny": "Deny",
+        "rules": "Rules at the start",
+        "rulesIntro": "Checked from the top; the first rule that matches decides. At most {max}.",
+        "noRules": "No rules: the default policy decides everything.",
+        "action": "Action",
+        "proto": "Protocol",
+        "any": "any",
+        "port": "Port",
+        "portHint": "Empty for any port.",
+        "source": "Source",
+        "sourceHint": "any, an address or a range such as 10.0.0.0/24.",
+        "moveUp": "Move rule {number} up",
+        "moveDown": "Move rule {number} down",
+        "removeRule": "Remove rule {number}",
+        "addRule": "Add a rule"
+      },
+      "packets": {
+        "legend": "Test packets",
+        "hint": "Each packet must get its expected verdict for the checkpoint to pass.",
+        "proto": "Protocol of packet {number}",
+        "port": "Port of packet {number}",
+        "source": "Source of packet {number}",
+        "expect": "Expected verdict of packet {number}",
+        "allow": "Allow",
+        "deny": "Deny",
+        "remove": "Remove packet {number}",
+        "add": "Add a packet"
+      }
     }
   }
 }

@@ -10,11 +10,19 @@ import type { PathMessages } from "./types";
  * server's reference check, and the server stays the authority on save.
  */
 
-const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/).max(60);
+const id = z
+  .string()
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase words joined by hyphens.")
+  .max(60);
 const title = z.string().min(1).max(300);
 const hint = z.string().max(500).optional();
-const path = z.string().regex(/^\//);
-const ident = z.string().regex(/^[a-z][a-z0-9-]{0,31}$/);
+const path = z.string().regex(/^\//, "Start with /.");
+const ident = z
+  .string()
+  .regex(
+    /^[a-z][a-z0-9-]{0,31}$/,
+    "Use lowercase letters, digits and hyphens, starting with a letter (at most 32 characters).",
+  );
 
 const answer = z.strictObject({
   id,
@@ -25,7 +33,10 @@ const answer = z.strictObject({
 });
 
 const checkpoints = <T extends z.core.$ZodTypeDiscriminable>(...kinds: T[]) =>
-  z.array(z.discriminatedUnion("kind", [answer, ...kinds] as [typeof answer, ...T[]])).min(1).max(20);
+  z
+    .array(z.discriminatedUnion("kind", [answer, ...kinds] as [typeof answer, ...T[]]))
+    .min(1)
+    .max(20);
 
 const shell = z.strictObject({
   hostname: ident,
@@ -77,8 +88,12 @@ const strings = z.union([
   z.record(z.string(), z.string().max(1000)).refine((r) => Object.keys(r).length <= 20, "Use at most 20."),
   z.array(z.never()).max(0),
 ]);
-const response = z.strictObject({ status: z.number().int().min(100).max(599), headers: strings, body: z.string().max(20000) });
-const urlPath = z.string().regex(/^\//).max(200);
+const response = z.strictObject({
+  status: z.number().int().min(100).max(599),
+  headers: strings,
+  body: z.string().max(20000),
+});
+const urlPath = z.string().regex(/^\//, "Start with /.").max(200);
 
 const http = z.strictObject({
   app: z.strictObject({ name: z.string().min(1).max(60), origin: z.string().max(200) }),
@@ -86,7 +101,12 @@ const http = z.strictObject({
   captured: z
     .array(
       z.strictObject({
-        request: z.strictObject({ method, path: urlPath, headers: strings.optional(), body: z.string().max(2000).optional() }),
+        request: z.strictObject({
+          method,
+          path: urlPath,
+          headers: strings.optional(),
+          body: z.string().max(2000).optional(),
+        }),
         response,
       }),
     )

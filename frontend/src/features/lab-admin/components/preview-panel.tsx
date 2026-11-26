@@ -54,7 +54,12 @@ export function PreviewPanel({ id, lockVersion, dirty }: { id: number; lockVersi
         <Alert tone="info">
           <span className="flex flex-wrap items-center justify-between gap-3">
             <span>{t("expired")}</span>
-            <Button size="sm" onClick={() => reset.mutate(undefined, { onSuccess: () => setExpired(false) })} loading={reset.isPending}>
+            <Button
+              size="sm"
+              className="-my-1.5"
+              onClick={() => reset.mutate(undefined, { onSuccess: () => setExpired(false) })}
+              loading={reset.isPending}
+            >
               <RotateCcw aria-hidden />
               {t("restart")}
             </Button>

@@ -75,7 +75,12 @@ export function DetailsPanel({
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <Field label={t("domain")} messages={errors.domain}>
           {({ id, invalid }) => (
-            <select id={id} value={def.domain} onChange={(e) => onChange({ domain: e.target.value })} className={controlClasses(invalid)}>
+            <select
+              id={id}
+              value={def.domain}
+              onChange={(e) => onChange({ domain: e.target.value })}
+              className={controlClasses(invalid)}
+            >
               {domains.map((d) => (
                 <option key={d.slug} value={d.slug}>
                   {d.name}

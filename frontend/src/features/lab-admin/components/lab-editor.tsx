@@ -15,7 +15,16 @@ import { LessonStatusBadge, UnpublishedChip } from "@/features/content-editor/co
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { fetchAdminLab } from "../api";
-import { labAdminKeys, useAdminLab, useAdminLabs, useArchiveLab, useCheckLab, useDiscardLabDraft, usePublishLab, useSaveLabDraft } from "../hooks";
+import {
+  labAdminKeys,
+  useAdminLab,
+  useAdminLabs,
+  useArchiveLab,
+  useCheckLab,
+  useDiscardLabDraft,
+  usePublishLab,
+  useSaveLabDraft,
+} from "../hooks";
 import { cleanDefinition, countMessages, messagesAt, sameContent } from "../state";
 import type { AdminLab, CheckReport, Impact, LabDefinition, PathMessages } from "../types";
 import { CheckpointsPanel } from "./checkpoints-panel";
@@ -36,7 +45,10 @@ const tabOf = (errors: PathMessages, tab: Tab): PathMessages => {
   if (tab === "details") return messagesAt(errors, ...DETAIL_FIELDS);
   if (tab === "checkpoints") return messagesAt(errors, "scenario.checkpoints");
   if (tab === "solutions") return messagesAt(errors, "solutions");
-  if (tab === "scenario") return Object.fromEntries(Object.entries(messagesAt(errors, "scenario")).filter(([p]) => !p.startsWith("scenario.checkpoints")));
+  if (tab === "scenario")
+    return Object.fromEntries(
+      Object.entries(messagesAt(errors, "scenario")).filter(([p]) => !p.startsWith("scenario.checkpoints")),
+    );
   return {};
 };
 
@@ -154,7 +166,11 @@ function Editor({ lab }: { lab: AdminLab }) {
       return;
     }
     try {
-      await publish.mutateAsync({ lock_version: current.lock_version, note: note.trim() || undefined, confirm_restart: confirmRestart || undefined });
+      await publish.mutateAsync({
+        lock_version: current.lock_version,
+        note: note.trim() || undefined,
+        confirm_restart: confirmRestart || undefined,
+      });
       setPublishing(false);
       setConfirm(null);
       setNote("");
@@ -189,23 +205,38 @@ function Editor({ lab }: { lab: AdminLab }) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <Breadcrumb label={tc("breadcrumb")} items={[{ href: "/admin/labs", label: t("labs") }, { label: def.title || lab.slug }]} />
+        <Breadcrumb
+          label={tc("breadcrumb")}
+          items={[{ href: "/admin/labs", label: t("labs") }, { label: def.title || lab.slug }]}
+        />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-2">
             <h1 className="text-[length:var(--text-2xl)] break-words">{def.title || lab.slug}</h1>
             <p className="flex flex-wrap items-center gap-2 text-sm">
               <LessonStatusBadge status={status} />
               {lab.has_draft && lab.status === "published" ? <UnpublishedChip /> : null}
-              {dirty ? <span className="rounded-chip border border-rule bg-paper-3 px-2 py-0.5 text-xs font-medium text-ink">{t("unsaved")}</span> : null}
+              {dirty ? (
+                <span className="rounded-chip border border-rule bg-paper-3 px-2 py-0.5 text-xs font-medium text-ink">
+                  {t("unsaved")}
+                </span>
+              ) : null}
               <span>{lab.owned ? t("ownedDatabase") : t("ownedFile")}</span>
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={() => void saveDraft()} loading={save.isPending} disabled={!dirty || unreadable}>
+            <Button
+              variant="secondary"
+              onClick={() => void saveDraft()}
+              loading={save.isPending}
+              disabled={!dirty || unreadable}
+            >
               <Save aria-hidden />
               {t("save")}
             </Button>
-            <Button onClick={() => setPublishing(true)} disabled={unreadable || (!dirty && !lab.has_draft && lab.status === "published")}>
+            <Button
+              onClick={() => setPublishing(true)}
+              disabled={unreadable || (!dirty && !lab.has_draft && lab.status === "published")}
+            >
               <Send aria-hidden />
               {t("publish")}
             </Button>
@@ -228,7 +259,11 @@ function Editor({ lab }: { lab: AdminLab }) {
                 {t("discard")}
               </Button>
             ) : null}
-            <Button variant="ghost" loading={archive.isPending} onClick={() => archive.mutate({ id: lab.id, archived: !lab.is_archived })}>
+            <Button
+              variant="ghost"
+              loading={archive.isPending}
+              onClick={() => archive.mutate({ id: lab.id, archived: !lab.is_archived })}
+            >
               {lab.is_archived ? <ArchiveRestore aria-hidden /> : <Archive aria-hidden />}
               {lab.is_archived ? t("unarchive") : t("archive")}
             </Button>
@@ -248,7 +283,9 @@ function Editor({ lab }: { lab: AdminLab }) {
       ) : null}
       {message ? <Alert tone={message.tone}>{message.text}</Alert> : null}
       {unreadable ? <Alert tone="info">{t("unreadable")}</Alert> : null}
-      {countMessages(errors) > 0 ? <PathList messages={errors} label={t("problems", { count: countMessages(errors) })} /> : null}
+      {countMessages(errors) > 0 ? (
+        <PathList messages={errors} label={t("problems", { count: countMessages(errors) })} />
+      ) : null}
 
       <div role="tablist" aria-label={t("sections")} className="flex gap-1 overflow-x-auto border-b border-rule">
         {TABS.map((x) => {
@@ -264,7 +301,12 @@ function Editor({ lab }: { lab: AdminLab }) {
               onClick={() => setTab(x)}
               onKeyDown={(e) => {
                 const at = TABS.indexOf(x);
-                const to = e.key === "ArrowRight" ? TABS[(at + 1) % TABS.length] : e.key === "ArrowLeft" ? TABS[(at + TABS.length - 1) % TABS.length] : null;
+                const to =
+                  e.key === "ArrowRight"
+                    ? TABS[(at + 1) % TABS.length]
+                    : e.key === "ArrowLeft"
+                      ? TABS[(at + TABS.length - 1) % TABS.length]
+                      : null;
                 if (to) {
                   e.preventDefault();
                   setTab(to);
@@ -288,10 +330,23 @@ function Editor({ lab }: { lab: AdminLab }) {
         })}
       </div>
 
-      <div role="tabpanel" id={`lab-panel-${tab}`} aria-labelledby={`lab-tab-${tab}`} tabIndex={0} className="min-w-0 focus-visible:outline-none">
-        {tab === "details" ? <DetailsPanel def={def} slug={lab.slug} domains={lab.domains} errors={errors} onChange={change} /> : null}
+      <div
+        role="tabpanel"
+        id={`lab-panel-${tab}`}
+        aria-labelledby={`lab-tab-${tab}`}
+        tabIndex={0}
+        className="min-w-0 focus-visible:outline-none"
+      >
+        {tab === "details" ? (
+          <DetailsPanel def={def} slug={lab.slug} domains={lab.domains} errors={errors} onChange={change} />
+        ) : null}
         {tab === "scenario" ? (
-          <ScenarioPanel def={def} errors={errors} onChange={(scenario) => change({ scenario })} onValidity={reportValidity} />
+          <ScenarioPanel
+            def={def}
+            errors={errors}
+            onChange={(scenario) => change({ scenario })}
+            onValidity={reportValidity}
+          />
         ) : null}
         {tab === "checkpoints" ? (
           <CheckpointsPanel
@@ -332,14 +387,27 @@ function Editor({ lab }: { lab: AdminLab }) {
         ) : null}
       </div>
 
-      <Dialog open={publishing} onClose={() => setPublishing(false)} title={t("publishTitle")} description={t("publishBody")} closeLabel={tc("close")}>
+      <Dialog
+        open={publishing}
+        onClose={() => setPublishing(false)}
+        title={t("publishTitle")}
+        description={t("publishBody")}
+        closeLabel={tc("close")}
+      >
         <div className="flex flex-col gap-4">
           {lab.impact.breaking && lab.impact.in_progress + lab.impact.completed > 0 ? (
-            <Alert tone="info">{t("publishImpact", { progress: lab.impact.in_progress, completed: lab.impact.completed })}</Alert>
+            <Alert tone="info">
+              {t("publishImpact", { progress: lab.impact.in_progress, completed: lab.impact.completed })}
+            </Alert>
           ) : null}
           <label className="flex flex-col gap-1.5 text-sm font-medium text-ink">
             {t("note")}
-            <input value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} className={controlClasses(false)} />
+            <input
+              value={note}
+              maxLength={300}
+              onChange={(e) => setNote(e.target.value)}
+              className={controlClasses(false)}
+            />
           </label>
           <div className="flex flex-wrap justify-end gap-2">
             <Button variant="ghost" onClick={() => setPublishing(false)}>

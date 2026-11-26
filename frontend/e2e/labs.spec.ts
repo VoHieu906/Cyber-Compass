@@ -32,9 +32,9 @@ test.describe("labs", () => {
     await signIn(page, account("labs"));
     await page.goto("/labs");
     // The lab management spec may have published a lab of its own meanwhile, so at least the three seeded ones.
-    const items = page.getByRole("main").locator("ol > li");
-    await expect(items.first()).toBeVisible();
-    expect(await items.count()).toBeGreaterThanOrEqual(3);
+    // The three seeded labs are listed (another spec may have published one of its own meanwhile).
+    for (const slug of ["investigate-a-suspicious-login", "lock-down-a-web-server", "inspect-a-shop-session"])
+      await expect(page.getByRole("main").locator(`a[href="/labs/${slug}"]`).first()).toBeVisible();
 
     await page.goto(LAB);
     await page.getByRole("button", { name: "Start the lab" }).click();

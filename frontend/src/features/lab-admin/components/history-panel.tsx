@@ -47,7 +47,9 @@ export function HistoryPanel({
           <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
             <div className="flex min-w-0 flex-col gap-0.5">
               <p className="font-medium text-ink">{t("version", { version: r.version })}</p>
-              <p className="text-sm">{format.dateTime(new Date(r.created_at), { dateStyle: "medium", timeStyle: "short" })}</p>
+              <p className="text-sm">
+                {format.dateTime(new Date(r.created_at), { dateStyle: "medium", timeStyle: "short" })}
+              </p>
               {r.note ? <p className="text-sm">{r.note}</p> : null}
             </div>
             <Button variant="secondary" size="sm" onClick={() => setPick(r)}>
@@ -70,7 +72,15 @@ export function HistoryPanel({
           </Button>
           <Button
             loading={restore.isPending}
-            onClick={() => pick && restore.mutate(pick.version, { onSuccess: (lab) => { setPick(null); onRestored(lab); } })}
+            onClick={() =>
+              pick &&
+              restore.mutate(pick.version, {
+                onSuccess: (lab) => {
+                  setPick(null);
+                  onRestored(lab);
+                },
+              })
+            }
           >
             {t("restore")}
           </Button>

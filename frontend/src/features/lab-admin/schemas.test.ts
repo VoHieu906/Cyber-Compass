@@ -29,7 +29,9 @@ function apply(def: Record<string, unknown>, set: Record<string, unknown>) {
 }
 
 it("has a schema for every backend engine schema file", () => {
-  const files = readdirSync(DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(".json", ""));
+  const files = readdirSync(DIR)
+    .filter((f) => f.endsWith(".json"))
+    .map((f) => f.replace(".json", ""));
   expect(files.sort()).toEqual([...engines].sort());
 });
 

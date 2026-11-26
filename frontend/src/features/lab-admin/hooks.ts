@@ -62,7 +62,8 @@ export function useCreateLab() {
 export function useSaveLabDraft(id: number) {
   const store = useStoreLab();
   return useMutation({
-    mutationFn: ({ definition, lockVersion }: { definition: LabDefinition; lockVersion: number }) => saveLabDraft(id, definition, lockVersion),
+    mutationFn: ({ definition, lockVersion }: { definition: LabDefinition; lockVersion: number }) =>
+      saveLabDraft(id, definition, lockVersion),
     onSuccess: store,
   });
 }
@@ -155,7 +156,8 @@ export function usePreviewActions(id: number, lockVersion: number) {
         : current,
     );
   const act = useMutation({
-    mutationFn: ({ version, action }: { version: number; action: Parameters<typeof actInPreview>[2] }) => actInPreview(id, version, action),
+    mutationFn: ({ version, action }: { version: number; action: Parameters<typeof actInPreview>[2] }) =>
+      actInPreview(id, version, action),
     onSuccess: apply,
   });
   const reset = useMutation({

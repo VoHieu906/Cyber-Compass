@@ -33,7 +33,8 @@ export function mergeMessages(...sources: PathMessages[]): PathMessages {
   return out;
 }
 
-export const countMessages = (messages: PathMessages) => Object.values(messages).reduce((n, list) => n + list.length, 0);
+export const countMessages = (messages: PathMessages) =>
+  Object.values(messages).reduce((n, list) => n + list.length, 0);
 
 export function parseJson(text: string): { ok: true; value: unknown } | { ok: false; error: string } {
   try {
@@ -77,14 +78,20 @@ export function entryStatus(errors: PathMessages, kind: "solutions" | "decoys", 
   return errors[`solutions.${kind}.${index}`] || errors[`solutions.${kind}.${index}.actions`] ? "fail" : "pass";
 }
 
-/** What is sent on save: empty lines in the accepted answers are the box's blank line, not an answer. */
+/** What is sent on save: empty lines in the accepted answers and the extra directories are the box's blank line, not an entry. */
 export function cleanDefinition<T extends { scenario: Scenario }>(def: T): T {
+  const dirs = Array.isArray(def.scenario.dirs)
+    ? { dirs: (def.scenario.dirs as string[]).map((d) => d.trim()).filter((d) => d !== "") }
+    : {};
   return {
     ...def,
     scenario: {
       ...def.scenario,
+      ...dirs,
       checkpoints: def.scenario.checkpoints.map((c) =>
-        Array.isArray(c.answers) ? { ...c, answers: (c.answers as string[]).map((a) => a.trim()).filter((a) => a !== "") } : c,
+        Array.isArray(c.answers)
+          ? { ...c, answers: (c.answers as string[]).map((a) => a.trim()).filter((a) => a !== "") }
+          : c,
       ),
     },
   };

@@ -2,12 +2,14 @@
 
 import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { controlClasses } from "@/components/ui/input";
 import { checkScenario } from "../schemas";
 import { KIND_TEMPLATES, kindFields, messagesAt, mergeMessages, newCheckpoint, parseJson, toJsonText } from "../state";
 import type { CheckpointDef, LabDefinition, PathMessages } from "../types";
+import { CHECKPOINT_FORMS } from "./engine-forms";
+import { ViewSwitch, type View } from "./forms/view-switch";
 import { Field, PathList, useValidity, type ValidityReporter } from "./parts";
 
 /**
@@ -30,7 +32,10 @@ export function CheckpointsPanel({
 }) {
   const t = useTranslations("labAdmin.checkpoints");
   const list = def.scenario.checkpoints;
-  const messages = mergeMessages(messagesAt(errors, "scenario.checkpoints"), messagesAt(checkScenario(def.engine, def.scenario), "scenario.checkpoints"));
+  const messages = mergeMessages(
+    messagesAt(errors, "scenario.checkpoints"),
+    messagesAt(checkScenario(def.engine, def.scenario), "scenario.checkpoints"),
+  );
   const update = (i: number, next: CheckpointDef) => onChange(list.map((c, j) => (j === i ? next : c)));
   const move = (i: number, by: -1 | 1) => {
     const next = [...list];
@@ -47,13 +52,31 @@ export function CheckpointsPanel({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-[length:var(--text-base)] font-medium">{t("number", { number: i + 1 })}</h3>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" disabled={i === 0} onClick={() => move(i, -1)} aria-label={t("moveUp", { number: i + 1 })}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                  aria-label={t("moveUp", { number: i + 1 })}
+                >
                   <ArrowUp aria-hidden />
                 </Button>
-                <Button variant="ghost" size="sm" disabled={i === list.length - 1} onClick={() => move(i, 1)} aria-label={t("moveDown", { number: i + 1 })}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={i === list.length - 1}
+                  onClick={() => move(i, 1)}
+                  aria-label={t("moveDown", { number: i + 1 })}
+                >
                   <ArrowDown aria-hidden />
                 </Button>
-                <Button variant="ghost" size="sm" disabled={list.length === 1} onClick={() => onChange(list.filter((_, j) => j !== i))} aria-label={t("remove", { number: i + 1 })}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={list.length === 1}
+                  onClick={() => onChange(list.filter((_, j) => j !== i))}
+                  aria-label={t("remove", { number: i + 1 })}
+                >
                   <Trash2 aria-hidden />
                 </Button>
               </div>
@@ -61,7 +84,16 @@ export function CheckpointsPanel({
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t("id")} hint={t("idHint")} messages={messages[`scenario.checkpoints.${i}.id`]}>
                 {({ id, invalid, describedBy }) => (
-                  <input id={id} value={c.id} maxLength={60} spellCheck={false} onChange={(e) => update(i, { ...c, id: e.target.value })} aria-invalid={invalid || undefined} aria-describedby={describedBy} className={controlClasses(invalid)} />
+                  <input
+                    id={id}
+                    value={c.id}
+                    maxLength={60}
+                    spellCheck={false}
+                    onChange={(e) => update(i, { ...c, id: e.target.value })}
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={describedBy}
+                    className={controlClasses(invalid)}
+                  />
                 )}
               </Field>
               <Field label={t("kind")} hint={t("kindHint")} messages={messages[`scenario.checkpoints.${i}.kind`]}>
@@ -71,7 +103,13 @@ export function CheckpointsPanel({
                     value={c.kind}
                     onChange={(e) => {
                       const kind = e.target.value;
-                      update(i, { id: c.id, title: c.title, ...(c.hint ? { hint: c.hint } : {}), kind, ...(KIND_TEMPLATES[kind] ?? {}) });
+                      update(i, {
+                        id: c.id,
+                        title: c.title,
+                        ...(c.hint ? { hint: c.hint } : {}),
+                        kind,
+                        ...(KIND_TEMPLATES[kind] ?? {}),
+                      });
                     }}
                     className={controlClasses(invalid)}
                   >
@@ -86,7 +124,16 @@ export function CheckpointsPanel({
             </div>
             <Field label={t("title")} hint={t("titleHint")} messages={messages[`scenario.checkpoints.${i}.title`]}>
               {({ id, invalid, describedBy }) => (
-                <textarea id={id} value={c.title} rows={2} maxLength={300} onChange={(e) => update(i, { ...c, title: e.target.value })} aria-invalid={invalid || undefined} aria-describedby={describedBy} className={controlClasses(invalid, "h-auto py-2")} />
+                <textarea
+                  id={id}
+                  value={c.title}
+                  rows={2}
+                  maxLength={300}
+                  onChange={(e) => update(i, { ...c, title: e.target.value })}
+                  aria-invalid={invalid || undefined}
+                  aria-describedby={describedBy}
+                  className={controlClasses(invalid, "h-auto py-2")}
+                />
               )}
             </Field>
             <Field label={t("hint")} messages={messages[`scenario.checkpoints.${i}.hint`]}>
@@ -107,12 +154,31 @@ export function CheckpointsPanel({
             {c.kind === "answer" ? (
               <AnswersField checkpoint={c} number={i + 1} onChange={(next) => update(i, next)} />
             ) : (
-              <KindFields checkpoint={c} number={i + 1} onChange={(next) => update(i, next)} onValidity={onValidity} />
+              <KindFields
+                checkpoint={c}
+                number={i + 1}
+                path={`scenario.checkpoints.${i}`}
+                errors={messages}
+                onChange={(next) => update(i, next)}
+                onValidity={onValidity}
+              />
             )}
           </li>
         ))}
       </ol>
-      <Button variant="secondary" className="self-start" onClick={() => onChange([...list, newCheckpoint(kinds.includes("answer") ? "answer" : kinds[0], list.map((c) => c.id))])}>
+      <Button
+        variant="secondary"
+        className="self-start"
+        onClick={() =>
+          onChange([
+            ...list,
+            newCheckpoint(
+              kinds.includes("answer") ? "answer" : kinds[0],
+              list.map((c) => c.id),
+            ),
+          ])
+        }
+      >
         <Plus aria-hidden />
         {t("add")}
       </Button>
@@ -122,7 +188,15 @@ export function CheckpointsPanel({
 }
 
 /** Accepted answers, one per line. They are compared ignoring case and extra spaces. */
-function AnswersField({ checkpoint, number, onChange }: { checkpoint: CheckpointDef; number: number; onChange: (c: CheckpointDef) => void }) {
+function AnswersField({
+  checkpoint,
+  number,
+  onChange,
+}: {
+  checkpoint: CheckpointDef;
+  number: number;
+  onChange: (c: CheckpointDef) => void;
+}) {
   const t = useTranslations("labAdmin.checkpoints");
   const answers = (checkpoint.answers as string[] | undefined) ?? [];
   return (
@@ -143,8 +217,51 @@ function AnswersField({ checkpoint, number, onChange }: { checkpoint: Checkpoint
   );
 }
 
-/** The engine's own fields for a kind (a file, a route, test packets) as JSON. */
+/**
+ * The engine's own fields for a kind (a file, a route, test packets). A kind with a registered form
+ * shows it, switchable to the JSON of the same fields; every other kind is JSON.
+ */
 function KindFields({
+  checkpoint,
+  number,
+  path,
+  errors,
+  onChange,
+  onValidity,
+}: {
+  checkpoint: CheckpointDef;
+  number: number;
+  path: string;
+  errors: PathMessages;
+  onChange: (c: CheckpointDef) => void;
+  onValidity: ValidityReporter;
+}) {
+  const t = useTranslations("labAdmin.checkpoints");
+  const Form = CHECKPOINT_FORMS[checkpoint.kind];
+  const [view, setView] = useState<View>("form");
+  const [jsonBad, setJsonBad] = useState(false);
+  const report = useCallback<ValidityReporter>(
+    (key, invalid) => {
+      setJsonBad(invalid);
+      onValidity(key, invalid);
+    },
+    [onValidity],
+  );
+  if (!Form) return <KindJson checkpoint={checkpoint} number={number} onChange={onChange} onValidity={onValidity} />;
+  return (
+    <div className="flex flex-col gap-3">
+      <ViewSwitch view={view} onChange={setView} blocked={view === "json" && jsonBad} label={t("view", { number })} />
+      {view === "form" ? (
+        <Form checkpoint={checkpoint} path={path} errors={errors} onChange={onChange} />
+      ) : (
+        <KindJson checkpoint={checkpoint} number={number} onChange={onChange} onValidity={report} />
+      )}
+    </div>
+  );
+}
+
+/** The kind's fields as JSON. */
+function KindJson({
   checkpoint,
   number,
   onChange,

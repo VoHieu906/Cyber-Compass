@@ -64,16 +64,50 @@ const lab: AdminLab = {
       files: { "/home/learner/notes.txt": "hello\n" },
       checkpoints: [{ id: "name", kind: "answer", title: "What is the name?", answers: [SECRET] }],
     },
-    solutions: { solutions: [{ name: "Answer it", actions: [{ type: "answer", checkpoint: "name", value: SECRET }] }], decoys: [] },
+    solutions: {
+      solutions: [{ name: "Answer it", actions: [{ type: "answer", checkpoint: "name", value: SECRET }] }],
+      decoys: [],
+    },
   },
 };
 
 const index: LabsIndex = {
   data: [
-    { id: 1, slug: "from-file", title: "From a file", engine: "linux-shell", status: "published", is_archived: false, difficulty: 1, domain: { slug: "linux", name: "Linux" }, has_draft: false, owned: false, shadowed: true, started: 3, completed: 1 },
-    { id: 2, slug: "from-admin", title: "From the admin", engine: "firewall-rules", status: "published", is_archived: false, difficulty: 2, domain: { slug: "linux", name: "Linux" }, has_draft: true, owned: true, shadowed: false, started: 0, completed: 0 },
+    {
+      id: 1,
+      slug: "from-file",
+      title: "From a file",
+      engine: "linux-shell",
+      status: "published",
+      is_archived: false,
+      difficulty: 1,
+      domain: { slug: "linux", name: "Linux" },
+      has_draft: false,
+      owned: false,
+      shadowed: true,
+      started: 3,
+      completed: 1,
+    },
+    {
+      id: 2,
+      slug: "from-admin",
+      title: "From the admin",
+      engine: "firewall-rules",
+      status: "published",
+      is_archived: false,
+      difficulty: 2,
+      domain: { slug: "linux", name: "Linux" },
+      has_draft: true,
+      owned: true,
+      shadowed: false,
+      started: 0,
+      completed: 0,
+    },
   ],
-  meta: { domains: [{ slug: "linux", name: "Linux" }], engines: [{ key: "linux-shell", checkpoint_kinds: ["answer", "read"] }] },
+  meta: {
+    domains: [{ slug: "linux", name: "Linux" }],
+    engines: [{ key: "linux-shell", checkpoint_kinds: ["answer", "read"] }],
+  },
 };
 
 const previewLab: LabDetail = {
@@ -88,8 +122,16 @@ const previewLab: LabDetail = {
   progress: { started: true, completed: false, passed: 0, total: 1, holds: 0 },
   briefing: "A briefing.",
   scenario: { hostname: "lab-01", user: "learner", commands: ["cat"] },
-  checkpoints: [{ id: "name", title: "What is the name?", kind: "answer", hint: null, passed: false, starts_true: false }],
-  attempt: { id: 0, version: 1, state: { cwd: "/home/learner", prompt: "learner@lab-01:~$", history: [] }, completed_at: null, restarted: false },
+  checkpoints: [
+    { id: "name", title: "What is the name?", kind: "answer", hint: null, passed: false, starts_true: false },
+  ],
+  attempt: {
+    id: 0,
+    version: 1,
+    state: { cwd: "/home/learner", prompt: "learner@lab-01:~$", history: [] },
+    completed_at: null,
+    restarted: false,
+  },
 };
 
 beforeAll(() => {
@@ -115,7 +157,9 @@ describe("the labs list", () => {
 
     const file = (await screen.findByRole("link", { name: "From a file" })).closest("tr")!;
     expect(within(file).getByText("Content file")).toBeInTheDocument();
-    expect(within(file).getByText(/Delete the "from-file" entry from database\/seeders\/content\/labs\.php/)).toBeInTheDocument();
+    expect(
+      within(file).getByText(/Delete the "from-file" entry from database\/seeders\/content\/labs\.php/),
+    ).toBeInTheDocument();
     const admin = screen.getByRole("link", { name: "From the admin" }).closest("tr")!;
     expect(within(admin).getByText("Database")).toBeInTheDocument();
     expect(within(admin).getByText("Unpublished changes")).toBeInTheDocument();
@@ -134,9 +178,16 @@ describe("the labs list", () => {
 describe("publishing a change that restarts learners", () => {
   it("asks first with the count from the server, then sends confirm_restart", async () => {
     mocks.publishLab
-      .mockRejectedValueOnce(new ApiError(422, { message: "x", errors: { confirm_restart: ["This change restarts the lab."] } }))
+      .mockRejectedValueOnce(
+        new ApiError(422, { message: "x", errors: { confirm_restart: ["This change restarts the lab."] } }),
+      )
       .mockResolvedValueOnce({ ...lab, has_draft: false });
-    mocks.fetchAdminLab.mockResolvedValue({ ...lab, has_draft: true, lock_version: 1, impact: { breaking: true, in_progress: 3, completed: 2 } });
+    mocks.fetchAdminLab.mockResolvedValue({
+      ...lab,
+      has_draft: true,
+      lock_version: 1,
+      impact: { breaking: true, in_progress: 3, completed: 2 },
+    });
     renderWithProviders(<LabEditor id={7} />);
 
     await userEvent.click(await screen.findByRole("button", { name: "Publish" }));
@@ -144,11 +195,15 @@ describe("publishing a change that restarts learners", () => {
     await userEvent.click(within(first).getByRole("button", { name: "Publish" }));
 
     const confirm = await screen.findByRole("dialog", { name: "This change restarts the lab for learners" });
-    expect(within(confirm).getByText(/3 learners are part-way through this lab and 2 have finished it before/)).toBeInTheDocument();
+    expect(
+      within(confirm).getByText(/3 learners are part-way through this lab and 2 have finished it before/),
+    ).toBeInTheDocument();
     expect(mocks.publishLab).toHaveBeenCalledWith(7, expect.not.objectContaining({ confirm_restart: true }));
 
     await userEvent.click(within(confirm).getByRole("button", { name: "Publish and restart" }));
-    await waitFor(() => expect(mocks.publishLab).toHaveBeenLastCalledWith(7, expect.objectContaining({ confirm_restart: true })));
+    await waitFor(() =>
+      expect(mocks.publishLab).toHaveBeenLastCalledWith(7, expect.objectContaining({ confirm_restart: true })),
+    );
     expect(await screen.findByText("Published. Learners see this version now.")).toBeInTheDocument();
   });
 });
@@ -156,7 +211,9 @@ describe("publishing a change that restarts learners", () => {
 describe("the preview", () => {
   it("says in words that it ran out, and restarts on request", async () => {
     mocks.openPreview.mockResolvedValue(previewLab);
-    mocks.actInPreview.mockRejectedValue(new ApiError(409, { message: "This preview changed in another tab, or the draft changed. Reload to continue." }));
+    mocks.actInPreview.mockRejectedValue(
+      new ApiError(409, { message: "This preview changed in another tab, or the draft changed. Reload to continue." }),
+    );
     mocks.resetPreview.mockResolvedValue(previewLab);
     renderWithProviders(<LabEditor id={7} />);
 
@@ -168,7 +225,9 @@ describe("the preview", () => {
     expect(alert).toBeInTheDocument();
     expect(screen.queryByText(/Reload to continue/)).not.toBeInTheDocument();
 
-    const restart = within(alert.closest('[role="status"]') as HTMLElement).getByRole("button", { name: "Restart preview" });
+    const restart = within(alert.closest('[role="status"]') as HTMLElement).getByRole("button", {
+      name: "Restart preview",
+    });
     await userEvent.click(restart);
     await waitFor(() => expect(mocks.resetPreview).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText(/ran out of time/)).not.toBeInTheDocument());
@@ -177,8 +236,15 @@ describe("the preview", () => {
 
 describe("answers stay out of the console and the error text", () => {
   it("logs nothing when a save fails, and shows paths without values", async () => {
-    const spies = (["error", "warn", "log", "info", "debug"] as const).map((m) => vi.spyOn(console, m).mockImplementation(() => undefined));
-    mocks.saveLabDraft.mockRejectedValue(new ApiError(422, { message: "The title is required.", errors: { "scenario.checkpoints.0.answers": ["Add at least 1 items."] } }));
+    const spies = (["error", "warn", "log", "info", "debug"] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(() => undefined),
+    );
+    mocks.saveLabDraft.mockRejectedValue(
+      new ApiError(422, {
+        message: "The title is required.",
+        errors: { "scenario.checkpoints.0.answers": ["Add at least 1 items."] },
+      }),
+    );
     renderWithProviders(<LabEditor id={7} />);
 
     await userEvent.clear(await screen.findByLabelText("Title"));
@@ -208,7 +274,11 @@ describe("answers stay out of the console and the error text", () => {
 
 describe("running the solutions", () => {
   it("marks each entry from the server's report", async () => {
-    mocks.checkLab.mockResolvedValue({ valid: false, errors: { "solutions.solutions.0": ["This solution does not complete the lab."] }, warnings: {} });
+    mocks.checkLab.mockResolvedValue({
+      valid: false,
+      errors: { "solutions.solutions.0": ["This solution does not complete the lab."] },
+      warnings: {},
+    });
     renderWithProviders(<LabEditor id={7} />);
 
     await userEvent.click(await screen.findByRole("tab", { name: "Solutions" }));

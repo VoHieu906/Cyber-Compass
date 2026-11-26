@@ -8,7 +8,8 @@ export const fetchAdminLabs = (signal?: AbortSignal) => request<LabsIndex>("GET"
 
 export const fetchAdminLab = (id: number, signal?: AbortSignal) => api.get<AdminLab>(`${base}/${id}`, { signal });
 
-export const createLab = (body: { slug: string; engine: string; title: string; domain: string }) => api.post<AdminLab>(base, body);
+export const createLab = (body: { slug: string; engine: string; title: string; domain: string }) =>
+  api.post<AdminLab>(base, body);
 
 export const saveLabDraft = (id: number, definition: LabDefinition, lockVersion: number) =>
   api.put<AdminLab>(`${base}/${id}/draft`, { ...definition, lock_version: lockVersion });
@@ -16,7 +17,8 @@ export const saveLabDraft = (id: number, definition: LabDefinition, lockVersion:
 export const discardLabDraft = (id: number) => api.delete<AdminLab>(`${base}/${id}/draft`);
 
 /** Replays every solution and decoy; with a definition it checks that, otherwise the working copy. */
-export const checkLab = (id: number, definition?: LabDefinition) => api.post<CheckReport>(`${base}/${id}/check`, definition);
+export const checkLab = (id: number, definition?: LabDefinition) =>
+  api.post<CheckReport>(`${base}/${id}/check`, definition);
 
 export const publishLab = (id: number, body: { lock_version: number; note?: string; confirm_restart?: boolean }) =>
   api.post<AdminLab>(`${base}/${id}/publish`, body);
@@ -26,9 +28,11 @@ export const archiveLab = (id: number, archived: boolean) =>
 
 export const orderLabs = (ids: number[]) => api.put<{ ids: number[] }>(`${base}/order`, { ids });
 
-export const fetchLabRevisions = (id: number, signal?: AbortSignal) => api.get<LabRevision[]>(`${base}/${id}/revisions`, { signal });
+export const fetchLabRevisions = (id: number, signal?: AbortSignal) =>
+  api.get<LabRevision[]>(`${base}/${id}/revisions`, { signal });
 
-export const restoreLabRevision = (id: number, version: number) => api.post<AdminLab>(`${base}/${id}/revisions/${version}/restore`);
+export const restoreLabRevision = (id: number, version: number) =>
+  api.post<AdminLab>(`${base}/${id}/revisions/${version}/restore`);
 
 /** The preview plays the saved working copy; nothing is written and no event fires (D79). */
 export const openPreview = (id: number) => api.post<LabDetail>(`${base}/${id}/preview`);
