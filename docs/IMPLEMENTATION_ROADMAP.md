@@ -784,7 +784,7 @@ Owner request (2026-11-26): manage labs in the admin console, add lab types that
 - **Firewall form:** server, default policy and the rules as ordered rows (action, protocol, port, source; move, remove, at most 20). **Packets table** for a traffic checkpoint: protocol, port, source and expected verdict per packet, on the Checkpoints tab.
 - **Every form** edits only `scenario`, shows the zod mirror's problems and the server's beside the field they belong to (the JSON view lists them by path), and has a Form/JSON switch over the same data, so nothing is lost either way; a JSON box that does not parse yet holds the switch with a message.
 - **Tests:** Vitest `forms.test.tsx` (10): the shell form's edits and order, the last file, the problem beside a field, the switch both ways, the held switch, the firewall rows, default policy and server, a rule's own error, the packets table and its JSON, and an engine without a form. `e2e/admin-labs.spec.ts` now drives the shell form (a bad host name, adding a file, the JSON of the same scenario, back to the form, then the host name for the breaking change).
-- **Totals:** 1068 Pest (no backend change), 602 Vitest, 39 Playwright; Pint, tsc, ESLint and Prettier clean.
+- **Totals:** 1068 Pest (no backend change), 602 Vitest, 39 Playwright; Pint, tsc and ESLint clean.
 - **Browser check** (Edge, light and dark, 1280 and 390, demo admin, check only): the scenario form of all three seeded labs and the firewall lab's checkpoints with packets tables; no overflow, no console errors.
 - **Deploy notes (Part C):** frontend only. Owner action: nothing.
 
