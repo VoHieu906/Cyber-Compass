@@ -40,6 +40,8 @@ const ROUTE_LIMITERS = [
     'POST api/v1/admin/content/media' => 'throttle:uploads',
     'POST api/v1/lab-attempts/{id}/actions' => 'throttle:lab-actions',
     'POST api/v1/lab-attempts/{id}/reset' => 'throttle:lab-actions',
+    'POST api/v1/admin/content/labs/{lab}/preview/actions' => 'throttle:lab-actions',
+    'POST api/v1/admin/content/labs/{lab}/preview/reset' => 'throttle:lab-actions',
     'POST api/v1/lessons/{slug}/exercise/attempts' => 'throttle:exercise-attempts',
     'GET api/v1/search' => 'throttle:search',
 ];

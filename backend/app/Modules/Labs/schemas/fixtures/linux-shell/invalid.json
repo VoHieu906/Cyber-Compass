@@ -1,0 +1,10 @@
+[
+  { "name": "hostname with capitals", "set": { "scenario.hostname": "Lab-01" }, "error": "scenario.hostname" },
+  { "name": "relative home", "set": { "scenario.home": "home/learner" }, "error": "scenario.home" },
+  { "name": "unknown field", "set": { "scenario.extra": true }, "error": "scenario" },
+  { "name": "file text is not text", "set": { "scenario.files./etc/hostname": 5 }, "error": "scenario.files" },
+  { "name": "unknown checkpoint kind", "set": { "scenario.checkpoints.0.kind": "traffic" }, "error": "scenario.checkpoints" },
+  { "name": "answer checkpoint with no answers", "set": { "scenario.checkpoints.1.answers": [] }, "error": "scenario.checkpoints" },
+  { "name": "read checkpoint of a missing file", "set": { "scenario.checkpoints.0.path": "/etc/nothing" }, "error": "scenario.checkpoints.0.path" },
+  { "name": "cwd that is not a directory of the scenario", "set": { "scenario.cwd": "/nowhere" }, "error": "scenario.cwd" }
+]

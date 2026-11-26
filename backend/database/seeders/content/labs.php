@@ -50,6 +50,29 @@ MD,
         'engine' => 'linux-shell',
         'difficulty' => 1,
         'estimated_minutes' => 25,
+        'solutions' => [
+            'solutions' => [
+                ['name' => 'Read the log, then answer', 'actions' => [
+                    ['type' => 'command', 'command' => 'cat notes.txt'],
+                    ['type' => 'command', 'command' => 'cat /var/log/auth.log'],
+                    ['type' => 'command', 'command' => 'grep Accepted /var/log/auth.log'],
+                    ['type' => 'command', 'command' => 'grep 203.0.113.77 /var/log/auth.log | grep -c Failed'],
+                    ['type' => 'command', 'command' => 'cat /var/log/syslog'],
+                    ['type' => 'answer', 'checkpoint' => 'attacker-ip', 'value' => '203.0.113.77'],
+                    ['type' => 'answer', 'checkpoint' => 'account', 'value' => 'deploy'],
+                    ['type' => 'answer', 'checkpoint' => 'failure-count', 'value' => '24'],
+                    ['type' => 'answer', 'checkpoint' => 'backdoor', 'value' => '/tmp/.cache/update.sh'],
+                ]],
+            ],
+            'decoys' => [
+                ['name' => 'Answer without opening the log', 'actions' => [
+                    ['type' => 'answer', 'checkpoint' => 'attacker-ip', 'value' => '203.0.113.77'],
+                    ['type' => 'answer', 'checkpoint' => 'account', 'value' => 'deploy'],
+                    ['type' => 'answer', 'checkpoint' => 'failure-count', 'value' => '24'],
+                    ['type' => 'answer', 'checkpoint' => 'backdoor', 'value' => '/tmp/.cache/update.sh'],
+                ]],
+            ],
+        ],
         'scenario' => [
             'hostname' => 'web-01',
             'user' => 'analyst',
@@ -97,6 +120,30 @@ MD,
         'engine' => 'firewall-rules',
         'difficulty' => 2,
         'estimated_minutes' => 20,
+        'solutions' => [
+            'solutions' => [
+                ['name' => 'Default deny, then allow what is needed', 'actions' => [
+                    ['type' => 'set_default', 'policy' => 'deny'],
+                    ['type' => 'remove_rule', 'index' => 0],
+                    ['type' => 'add_rule', 'rule' => ['action' => 'allow', 'proto' => 'tcp', 'port' => 443, 'source' => 'any']],
+                    ['type' => 'add_rule', 'rule' => ['action' => 'allow', 'proto' => 'tcp', 'port' => 22, 'source' => '10.0.10.0/24']],
+                    ['type' => 'answer', 'checkpoint' => 'default-policy', 'value' => 'deny'],
+                ]],
+                ['name' => 'Keep default allow, finish with a deny-all rule', 'actions' => [
+                    ['type' => 'remove_rule', 'index' => 0],
+                    ['type' => 'add_rule', 'rule' => ['action' => 'allow', 'proto' => 'tcp', 'port' => 443, 'source' => 'any']],
+                    ['type' => 'add_rule', 'rule' => ['action' => 'allow', 'proto' => 'tcp', 'port' => 22, 'source' => '10.0.10.0/24']],
+                    ['type' => 'add_rule', 'rule' => ['action' => 'deny', 'proto' => 'any', 'source' => 'any']],
+                    ['type' => 'answer', 'checkpoint' => 'default-policy', 'value' => 'deny'],
+                ]],
+            ],
+            'decoys' => [
+                ['name' => 'Deny by default and forget HTTPS and SSH for admins', 'actions' => [
+                    ['type' => 'set_default', 'policy' => 'deny'],
+                    ['type' => 'answer', 'checkpoint' => 'default-policy', 'value' => 'deny'],
+                ]],
+            ],
+        ],
         'scenario' => [
             'server' => ['name' => 'web-01', 'ip' => '10.0.20.10'],
             'default' => 'allow',
@@ -140,6 +187,24 @@ MD,
         'engine' => 'http-inspector',
         'difficulty' => 2,
         'estimated_minutes' => 25,
+        'solutions' => [
+            'solutions' => [
+                ['name' => 'Read the exchanges, then try the next order number', 'actions' => [
+                    ['type' => 'send', 'request' => ['method' => 'GET', 'path' => '/api/orders/1001', 'cookies' => ['session' => 'u-4821-7f3a9c']]],
+                    ['type' => 'send', 'request' => ['method' => 'GET', 'path' => '/api/orders/1002', 'cookies' => ['session' => 'u-4821-7f3a9c']]],
+                    ['type' => 'answer', 'checkpoint' => 'missing-flag', 'value' => 'HttpOnly'],
+                    ['type' => 'answer', 'checkpoint' => 'server-version', 'value' => 'Apache/2.4.49'],
+                    ['type' => 'answer', 'checkpoint' => 'whose-order', 'value' => 'minh.tran@shop.example'],
+                ]],
+            ],
+            'decoys' => [
+                ['name' => 'Only look at your own order', 'actions' => [
+                    ['type' => 'send', 'request' => ['method' => 'GET', 'path' => '/api/orders/1001', 'cookies' => ['session' => 'u-4821-7f3a9c']]],
+                    ['type' => 'answer', 'checkpoint' => 'missing-flag', 'value' => 'HttpOnly'],
+                    ['type' => 'answer', 'checkpoint' => 'server-version', 'value' => 'Apache/2.4.49'],
+                ]],
+            ],
+        ],
         'scenario' => [
             'app' => ['name' => 'Mini Shop', 'origin' => 'https://shop.example'],
             'session' => ['name' => 'session', 'value' => 'u-4821-7f3a9c'],

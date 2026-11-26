@@ -1,0 +1,30 @@
+{
+  "scenario": {
+    "hostname": "lab-01",
+    "user": "learner",
+    "home": "/home/learner",
+    "cwd": "/home/learner",
+    "files": {
+      "/home/learner/notes.txt": "Find the host name of this machine.\n",
+      "/etc/hostname": "lab-01\n"
+    },
+    "checkpoints": [
+      { "id": "read-hostname", "kind": "read", "path": "/etc/hostname", "title": "Open /etc/hostname.", "hint": "Try cat /etc/hostname." },
+      { "id": "host-name", "kind": "answer", "answers": ["lab-01"], "title": "What is the host name?" }
+    ]
+  },
+  "solutions": {
+    "solutions": [
+      {
+        "name": "Read the file, then answer",
+        "actions": [
+          { "type": "command", "command": "cat /etc/hostname" },
+          { "type": "answer", "checkpoint": "host-name", "value": "lab-01" }
+        ]
+      }
+    ],
+    "decoys": [
+      { "name": "Answer without reading the file", "actions": [{ "type": "answer", "checkpoint": "host-name", "value": "lab-01" }] }
+    ]
+  }
+}

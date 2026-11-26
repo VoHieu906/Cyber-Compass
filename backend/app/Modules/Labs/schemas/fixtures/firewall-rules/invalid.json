@@ -1,0 +1,7 @@
+[
+  { "name": "default policy not allow or deny", "set": { "scenario.default": "drop" }, "error": "scenario.default" },
+  { "name": "port out of range", "set": { "scenario.rules.0.port": 70000 }, "error": "scenario.rules.0.port" },
+  { "name": "source that is not an address", "set": { "scenario.rules.0.source": "everyone" }, "error": "scenario.rules.0" },
+  { "name": "packet expectation not allow or deny", "set": { "scenario.checkpoints.0.packets.0.expect": "maybe" }, "error": "scenario.checkpoints" },
+  { "name": "server without an address", "set": { "scenario.server.ip": "web" }, "error": "scenario.server" }
+]

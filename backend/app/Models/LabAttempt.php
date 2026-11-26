@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /** A learner's working state in a lab (one per learner and lab; reset starts it over). */
-#[Fillable(['user_id', 'lab_id', 'state', 'state_version', 'action_count', 'checkpoints_passed', 'completed_at'])]
+#[Fillable(['user_id', 'lab_id', 'state', 'state_version', 'scenario_version', 'action_count', 'checkpoints_passed', 'completed_at', 'restarted_at'])]
 class LabAttempt extends Model
 {
-    protected $attributes = ['state_version' => 1, 'action_count' => 0, 'completed_at' => null];
+    protected $attributes = ['state_version' => 1, 'scenario_version' => 1, 'action_count' => 0, 'completed_at' => null, 'restarted_at' => null];
 
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
@@ -31,7 +31,9 @@ class LabAttempt extends Model
             'checkpoints_passed' => 'array',
             'state_version' => 'integer',
             'action_count' => 'integer',
+            'scenario_version' => 'integer',
             'completed_at' => 'datetime',
+            'restarted_at' => 'datetime',
         ];
     }
 }

@@ -32,29 +32,18 @@ final class FirewallRulesEngine implements LabEngine
     public function validateScenario(array $scenario): array
     {
         $errors = [];
-        if (! is_string($scenario['server']['name'] ?? null) || ! $this->ip($scenario['server']['ip'] ?? null)) {
-            $errors[] = 'server needs a name and an IPv4 address';
+        if (! $this->ip($scenario['server']['ip'])) {
+            $errors['server.ip'][] = 'server needs an IPv4 address';
         }
-        if (! in_array($scenario['default'] ?? null, ['allow', 'deny'], true)) {
-            $errors[] = 'default must be allow or deny';
-        }
-        foreach ($scenario['rules'] ?? [] as $i => $rule) {
-            if ($message = $this->ruleError($rule)) {
-                $errors[] = "rule {$i}: {$message}";
+        foreach ($scenario['rules'] as $i => $rule) {
+            if (! $this->cidr($rule['source'] ?? '') && ($rule['source'] ?? null) !== 'any') {
+                $errors["rules.{$i}.source"][] = 'source must be any, an IPv4 address or a CIDR range such as 10.0.0.0/24';
             }
         }
-        foreach ($scenario['checkpoints'] ?? [] as $i => $checkpoint) {
-            if (($checkpoint['kind'] ?? null) !== 'traffic') {
-                continue;
-            }
-            if (! is_array($checkpoint['packets'] ?? null) || $checkpoint['packets'] === []) {
-                $errors[] = "checkpoint {$i}: packets are required";
-
-                continue;
-            }
-            foreach ($checkpoint['packets'] as $j => $packet) {
-                if ($message = $this->packetError($packet) ?? (in_array($packet['expect'] ?? null, ['allow', 'deny'], true) ? null : 'expect must be allow or deny')) {
-                    $errors[] = "checkpoint {$i} packet {$j}: {$message}";
+        foreach ($scenario['checkpoints'] as $i => $checkpoint) {
+            foreach ($checkpoint['packets'] ?? [] as $j => $packet) {
+                if (! $this->ip($packet['source'])) {
+                    $errors["checkpoints.{$i}.packets.{$j}.source"][] = 'a packet source is an IPv4 address';
                 }
             }
         }

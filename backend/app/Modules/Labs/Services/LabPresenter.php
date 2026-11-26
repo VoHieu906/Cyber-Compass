@@ -57,6 +57,8 @@ final class LabPresenter
             'version' => $attempt->state_version,
             'state' => (object) $this->providers->for($lab)->view($lab, $attempt->state),
             'completed_at' => $attempt->completed_at?->toIso8601String(),
+            // The scenario changed since the learner began, so the lab started over (D75).
+            'restarted' => $attempt->restarted_at !== null,
         ];
     }
 }

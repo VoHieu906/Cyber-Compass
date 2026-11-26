@@ -18,6 +18,7 @@ flowchart LR
   F3 --> F4[F4 Networking Fundamentals, expanded]
   F4 --> F5[F5 Networking exercises, done]
   F5 --> F6[F6 Content packages, dev-complete]
+  F6 --> F7[F7 Lab management and new labs]
   P7 -.-> DEP[Deployment: run by the owner, outside the roadmap]
 ```
 
@@ -724,6 +725,42 @@ Lessons, blog posts and blocks written with outside chatbots come into the admin
 - **Tests:** 1033 Pest, 553 Vitest, 37 Playwright (the full suite on the final dev stack, 2026-11-25); Pint, tsc, ESLint and the Hallmark sloplint static pass clean.
 - **Deploy notes:** migrations `add_sources_to_sections` and `create_content_transfers_table`, both expand-only and run by `cybercompass:release`. Everything AWS needs is on [Deferred until first deployment](#deferred-until-first-deployment) (D72): the transfers bucket, IAM, CORS, lifecycle, CSP origin, task definition variables, the SeaweedFS and 413 checks, the parity run and the DEPLOYMENT_AWS step. The production code for it exists and is configuration-driven.
 
+### F7: Lab management, new lab types and AI lab packages (in progress, D73 to D81; Part A done 2026-11-26)
+
+Owner request (2026-11-26): manage labs in the admin console, add lab types that train careful observation and looking at a problem from several angles, and bring labs in with chatbots through the F6 pipeline. Management first, then the new engines, then packages.
+
+**Impact check (CLAUDE.md §5), answered by the owner on 2026-11-26:**
+- **Conflict, resolved (D73):** `LabLoader` archived any lab missing from `labs.php` and rewrote `position` and `is_archived` on every import. Ownership now follows D19; an exported lab lives in `labs/<slug>.php`, which wins over `labs.php` when both hold the slug (reported by the loader).
+- **Conflict, resolved (D74):** labs had no lifecycle. They get their own small draft, publish and revision tables; the block-document core is built on sections and is not reused.
+- **Conflict, resolved (D75):** editing a scenario under a learner's stored state. Attempts are pinned to a `scenario_version`; a breaking change restarts them on the next visit, completion stays, and the admin confirms after seeing the count.
+- **Duplicate, resolved (D76):** validation lived in the loader, the provider and each engine. One `LabDefinitionValidator` with a JSON Schema per engine replaces them.
+- **Secrets (D78, D79):** solutions are a hidden column of their own; audit entries hold no answers; the preview keeps state in the cache.
+- **Shift:** the order of labs is the admin's once a lab exists; the file order applies only when a lab is created (D73).
+- **AWS:** nothing new is needed for Part A (see its Deploy notes); packages reuse the F6 transfers.
+
+**Parts:**
+- **Part A:** backend management for the three existing engines: migration, `LabRunner`, `LabDefinitionValidator` with schemas and fixtures, solutions and their replay (seeded labs gain solutions), ownership and the loader and export change, draft, publish, revisions, archive and order, the admin API with policy and audit, the preview, the learner version pin, `content:check-labs`.
+- **Part B:** the admin UI shell at `/admin/labs`: list, create, details, checkpoints, solutions with "Run solutions", raw-JSON scenario, preview, history; the learner console registry and `LabView` transport; the zod mirror of the schemas; the learner restart notice (en and vi); Playwright `e2e/admin-labs.spec.ts`.
+- **Part C:** an admin scenario form per existing engine (shell files and checkpoints, firewall rules and test packets, HTTP routes and captures).
+- **Part D:** the `conclusion` checkpoint and the `evidence-review` engine, with a seeded lab and its solutions. §7.1 gains the rendering rules (D80).
+- **Part E:** the `incident-response` engine with dead-end detection, a seeded lab, a decoy.
+- **Part F:** lab packages (`lab` kind, `LabPackagePlanner`), chatbot error text, a generated lab section in the AI guide (kept current by a `--check` test), one tested example lab package, import and export in the admin (D81).
+
+**Part A (done, 2026-11-26):** backend management for the three existing engines. No UI yet.
+- **Data (D73 to D75):** migration `add_lab_management` (expand-only): `labs.status`, `updated_by`, `scenario_version`, `lock_version`, `solutions`; `lab_attempts.scenario_version`, `restarted_at`; `lab_drafts`, `lab_revisions`. Models `LabDraft`, `LabRevision`; `Lab::scopeOffered` also requires `status = published`.
+- **One validator (D76):** `LabDefinitionValidator` over `Labs/schemas/<engine>.json` (outside `Engines/`, where the safety scan forbids file access), `starter.json` and `invalid.json` fixtures per engine, and each engine's `validateScenario()` cut down to references and syntax, keyed by path. The loader, the provider and the engines no longer validate shapes themselves.
+- **One execution path (D79):** `LabRunner::step`, used by `LabSession` (row lock, persistence, `LabCompleted`), `LabSolutions` (replay) and `LabPreview` (cache, two hours, no database writes, no events).
+- **Solutions (D78):** hidden `labs.solutions`; replay requires every solution to complete the lab and every decoy not to; the three seeded labs gained solutions (two paths for the firewall lab) and decoys.
+- **Lifecycle (D74):** `LabWorkingCopy`, `LabLifecycle` (create from the starter, save draft under a lock version, discard, archive, order, restore into the draft), `PublishLab` (replay, revision, `scenario_version`, `confirm_restart` with the number of attempts, audit without answers); `LabPolicy`; admin routes under `admin/content/labs`; API in API_SPECIFICATION.
+- **Ownership (D73):** `LabFiles` (`labs.php` plus `labs/<slug>.php`; the per-lab file wins and the loader says so), `LabLoader` (skips owned labs, archives only unowned ones, `position` only on create, bumps `scenario_version` on a changed scenario), `LabExporter`, `content:import-labs [--force]`, `content:export <slug> --lab`, `content:check-labs [--warn-only]` (run by the release task).
+- **Learner side (D75):** `LabSession::sync` restarts a behind attempt and keeps completion; the attempt carries `restarted`. The notice text (en and vi) ships with the learner UI change in Part B.
+- **Tests (1065 Pest, up from 1033; Vitest unchanged at 553, no frontend change):** `LabManagementTest` (30): every starter and invalid fixture, every seeded lab replayed, unsolvable lab, winning decoy, refused action, warning; admin API (guest 401, learner 403, create, draft invisible to learners, lock 409, errors by path, check, publish blocked by a failing solution, revision, audit without answers, restore, discard, archive, order); no solutions or draft text to learners; restart rules (words only: nobody restarts; breaking: count, confirm, restart, completion kept, no `LabCompleted`); preview to completion with no attempt, activity or notification rows and no event, 409 when stale or the draft changed; ownership (skip, `--force`, deleted editor, admin order kept, file change restarts attempts, per-lab file wins, wrong file name refused, export round trip); `content:check-labs` passes and fails. Existing lab tests updated to the new messages and `LabFiles`. Pint clean. `RouteInventoryTest` lists the preview limiter.
+- **Dev stack:** migration applied, labs imported (`content:import-labs`), `content:check-labs`: 3 versions, 0 errors (one warning: the permissive firewall lab already passes two checkpoints, which is by design).
+- **Not in this part:** zod mirror and Vitest check of the schemas, the admin pages, the learner notice and Playwright (Part B); engine forms (Part C). No browser check: nothing visual changed.
+- **Deploy notes (Part A):** one expand-only migration, run by `cybercompass:release`; the old release keeps working during it (defaults keep existing labs live). The release imports labs (now with their solutions) and runs `content:check-labs --warn-only`. No variable, route prefix, origin, upload or job change; admin lab routes sit under the existing `/api/v1/admin/content/` WAF exclusion. Owner action when deploying: nothing.
+
+**Follow-ups (not scheduled):** `access-policy` (IAM and permissions, the firewall pattern in a new domain), `threat-model` (STRIDE on a given architecture), then `log-query`. Code review and packet capture come as `evidence-review` variants, not engines.
+
 ## Deferred until first deployment
 
 The app has not been deployed. Features finish on the development stack and list here what the first deployment must add (D72, an exception to the D54 gate). Do these before or during the first deployment with [DEPLOYMENT_AWS.md](DEPLOYMENT_AWS.md), and tick them off there.
@@ -741,6 +778,10 @@ The app has not been deployed. Features finish on the development stack and list
 - [ ] **DEPLOYMENT_AWS:** a step for the transfers bucket (template, CORS, lifecycle, IAM), the new variables, and the 960-second queue retry: a crashed notification job is retried after up to 16 minutes instead of 90 seconds, and a large package job delays notifications on the single worker while it runs.
 - [ ] **Worker command:** production keeps a long-running `queue:work --tries=3` in `ecs/task-worker.json` (deploys replace the tasks, so stale code is not a concern there); the development stack's one-job `queue:work --max-jobs=1 --max-time=60` stays a development setting.
 - [ ] **WAF:** nothing expected (package bytes go straight to S3; JSON calls sit under the `/api/v1/admin/content/` exclusion); confirm during the Count-mode trial (D50).
+
+**F7 lab management** (nothing AWS-specific yet; the parts below add to this list as they land):
+- [ ] **WAF Count-mode trial:** confirm that lab authoring bodies under `/api/v1/admin/content/labs` (shell commands, firewall rules, HTTP responses, and from Part D phishing-style text) are not blocked; they sit under the `/api/v1/admin/content/` exclusion.
+- [ ] **Release task:** `cybercompass:release` now replays every lab's solutions through `content:check-labs --warn-only`; watch its duration on the first deployment.
 
 ## Follow-ups (not scheduled in a phase)
 

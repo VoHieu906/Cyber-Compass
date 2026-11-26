@@ -39,12 +39,4 @@ interface LabProvider
      * @return array<string, mixed>
      */
     public function view(Lab $lab, array $state): array;
-
-    /**
-     * Problems with a scenario before it is stored.
-     *
-     * @param  array<string, mixed>  $scenario
-     * @return list<string>
-     */
-    public function validate(string $engine, array $scenario): array;
 }

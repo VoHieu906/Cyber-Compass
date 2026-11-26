@@ -40,27 +40,16 @@ final class HttpInspectorEngine implements LabEngine
     public function validateScenario(array $scenario): array
     {
         $errors = [];
-        if (! is_string($scenario['app']['name'] ?? null) || ! is_string($scenario['app']['origin'] ?? null)) {
-            $errors[] = 'app needs a name and an origin';
-        }
-        if (! is_string($scenario['session']['name'] ?? null) || ! is_string($scenario['session']['value'] ?? null)) {
-            $errors[] = 'session needs a cookie name and value';
-        }
-        foreach ($scenario['captured'] ?? [] as $i => $exchange) {
-            if (! $this->responseValid($exchange['response'] ?? null) || ! in_array($exchange['request']['method'] ?? null, self::METHODS, true)) {
-                $errors[] = "captured {$i}: needs a request (method, path, headers) and a response (status, headers, body)";
-            }
-        }
         $ids = [];
-        foreach ($scenario['routes'] ?? [] as $i => $route) {
-            if (! is_string($route['id'] ?? null) || ! in_array($route['method'] ?? null, self::METHODS, true) || ! str_starts_with((string) ($route['path'] ?? ''), '/') || ! $this->responseValid($route['response'] ?? null)) {
-                $errors[] = "route {$i}: needs id, method, path and a response";
+        foreach ($scenario['routes'] as $i => $route) {
+            if (in_array($route['id'], $ids, true)) {
+                $errors["routes.{$i}.id"][] = 'duplicate route id';
             }
-            $ids[] = $route['id'] ?? null;
+            $ids[] = $route['id'];
         }
-        foreach ($scenario['checkpoints'] ?? [] as $i => $checkpoint) {
-            if (($checkpoint['kind'] ?? null) === 'request' && ! in_array($checkpoint['route'] ?? null, $ids, true)) {
-                $errors[] = "checkpoint {$i}: route must be one of the route ids";
+        foreach ($scenario['checkpoints'] as $i => $checkpoint) {
+            if ($checkpoint['kind'] === 'request' && ! in_array($checkpoint['route'], $ids, true)) {
+                $errors["checkpoints.{$i}.route"][] = 'route must be one of the route ids';
             }
         }
 
@@ -165,10 +154,5 @@ final class HttpInspectorEngine implements LabEngine
             'cookies' => $pairs($request['cookies'] ?? null, 'cookies'),
             'body' => $body,
         ];
-    }
-
-    private function responseValid(mixed $response): bool
-    {
-        return is_array($response) && is_int($response['status'] ?? null) && is_array($response['headers'] ?? null) && is_string($response['body'] ?? null);
     }
 }

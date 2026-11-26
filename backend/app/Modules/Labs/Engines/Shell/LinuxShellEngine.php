@@ -44,37 +44,26 @@ final class LinuxShellEngine implements LabEngine
     public function validateScenario(array $scenario): array
     {
         $errors = [];
-        foreach (['hostname', 'user'] as $field) {
-            if (! is_string($scenario[$field] ?? null) || ! preg_match('/^[a-z][a-z0-9-]{0,31}$/', $scenario[$field])) {
-                $errors[] = "{$field} must be a short lowercase name";
-            }
-        }
-        $files = $scenario['files'] ?? null;
-        if (! is_array($files) || $files === [] || array_is_list($files)) {
-            return [...$errors, 'files must map absolute paths to text'];
-        }
+        $files = $scenario['files'];
         $size = 0;
         foreach ($files as $path => $text) {
-            if (! is_string($path) || $this->normalize($path, '/') !== $path || $path === '/') {
-                $errors[] = 'file path '.json_encode($path).' must be absolute and normalized';
+            if ($this->normalize((string) $path, '/') !== $path || $path === '/') {
+                $errors['files'][] = 'file path '.json_encode($path).' must be absolute and normalized';
             }
-            if (! is_string($text)) {
-                $errors[] = "file {$path} must be text";
-            }
-            $size += is_string($text) ? strlen($text) : 0;
+            $size += strlen($text);
         }
         if ($size > self::MAX_FILES_BYTES) {
-            $errors[] = 'files may hold at most '.(self::MAX_FILES_BYTES / 1024).' KB in total';
+            $errors['files'][] = 'files may hold at most '.(self::MAX_FILES_BYTES / 1024).' KB in total';
         }
         $dirs = $this->dirs($scenario);
         foreach (['home', 'cwd'] as $field) {
-            if (! is_string($scenario[$field] ?? null) || ! isset($dirs[$scenario[$field]])) {
-                $errors[] = "{$field} must be a directory of the scenario";
+            if (! isset($dirs[$scenario[$field]])) {
+                $errors[$field][] = "{$field} must be a directory of the scenario";
             }
         }
-        foreach ($scenario['checkpoints'] ?? [] as $i => $checkpoint) {
-            if (($checkpoint['kind'] ?? null) === 'read' && ! isset($files[$checkpoint['path'] ?? ''])) {
-                $errors[] = "checkpoint {$i}: path must be one of the files";
+        foreach ($scenario['checkpoints'] as $i => $checkpoint) {
+            if ($checkpoint['kind'] === 'read' && ! isset($files[$checkpoint['path']])) {
+                $errors["checkpoints.{$i}.path"][] = 'path must be one of the files';
             }
         }
 

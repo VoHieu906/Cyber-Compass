@@ -9,89 +9,88 @@ use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
- * Loads labs from seeders/content/labs.php, with the same rules as the other loaders: the whole
- * file is validated first (each scenario by its provider and engine), labs upsert by slug, and
- * a lab that leaves the file is archived, never deleted, because attempts refer to it.
+ * Loads labs from the content files (LabFiles), with the same rules as the other loaders: the
+ * whole file is validated first (every definition by LabDefinitionValidator, with all solutions
+ * replayed), labs upsert by slug, and a lab that leaves the files is archived, never deleted.
+ *
+ * Once an admin edits a lab (`updated_by` set, or a draft or a revision exists: a deleted admin account must not hand the lab back to the files) the database owns it and the
+ * loader skips it unless forced (D73, like D19). Admin-created labs are never in the files, so
+ * only file-owned labs are ever archived. The loader sets `position` only when it creates a lab:
+ * the order is the admin's after that. A changed engine or scenario restarts learners' attempts
+ * (D75), as a publish does.
  */
 final class LabLoader
 {
-    private const DEFAULTS = ['provider' => 'simulated'];
-
-    public function __construct(private readonly LabProviders $providers) {}
+    public function __construct(private readonly LabDefinitionValidator $validator) {}
 
     /**
      * @param  array<string, array<string, mixed>>  $labs  keyed by slug, in the order offered
-     * @return array{labs: int, archived: list<string>}
+     * @return array{labs: int, archived: list<string>, skipped: list<string>}
      */
-    public function load(array $labs): array
+    public function load(array $labs, bool $force = false): array
     {
-        $domains = Domain::query()->pluck('id', 'slug');
-        $lessons = Lesson::query()->whereIn('slug', array_filter(array_column($labs, 'lesson')))->pluck('id', 'slug');
-        $errors = $this->validate($labs, $domains->all(), $lessons->all());
+        $labs = array_map(fn ($lab) => LabDefinition::normalize($lab), $labs);
+        $errors = $this->validate($labs);
         if ($errors) {
             throw new InvalidArgumentException("The lab file is invalid:\n- ".implode("\n- ", $errors));
         }
 
-        return DB::transaction(function () use ($labs, $domains, $lessons) {
-            $position = 0;
-            foreach ($labs as $slug => $lab) {
-                Lab::query()->updateOrCreate(['slug' => $slug], [
-                    'title' => $lab['title'],
-                    'summary' => $lab['summary'],
-                    'briefing' => $lab['briefing'],
-                    'domain_id' => $domains[$lab['domain']],
-                    'lesson_id' => isset($lab['lesson']) ? $lessons[$lab['lesson']] : null,
-                    'engine' => $lab['engine'],
-                    'provider' => $lab['provider'] ?? self::DEFAULTS['provider'],
-                    'scenario' => $lab['scenario'],
-                    'difficulty' => $lab['difficulty'],
-                    'estimated_minutes' => $lab['estimated_minutes'],
-                    'position' => ++$position,
+        return DB::transaction(function () use ($labs, $force) {
+            $domains = Domain::query()->pluck('id', 'slug');
+            $lessons = Lesson::query()->whereIn('slug', array_filter(array_column($labs, 'lesson')))->pluck('id', 'slug');
+            $existing = Lab::query()->withExists(['draft', 'revisions'])->whereIn('slug', array_keys($labs))->get()->keyBy('slug');
+            $skipped = [];
+            $count = 0;
+            foreach ($labs as $slug => $def) {
+                $lab = $existing[$slug] ?? null;
+                if ($lab && ! $force && ($lab->updated_by !== null || $lab->draft_exists || $lab->revisions_exists)) {
+                    $skipped[] = $slug;
+
+                    continue;
+                }
+                $count++;
+                $values = [
+                    'title' => $def['title'],
+                    'summary' => $def['summary'],
+                    'briefing' => $def['briefing'],
+                    'domain_id' => $domains[$def['domain']],
+                    'lesson_id' => $def['lesson'] ? $lessons[$def['lesson']] : null,
+                    'engine' => $def['engine'],
+                    'scenario' => $def['scenario'],
+                    'solutions' => $def['solutions'],
+                    'difficulty' => $def['difficulty'],
+                    'estimated_minutes' => $def['estimated_minutes'],
+                    'status' => 'published',
                     'is_archived' => false,
-                ]);
+                    'updated_by' => null,
+                ];
+                if ($lab) {
+                    $breaking = LabDefinition::breakingKey(LabDefinition::fromLab($lab)) !== LabDefinition::breakingKey($def);
+                    $lab->update($values + ['scenario_version' => $lab->scenario_version + ($breaking ? 1 : 0)]);
+                } else {
+                    Lab::query()->create($values + ['slug' => $slug, 'position' => (int) Lab::query()->max('position') + 1]);
+                }
             }
-            $removed = Lab::query()->where('is_archived', false)->whereNotIn('slug', array_keys($labs));
+            $removed = Lab::query()->where('is_archived', false)->whereNull('updated_by')->whereDoesntHave('draft')->whereDoesntHave('revisions')->whereNotIn('slug', array_keys($labs));
             $archived = $removed->pluck('slug')->all();
             $removed->update(['is_archived' => true]);
 
-            return ['labs' => $position, 'archived' => $archived];
+            return ['labs' => $count, 'archived' => $archived, 'skipped' => $skipped];
         });
     }
 
     /** @return list<string> */
-    private function validate(array $labs, array $domains, array $lessons): array
+    private function validate(array $labs): array
     {
         $errors = [];
         foreach ($labs as $slug => $lab) {
-            $at = "lab {$slug}";
             if (! is_string($slug) || ! preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $slug)) {
-                $errors[] = "{$at}: the slug must be lowercase words joined by hyphens";
+                $errors[] = "lab {$slug}: the slug must be lowercase words joined by hyphens";
             }
-            foreach (['title', 'summary', 'briefing'] as $field) {
-                if (! is_string($lab[$field] ?? null) || trim($lab[$field]) === '') {
-                    $errors[] = "{$at}: {$field} is required";
+            foreach ($this->validator->check($lab, replay: true)['errors'] as $path => $messages) {
+                foreach ($messages as $message) {
+                    $errors[] = "lab {$slug}: {$path}: {$message}";
                 }
-            }
-            if (! isset($domains[$lab['domain'] ?? ''])) {
-                $errors[] = "{$at}: unknown domain";
-            }
-            if (isset($lab['lesson']) && ! isset($lessons[$lab['lesson']])) {
-                $errors[] = "{$at}: no lesson {$lab['lesson']}";
-            }
-            if (! in_array($lab['difficulty'] ?? null, [1, 2, 3], true)) {
-                $errors[] = "{$at}: difficulty must be 1, 2 or 3";
-            }
-            if (! is_int($lab['estimated_minutes'] ?? null) || $lab['estimated_minutes'] < 1) {
-                $errors[] = "{$at}: estimated_minutes is required";
-            }
-            $provider = $this->providers->byKey($lab['provider'] ?? self::DEFAULTS['provider']);
-            if (! $provider) {
-                $errors[] = "{$at}: unknown provider";
-
-                continue;
-            }
-            foreach ($provider->validate((string) ($lab['engine'] ?? ''), is_array($lab['scenario'] ?? null) ? $lab['scenario'] : []) as $message) {
-                $errors[] = "{$at}: {$message}";
             }
         }
 

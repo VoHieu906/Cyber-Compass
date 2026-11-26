@@ -1,0 +1,31 @@
+{
+  "scenario": {
+    "app": { "name": "Starter Shop", "origin": "https://shop.example" },
+    "session": { "name": "session", "value": "abc123" },
+    "captured": [
+      {
+        "request": { "method": "GET", "path": "/profile", "headers": { "Cookie": "session=abc123" } },
+        "response": { "status": 200, "headers": { "Content-Type": "text/plain" }, "body": "Signed in as you" }
+      }
+    ],
+    "routes": [
+      {
+        "id": "profile",
+        "method": "GET",
+        "path": "/profile",
+        "cookie": { "name": "session", "value": "abc123" },
+        "response": { "status": 200, "headers": { "Content-Type": "text/plain" }, "body": "Signed in as you" }
+      }
+    ],
+    "checkpoints": [{ "id": "open-profile", "kind": "request", "route": "profile", "title": "Replay the profile request with your own session." }]
+  },
+  "solutions": {
+    "solutions": [
+      {
+        "name": "Replay with the cookie",
+        "actions": [{ "type": "send", "request": { "method": "GET", "path": "/profile", "cookies": { "session": "abc123" } } }]
+      }
+    ],
+    "decoys": [{ "name": "Request without the cookie", "actions": [{ "type": "send", "request": { "method": "GET", "path": "/profile" } }] }]
+  }
+}

@@ -40,6 +40,11 @@ final class SimulatedLabProvider implements LabProvider
         return array_keys($this->engines);
     }
 
+    public function engineFor(string $key): ?LabEngine
+    {
+        return $this->engines[$key] ?? null;
+    }
+
     public function initialState(Lab $lab): array
     {
         return ['engine' => $this->engine($lab->engine)->initialState($lab->scenario), 'answers' => (object) []];
@@ -78,41 +83,6 @@ final class SimulatedLabProvider implements LabProvider
     public function view(Lab $lab, array $state): array
     {
         return $this->engine($lab->engine)->view($lab->scenario, $state['engine']);
-    }
-
-    public function validate(string $engine, array $scenario): array
-    {
-        if (! isset($this->engines[$engine])) {
-            return ['engine must be one of: '.implode(', ', array_keys($this->engines))];
-        }
-        $kinds = ['answer', ...$this->engines[$engine]->checkpointKinds()];
-        $errors = [];
-        $checkpoints = $scenario['checkpoints'] ?? null;
-        if (! is_array($checkpoints) || $checkpoints === [] || ! array_is_list($checkpoints)) {
-            $errors[] = 'checkpoints must be a non-empty list';
-        } else {
-            $ids = [];
-            foreach ($checkpoints as $i => $c) {
-                if (! is_string($c['id'] ?? null) || ! preg_match('/^[a-z0-9]+(-[a-z0-9]+)*$/', $c['id'])) {
-                    $errors[] = "checkpoint {$i}: id must be lowercase words joined by hyphens";
-                }
-                if (in_array($c['id'] ?? null, $ids, true)) {
-                    $errors[] = "checkpoint {$i}: duplicate id";
-                }
-                $ids[] = $c['id'] ?? null;
-                if (! is_string($c['title'] ?? null) || trim($c['title']) === '') {
-                    $errors[] = "checkpoint {$i}: title is required";
-                }
-                if (! in_array($c['kind'] ?? null, $kinds, true)) {
-                    $errors[] = "checkpoint {$i}: kind must be one of ".implode(', ', $kinds);
-                }
-                if (($c['kind'] ?? null) === 'answer' && (! is_array($c['answers'] ?? null) || $c['answers'] === [] || ! collect($c['answers'])->every(fn ($a) => is_string($a) && trim($a) !== ''))) {
-                    $errors[] = "checkpoint {$i}: answers must list the accepted texts";
-                }
-            }
-        }
-
-        return [...$errors, ...$this->engines[$engine]->validateScenario($scenario)];
     }
 
     /** @return array{state: array<string, mixed>, output: array<string, mixed>} */

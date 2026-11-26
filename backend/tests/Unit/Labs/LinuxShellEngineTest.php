@@ -154,7 +154,8 @@ it('clears the screen and rejects malformed actions', function () {
 });
 
 it('validates scenarios', function () {
+    $errors = $this->engine->validateScenario([...$this->scenario, 'home' => '/nope', 'files' => ['relative.txt' => 'x']]);
     expect($this->engine->validateScenario($this->scenario))->toBe([])
-        ->and(implode(' | ', $this->engine->validateScenario([...$this->scenario, 'home' => '/nope', 'files' => ['relative.txt' => 'x']])))
-        ->toContain('must be absolute')->toContain('home must be a directory');
+        ->and(implode(' | ', $errors['files']))->toContain('must be absolute')
+        ->and(implode(' | ', $errors['home']))->toContain('home must be a directory');
 });

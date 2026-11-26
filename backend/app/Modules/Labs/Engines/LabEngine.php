@@ -16,10 +16,12 @@ interface LabEngine
     public function key(): string;
 
     /**
-     * Problems with a scenario from the content file, as messages; empty when valid.
+     * What a JSON Schema cannot say about a scenario that already fits its schema (D76): references
+     * between its parts, address syntax, size budgets. Messages keyed by path inside the scenario
+     * (`checkpoints.0.path`); empty when valid.
      *
      * @param  array<string, mixed>  $scenario
-     * @return list<string>
+     * @return array<string, list<string>>
      */
     public function validateScenario(array $scenario): array;
 

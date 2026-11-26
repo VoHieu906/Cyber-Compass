@@ -239,6 +239,23 @@ Actions by engine (each engine validates its own; a refused shell command is out
 | `firewall-rules` | `add_rule {rule, position?}`, `remove_rule {index}`, `move_rule {from, to}`, `set_default {policy}`, `test {packet}` | `{verdict, rule}` for a test |
 | `http-inspector` | `{type: "send", request: {method, path, headers?, cookies?, body?}}` | `{response: {status, headers, body}}` |
 
+**Lab management (F7, D73 to D79).** All under `/admin/content/labs`, behind `auth:sanctum`, `EnsureAdmin` and `throttle:admin`, and they carry answers.
+
+| | Method | Path |
+|---|---|---|
+| 🛡 | GET | `/admin/content/labs`: every lab (archived too) with status, `has_draft`, `owned`, started and completed counts; `meta.engines` [{key, checkpoint_kinds}] |
+| 🛡 | POST | `/admin/content/labs` `{slug, engine, title, domain}`: a draft built from the engine's starter, 201 |
+| 🛡 | GET | `/admin/content/labs/{id}`: the working copy `definition` (title, summary, briefing, domain, lesson, engine, difficulty, estimated_minutes, scenario, solutions), `lock_version` (0 without a draft), `impact` {breaking, in_progress, completed}, `domains` |
+| 🛡 | PUT / DELETE | `/admin/content/labs/{id}/draft`: save (`lock_version` + the definition; 409 stale, 422 keyed by path such as `scenario.checkpoints.0.path`) / discard |
+| 🛡 | POST | `/admin/content/labs/{id}/check`: errors and warnings without saving (optional definition in the body), solutions and decoys replayed |
+| 🛡 | POST | `/admin/content/labs/{id}/publish` `{lock_version, note?, confirm_restart?}`: replays every solution; a breaking change with attempts needs `confirm_restart` (422 says how many) |
+| 🛡 | POST / DELETE | `/admin/content/labs/{id}/archive`: archive / unarchive |
+| 🛡 | PUT | `/admin/content/labs/order` `{ids}`: every lab id once |
+| 🛡 | GET, POST | `/admin/content/labs/{id}/revisions`, `/revisions/{version}/restore` (into the draft) |
+| 🛡 | POST | `/admin/content/labs/{id}/preview`, `/preview/actions` `{version, action}`, `/preview/reset`: play the working copy; the same shapes as the learner API, attempt `id` 0, no database writes or events |
+
+The learner's `GET /labs/{slug}` attempt gains `restarted` (true until the learner acts after a breaking change; completion is kept).
+
 The lesson (`GET /lessons/{slug}`) lists `labs` [{slug, title}] that practise it.
 
 ### Progress

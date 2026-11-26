@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Labs\Services\LabFiles;
 use App\Modules\Labs\Services\LabLoader;
 use Illuminate\Database\Seeder;
 
@@ -13,9 +14,16 @@ class LabSeeder extends Seeder
 {
     public function run(LabLoader $loader): void
     {
-        $report = $loader->load(require database_path('seeders/content/labs.php'));
+        $files = LabFiles::read();
+        $report = $loader->load($files['labs']);
 
         $this->command?->info(sprintf('Labs: %d.', $report['labs']));
+        if ($files['shadowed']) {
+            $this->command?->warn('labs/<slug>.php wins over labs.php for: '.implode(', ', $files['shadowed']).'. Remove those entries from labs.php.');
+        }
+        if ($report['skipped']) {
+            $this->command?->warn('Edited in the admin console, not overwritten: '.implode(', ', $report['skipped']));
+        }
         if ($report['archived']) {
             $this->command?->warn('Archived (no longer in the lab file): '.implode(', ', $report['archived']));
         }

@@ -27,10 +27,11 @@ final class LabController extends Controller
      * One lab: the briefing, what the learner may see of the scenario, the checkpoints with my
      * progress (never their answers), and my attempt's state, or null before I start.
      */
-    public function show(Request $request, string $slug, LabPresenter $presenter): JsonResponse
+    public function show(Request $request, string $slug, LabPresenter $presenter, LabSession $session): JsonResponse
     {
         $lab = $this->labs()->where('slug', $slug)->firstOrFail();
         $attempt = LabAttempt::query()->where('user_id', $request->user()->id)->where('lab_id', $lab->id)->first();
+        $attempt = $attempt ? $session->sync($attempt, $lab) : null;
 
         return response()->json(['data' => $presenter->detail($lab, $attempt)]);
     }
@@ -52,7 +53,7 @@ final class LabController extends Controller
      */
     public function act(LabActionRequest $request, int $id, LabSession $session, LabPresenter $presenter): JsonResponse
     {
-        $attempt = $this->attempt($request, $id);
+        $attempt = $this->attempt($request, $id, $session);
         // The envelope is validated; the action itself is checked by its engine, so it is passed whole.
         $result = $session->act($attempt, (int) $request->validated('version'), (array) $request->input('action'));
         $lab = $result['attempt']->lab;
@@ -69,16 +70,19 @@ final class LabController extends Controller
     public function reset(Request $request, int $id, LabSession $session, LabPresenter $presenter): JsonResponse
     {
         $version = $request->validate(['version' => ['required', 'integer']])['version'];
-        $attempt = $session->reset($this->attempt($request, $id), (int) $version);
+        $attempt = $session->reset($this->attempt($request, $id, $session), (int) $version);
 
         return response()->json(['data' => $presenter->detail($attempt->lab, $attempt)]);
     }
 
     /** Someone else's attempt, or one on an archived lab, is 404. */
-    private function attempt(Request $request, int $id): LabAttempt
+    private function attempt(Request $request, int $id, LabSession $session): LabAttempt
     {
         $attempt = LabAttempt::query()->whereKey($id)->where('user_id', $request->user()->id)->firstOrFail();
-        $attempt->setRelation('lab', $this->labs()->whereKey($attempt->lab_id)->firstOrFail());
+        $lab = $this->labs()->whereKey($attempt->lab_id)->firstOrFail();
+        // A lab changed since this attempt began restarts it; the client's version is then stale (409), so it reloads and sees the notice.
+        $attempt = $session->sync($attempt, $lab);
+        $attempt->setRelation('lab', $lab);
 
         return $attempt;
     }

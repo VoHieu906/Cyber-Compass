@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "firewall-rules",
+  "type": "object",
+  "required": ["server", "default", "rules", "checkpoints"],
+  "additionalProperties": false,
+  "properties": {
+    "server": {
+      "type": "object",
+      "required": ["name", "ip"],
+      "additionalProperties": false,
+      "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 60 }, "ip": { "type": "string", "maxLength": 15 } }
+    },
+    "default": { "enum": ["allow", "deny"] },
+    "rules": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "required": ["action", "proto", "source"],
+        "additionalProperties": false,
+        "properties": {
+          "action": { "enum": ["allow", "deny"] },
+          "proto": { "enum": ["tcp", "udp", "any"] },
+          "port": { "type": ["integer", "null"], "minimum": 1, "maximum": 65535 },
+          "source": { "type": "string", "maxLength": 18 }
+        }
+      }
+    },
+    "checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/answer" },
+          {
+            "type": "object",
+            "required": ["id", "title", "kind", "packets"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "title": { "$ref": "#/$defs/title" },
+              "hint": { "$ref": "#/$defs/hint" },
+              "kind": { "const": "traffic" },
+              "packets": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "object",
+                  "required": ["proto", "port", "source", "expect"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "proto": { "enum": ["tcp", "udp"] },
+                    "port": { "type": "integer", "minimum": 1, "maximum": 65535 },
+                    "source": { "type": "string", "maxLength": 15 },
+                    "expect": { "enum": ["allow", "deny"] }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "maxLength": 60 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "hint": { "type": "string", "maxLength": 500 },
+    "answer": {
+      "type": "object",
+      "required": ["id", "title", "kind", "answers"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/title" },
+        "hint": { "$ref": "#/$defs/hint" },
+        "kind": { "const": "answer" },
+        "answers": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "type": "string", "minLength": 1, "maxLength": 200 } }
+      }
+    }
+  }
+}

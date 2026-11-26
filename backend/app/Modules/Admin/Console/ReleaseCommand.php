@@ -38,6 +38,8 @@ final class ReleaseCommand extends Command
 
         // Course map health (F3, D60): reported, never a reason to stop a release.
         $this->call('content:check-graphs', ['--warn-only' => true]);
+        // Lab health (F7, D78): every lab's reference solutions replayed; reported, never a reason to stop.
+        $this->call('content:check-labs', ['--warn-only' => true]);
 
         $this->info('Release complete.');
 

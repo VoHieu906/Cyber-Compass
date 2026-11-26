@@ -6,6 +6,7 @@ use App\Models\Lesson;
 use App\Models\User;
 use App\Modules\Labs\Engines\LabLimits;
 use App\Modules\Labs\Events\LabCompleted;
+use App\Modules\Labs\Services\LabFiles;
 use App\Modules\Labs\Services\LabLoader;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
@@ -190,7 +191,7 @@ it('links a lesson only when learners can see it, and the lesson lists its labs'
 describe('loader', function () {
     function labFile(): array
     {
-        return require database_path('seeders/content/labs.php');
+        return LabFiles::read()['labs'];
     }
 
     it('archives a lab that leaves the file, and hides it', function () {
@@ -213,10 +214,10 @@ describe('loader', function () {
         try {
             app(LabLoader::class)->load($file);
         } catch (InvalidArgumentException $e) {
-            expect($e->getMessage())->toContain('engine must be one of: linux-shell, firewall-rules, http-inspector')
-                ->toContain('answers must list the accepted texts')
-                ->toContain('route must be one of the route ids')
-                ->toContain('no lesson no-such-lesson');
+            expect($e->getMessage())->toContain('engine: Choose one of: linux-shell, firewall-rules, http-inspector')
+                ->toContain('scenario.checkpoints.1')
+                ->toContain('scenario.checkpoints.2.route: route must be one of the route ids')
+                ->toContain('lesson: No lesson has this slug');
         }
     });
 });

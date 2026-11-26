@@ -1,0 +1,31 @@
+{
+  "scenario": {
+    "server": { "name": "web-01", "ip": "10.0.20.10" },
+    "default": "allow",
+    "rules": [{ "action": "allow", "proto": "tcp", "port": 80, "source": "any" }],
+    "checkpoints": [
+      {
+        "id": "ssh-closed",
+        "kind": "traffic",
+        "title": "SSH (TCP 22) from the internet is refused, the website still answers.",
+        "packets": [
+          { "proto": "tcp", "port": 22, "source": "203.0.113.9", "expect": "deny" },
+          { "proto": "tcp", "port": 80, "source": "203.0.113.9", "expect": "allow" }
+        ]
+      }
+    ]
+  },
+  "solutions": {
+    "solutions": [
+      {
+        "name": "Default deny, keep HTTP",
+        "actions": [{ "type": "set_default", "policy": "deny" }]
+      },
+      {
+        "name": "Explicit deny for SSH",
+        "actions": [{ "type": "add_rule", "rule": { "action": "deny", "proto": "tcp", "port": 22, "source": "any" }, "position": 0 }]
+      }
+    ],
+    "decoys": [{ "name": "Deny everything", "actions": [{ "type": "add_rule", "rule": { "action": "deny", "proto": "any", "source": "any" }, "position": 0 }] }]
+  }
+}

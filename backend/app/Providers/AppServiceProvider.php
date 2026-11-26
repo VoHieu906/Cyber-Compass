@@ -19,6 +19,7 @@ use App\Modules\Content\Policies\ContentTransferPolicy;
 use App\Modules\Content\Policies\LessonPolicy;
 use App\Modules\Labs\Engines\LabLimits;
 use App\Modules\Labs\Events\LabCompleted;
+use App\Modules\Labs\Policies\LabPolicy;
 use App\Modules\Learning\Events\ExerciseSubmitted;
 use App\Modules\Learning\Events\LessonCompleted;
 use App\Modules\Learning\Events\LessonStarted;
@@ -85,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserAdminPolicy::class);
         Gate::policy(Lesson::class, LessonPolicy::class);
         Gate::policy(Post::class, PostPolicy::class);
+        Gate::policy(Lab::class, LabPolicy::class);
         Gate::policy(ContentTransfer::class, ContentTransferPolicy::class);
 
         // Learners' own records: another learner's attempt answers 404.
