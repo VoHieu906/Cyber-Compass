@@ -12,4 +12,7 @@ export const startLab = (slug: string) => api.post<LabDetail>(`/api/v1/labs/${en
 export const actInLab = (attemptId: number, version: number, action: LabAction) =>
   api.post<LabActionResult>(`/api/v1/lab-attempts/${attemptId}/actions`, { version, action });
 
+/** The learner has read the notice that the lab started over (D75). */
+export const dismissRestartNotice = (attemptId: number) => api.post<{ restarted: false }>(`/api/v1/lab-attempts/${attemptId}/notice-seen`);
+
 export const resetLab = (attemptId: number, version: number) => api.post<LabDetail>(`/api/v1/lab-attempts/${attemptId}/reset`, { version });

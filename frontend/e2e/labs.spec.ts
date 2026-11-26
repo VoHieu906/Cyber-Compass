@@ -31,7 +31,10 @@ test.describe("labs", () => {
   test("the shell lab runs safely on the server and completes", async ({ page, context }) => {
     await signIn(page, account("labs"));
     await page.goto("/labs");
-    await expect(page.getByRole("main").locator("ol > li")).toHaveCount(3);
+    // The lab management spec may have published a lab of its own meanwhile, so at least the three seeded ones.
+    const items = page.getByRole("main").locator("ol > li");
+    await expect(items.first()).toBeVisible();
+    expect(await items.count()).toBeGreaterThanOrEqual(3);
 
     await page.goto(LAB);
     await page.getByRole("button", { name: "Start the lab" }).click();

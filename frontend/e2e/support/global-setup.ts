@@ -7,7 +7,7 @@ import { ACCOUNTS_FILE, SESSIONS_DIR, type Accounts } from "./accounts";
 export default async function globalSetup() {
   artisan("cybercompass:e2e-users", "--purge");
   artisan("cybercompass:e2e-course-map", "install");
-  const accounts = artisanJson<Accounts>("cybercompass:e2e-users", "--learners=12", "--admins=3");
+  const accounts = artisanJson<Accounts>("cybercompass:e2e-users", "--learners=12", "--admins=4");
   fs.mkdirSync(path.dirname(ACCOUNTS_FILE), { recursive: true });
   fs.writeFileSync(ACCOUNTS_FILE, JSON.stringify(accounts));
   fs.rmSync(SESSIONS_DIR, { recursive: true, force: true });

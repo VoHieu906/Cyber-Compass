@@ -69,6 +69,14 @@ final class LabSession
         });
     }
 
+    /** The learner has now been told the lab started over (D75): the notice shows once. */
+    public function acknowledge(LabAttempt $attempt): void
+    {
+        if ($attempt->restarted_at !== null) {
+            $attempt->forceFill(['restarted_at' => null])->saveQuietly();
+        }
+    }
+
     /**
      * @param  array<string, mixed>  $action
      * @return array{attempt: LabAttempt, output: array<string, mixed>, newly_passed: list<string>}

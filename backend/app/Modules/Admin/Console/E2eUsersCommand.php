@@ -6,6 +6,7 @@ use App\Enums\Locale;
 use App\Enums\UserRole;
 use App\Models\ContentTransfer;
 use App\Models\CourseGraph;
+use App\Models\Lab;
 use App\Models\Lesson;
 use App\Models\Post;
 use App\Models\User;
@@ -51,6 +52,8 @@ final class E2eUsersCommand extends Command
             // Course maps the suite saved (F4 Part C) and the lessons it created, which it names e2e-*.
             CourseGraph::query()->whereIn('updated_by', self::throwaway()->select('id'))->delete();
             Lesson::query()->where('slug', 'like', self::PREFIX.'%')->delete();
+            // Labs the suite made (F7); their drafts, revisions and attempts go with them.
+            Lab::query()->where('slug', 'like', self::PREFIX.'%')->delete();
             // Content package uploads and exports (F6) go with their files; the rows would cascade, the files would not.
             ContentTransfer::query()->whereIn('user_id', self::throwaway()->select('id'))->each(function (ContentTransfer $transfer) {
                 app(TransferStorage::class)->delete($transfer);

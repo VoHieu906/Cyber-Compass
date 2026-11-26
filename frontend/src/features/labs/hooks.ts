@@ -48,7 +48,7 @@ export function useLabAction(slug: string) {
               checkpoints: result.checkpoints,
               progress: {
                 ...current.progress,
-                passed: result.checkpoints.filter((c) => c.passed).length,
+                passed: result.checkpoints.filter((c) => c.passed && !c.starts_true).length,
                 completed: current.progress.completed || result.attempt.completed_at !== null,
               },
             }

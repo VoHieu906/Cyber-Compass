@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeft, Check, Circle, Play, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, Check, Circle, Play, RotateCcw, ShieldCheck, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Breadcrumb } from "@/components/shared/breadcrumb";
 import { Alert } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -16,9 +16,11 @@ import { Prose } from "@/features/learning/components/prose";
 import { ApiError } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 import { goTo, useCompassPageItems } from "@/features/compass/page-items";
+import { dismissRestartNotice } from "../api";
 import { useLab, useLabAction, useResetLab, useStartLab } from "../hooks";
 import type {
   Checkpoint,
+  Engine,
   FirewallScenario,
   FirewallState,
   HttpScenario,
@@ -93,7 +95,7 @@ function Workspace({ lab }: { lab: LabDetail }) {
       </div>
 
       {lab.attempt ? (
-        <Running lab={lab} />
+        <LearnerPlayground lab={lab} />
       ) : (
         <div className="flex flex-col items-start gap-3">
           <Button onClick={() => start.mutate()} loading={start.isPending}>
@@ -107,11 +109,63 @@ function Workspace({ lab }: { lab: LabDetail }) {
   );
 }
 
-function Running({ lab }: { lab: LabDetail }) {
-  const t = useTranslations("labs");
+/**
+ * How a playground talks to the server (D77): a learner's attempt, or an admin's preview of a
+ * working copy. The version is the one this page last saw; a 409 means another tab, or a changed
+ * draft, moved on.
+ */
+export type LabTransport = {
+  act: (version: number, action: LabAction) => Promise<LabActionResult>;
+  acting: boolean;
+  reset: (version: number) => Promise<unknown>;
+  resetting: boolean;
+  /** Said when the page was reloaded because the server had moved on (409). */
+  staleMessage?: string;
+  /** Tells the server the restart notice was read (a learner's attempt only). */
+  dismissRestart?: () => void;
+};
+
+function LearnerPlayground({ lab }: { lab: LabDetail }) {
   const act = useLabAction(lab.slug);
+  const reset = useResetLab(lab.slug);
+  const attemptId = lab.attempt!.id;
+  const transport: LabTransport = {
+    act: (version, action) => act.mutateAsync({ attemptId, version, action }),
+    acting: act.isPending,
+    reset: (version) => reset.mutateAsync({ attemptId, version }),
+    resetting: reset.isPending,
+    dismissRestart: () => void dismissRestartNotice(attemptId).catch(() => undefined),
+  };
+  return <LabPlayground lab={lab} transport={transport} />;
+}
+
+type ConsoleProps = { lab: LabDetail; state: unknown; busy: boolean; send: (action: LabAction) => Promise<LabActionResult | null> };
+
+/** One console per engine key (D77): a new engine adds an entry here and nothing else in this file. */
+const CONSOLES: Record<Engine, (props: ConsoleProps) => ReactNode> = {
+  "linux-shell": ({ lab, state, busy, send }) => (
+    <Terminal
+      scenario={lab.scenario as ShellScenario}
+      state={state as ShellState}
+      busy={busy}
+      onCommand={(command) => send({ type: "command", command })}
+    />
+  ),
+  "firewall-rules": ({ lab, state, busy, send }) => (
+    <FirewallConsole scenario={lab.scenario as FirewallScenario} state={state as FirewallState} busy={busy} onAction={send} />
+  ),
+  "http-inspector": ({ lab, state, busy, send }) => (
+    <HttpConsole scenario={lab.scenario as HttpScenario} state={state as HttpState} busy={busy} onAction={send} />
+  ),
+};
+
+/** The tasks and the console of a lab, for a learner and for an admin's preview. */
+export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: LabTransport }) {
+  const t = useTranslations("labs");
   const errorMessage = useErrorMessage();
   const [notice, setNotice] = useState<string | null>(null);
+  // Latched: the server tells a learner once that the lab started over, and a refetch must not take the notice away.
+  const [restarted, setRestarted] = useState(lab.attempt!.restarted);
   const attempt = lab.attempt!;
   const tc = useTranslations("compass");
   const open = lab.checkpoints.some((c) => !c.passed);
@@ -144,56 +198,54 @@ function Running({ lab }: { lab: LabDetail }) {
   async function send(action: LabAction): Promise<LabActionResult | null> {
     setNotice(null);
     try {
-      return await act.mutateAsync({ attemptId: attempt.id, version: attempt.version, action });
+      const result = await transport.act(attempt.version, action);
+      setRestarted(false);
+      return result;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) setNotice(t("staleReloaded"));
+      if (error instanceof ApiError && error.status === 409) setNotice(transport.staleMessage ?? t("staleReloaded"));
       else if (error instanceof ApiError && error.status === 429) setNotice(t("tooFast"));
       else setNotice(errorMessage(error) || t("actionError"));
       return null;
     }
   }
 
-  const engineConsole =
-    lab.engine === "linux-shell" ? (
-      <Terminal
-        scenario={lab.scenario as ShellScenario}
-        state={attempt.state as ShellState}
-        busy={act.isPending}
-        onCommand={(command) => send({ type: "command", command })}
-      />
-    ) : lab.engine === "firewall-rules" ? (
-      <FirewallConsole
-        scenario={lab.scenario as FirewallScenario}
-        state={attempt.state as FirewallState}
-        busy={act.isPending}
-        onAction={send}
-      />
-    ) : (
-      <HttpConsole
-        scenario={lab.scenario as HttpScenario}
-        state={attempt.state as HttpState}
-        busy={act.isPending}
-        onAction={send}
-      />
-    );
-
   return (
     // On lg+ the workspace fills the screen below the header, so tasks and console are readable together.
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:h-[calc(100dvh-var(--header-height)-3rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
-      <Checkpoints
-        lab={lab}
-        busy={act.isPending}
-        onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })}
-      />
-      <div
-        id="lab-console"
-        className={cn(
-          "flex min-w-0 flex-col gap-3 lg:min-h-0",
-          lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1",
-        )}
-      >
-        {notice ? <Alert tone="error">{notice}</Alert> : null}
-        {engineConsole}
+    <div className="flex flex-col gap-4">
+      {restarted ? (
+        <Alert tone="info">
+          <span className="flex flex-wrap items-center justify-between gap-3">
+            <span>{t("restarted")}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setRestarted(false);
+                transport.dismissRestart?.();
+              }}
+            >
+              {t("dismiss")}
+            </Button>
+          </span>
+        </Alert>
+      ) : null}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:h-[calc(100dvh-var(--header-height)-3rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-[var(--gap-columns)]">
+        <Checkpoints
+          lab={lab}
+          busy={transport.acting}
+          onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })}
+          transport={transport}
+        />
+        <div
+          id="lab-console"
+          className={cn(
+            "flex min-w-0 flex-col gap-3 lg:min-h-0",
+            lab.engine !== "linux-shell" && "lg:-m-1 lg:overflow-y-auto lg:p-1",
+          )}
+        >
+          {notice ? <Alert tone="error">{notice}</Alert> : null}
+          {CONSOLES[lab.engine]({ lab, state: attempt.state, busy: transport.acting, send })}
+        </div>
       </div>
     </div>
   );
@@ -203,14 +255,20 @@ function Checkpoints({
   lab,
   busy,
   onAnswer,
+  transport,
 }: {
   lab: LabDetail;
   busy: boolean;
   onAnswer: (id: string, value: string) => Promise<LabActionResult | null>;
+  transport: LabTransport;
 }) {
   const t = useTranslations("labs");
-  const passed = lab.checkpoints.filter((c) => c.passed).length;
-  const total = lab.checkpoints.length;
+  // Conditions already true at the start are kept, not earned: they are not counted as progress.
+  const tasks = lab.checkpoints.filter((c) => !c.starts_true);
+  const holds = lab.checkpoints.filter((c) => c.starts_true);
+  const passed = tasks.filter((c) => c.passed).length;
+  const total = tasks.length;
+  const holdsOk = holds.filter((c) => c.passed).length;
   const done = lab.attempt?.completed_at != null;
   const list = useRef<HTMLDivElement>(null);
   const seen = useRef(passed);
@@ -240,6 +298,11 @@ function Checkpoints({
           {t("checkpoints", { passed, total })}
         </p>
         <ProgressTrack value={Math.round((passed / Math.max(1, total)) * 100)} />
+        {holds.length ? (
+          <p className="measured text-sm" aria-live="polite">
+            {t("holdsSummary", { ok: holdsOk, total: holds.length })}
+          </p>
+        ) : null}
       </div>
       {done ? (
         <p
@@ -247,7 +310,7 @@ function Checkpoints({
           className="flex items-center gap-2 rounded-card border border-accent bg-accent-soft px-4 py-3 text-sm font-medium text-ink"
         >
           <Trophy aria-hidden className="size-4 text-accent" />
-          {passed === total ? t("complete") : t("completedBefore")}
+          {passed === total && holdsOk === holds.length ? t("complete") : t("completedBefore")}
         </p>
       ) : null}
       {/* Only the list scrolls on lg+; the padding keeps the edge fades and focus rings off the first and last items. */}
@@ -260,7 +323,7 @@ function Checkpoints({
             <CheckpointItem key={c.id} checkpoint={c} number={i + 1} busy={busy} onAnswer={onAnswer} />
           ))}
         </ol>
-        <ResetButton lab={lab} />
+        <ResetButton lab={lab} transport={transport} />
       </div>
     </aside>
   );
@@ -281,22 +344,35 @@ function CheckpointItem({
   const [value, setValue] = useState("");
   const [wrong, setWrong] = useState(false);
   const inputId = `answer-${checkpoint.id}`;
+  const holding = checkpoint.starts_true;
 
   return (
-    <li data-passed={checkpoint.passed} className="flex flex-col gap-2 rounded-card border border-rule bg-paper-2 p-4">
+    <li
+      data-passed={checkpoint.passed}
+      data-holding={holding || undefined}
+      className="flex flex-col gap-2 rounded-card border border-rule bg-paper-2 p-4"
+    >
       <p className="flex gap-2.5 text-sm text-ink">
-        {checkpoint.passed ? (
+        {holding ? (
+          <ShieldCheck aria-hidden className={cn("mt-0.5 size-4 shrink-0", checkpoint.passed ? "text-accent" : "text-bad")} />
+        ) : checkpoint.passed ? (
           <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" />
         ) : (
           <Circle aria-hidden className="mt-0.5 size-4 shrink-0 text-muted" />
         )}
         <span>
           <span className="sr-only">
-            {t("taskNumber", { number })}, {checkpoint.passed ? t("done") : t("notDone")}:{" "}
+            {holding ? t("conditionNumber", { number }) : t("taskNumber", { number })},{" "}
+            {holding ? (checkpoint.passed ? t("holdingOk") : t("holdingBroken")) : checkpoint.passed ? t("done") : t("notDone")}:{" "}
           </span>
           {checkpoint.title}
         </span>
       </p>
+      {holding ? (
+        <p className={cn("pl-6 text-xs font-medium", checkpoint.passed ? "text-muted" : "text-bad")}>
+          {checkpoint.passed ? t("holdingOk") : t("holdingBroken")}
+        </p>
+      ) : null}
       {checkpoint.kind === "answer" && !checkpoint.passed ? (
         <form
           className="flex flex-col gap-2 pl-6"
@@ -348,9 +424,8 @@ function CheckpointItem({
   );
 }
 
-function ResetButton({ lab }: { lab: LabDetail }) {
+function ResetButton({ lab, transport }: { lab: LabDetail; transport: LabTransport }) {
   const t = useTranslations();
-  const reset = useResetLab(lab.slug);
   const [open, setOpen] = useState(false);
   const attempt = lab.attempt!;
 
@@ -373,10 +448,10 @@ function ResetButton({ lab }: { lab: LabDetail }) {
           </Button>
           <Button
             variant="danger"
-            loading={reset.isPending}
-            onClick={() =>
-              reset.mutate({ attemptId: attempt.id, version: attempt.version }, { onSettled: () => setOpen(false) })
-            }
+            loading={transport.resetting}
+            onClick={() => {
+              transport.reset(attempt.version).catch(() => undefined).finally(() => setOpen(false));
+            }}
           >
             {t("labs.reset")}
           </Button>

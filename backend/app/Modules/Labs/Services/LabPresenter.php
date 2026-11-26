@@ -8,12 +8,24 @@ use App\Models\LabAttempt;
 /** The public shapes of labs and attempts. Never the scenario's answers or hidden test data. */
 final class LabPresenter
 {
-    public function __construct(private readonly LabProviders $providers) {}
+    public function __construct(private readonly LabProviders $providers, private readonly LabRunner $runner) {}
+
+    /**
+     * Checkpoints already true before the learner does anything (a firewall lab that starts permissive).
+     * They are conditions to keep, not progress earned, so they are flagged and left out of the counts.
+     *
+     * @return list<string>
+     */
+    private function holding(Lab $lab): array
+    {
+        return $this->runner->progress($lab, $this->runner->start($lab))['passed'];
+    }
 
     /** @return array<string, mixed> */
     public function summary(Lab $lab, ?LabAttempt $attempt): array
     {
-        $total = count($lab->scenario['checkpoints']);
+        $holding = $this->holding($lab);
+        $total = count($lab->scenario['checkpoints']) - count($holding);
 
         return [
             'slug' => $lab->slug,
@@ -28,8 +40,9 @@ final class LabPresenter
             'progress' => [
                 'started' => $attempt !== null,
                 'completed' => $attempt?->completed_at !== null,
-                'passed' => $attempt ? count($attempt->checkpoints_passed) : 0,
+                'passed' => $attempt ? count(array_diff($attempt->checkpoints_passed, $holding)) : 0,
                 'total' => $total,
+                'holds' => count($holding),
             ],
         ];
     }
@@ -38,13 +51,15 @@ final class LabPresenter
     public function detail(Lab $lab, ?LabAttempt $attempt): array
     {
         $provider = $this->providers->for($lab);
+        $holding = $this->holding($lab);
+        $flag = fn (array $c) => $c + ['starts_true' => in_array($c['id'], $holding, true)];
 
         return $this->summary($lab, $attempt) + [
             'briefing' => $lab->briefing,
             'scenario' => (object) $provider->publicScenario($lab),
             'checkpoints' => $attempt
-                ? $provider->checkpoints($lab, $attempt->state)
-                : array_map(fn ($c) => ['id' => $c['id'], 'title' => $c['title'], 'kind' => $c['kind'], 'hint' => $c['hint'] ?? null, 'passed' => false], $lab->scenario['checkpoints']),
+                ? array_map($flag, $provider->checkpoints($lab, $attempt->state))
+                : array_map(fn ($c) => $flag(['id' => $c['id'], 'title' => $c['title'], 'kind' => $c['kind'], 'hint' => $c['hint'] ?? null, 'passed' => false]), $lab->scenario['checkpoints']),
             'attempt' => $attempt ? $this->attempt($lab, $attempt) : null,
         ];
     }

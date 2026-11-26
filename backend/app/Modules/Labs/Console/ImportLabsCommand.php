@@ -20,7 +20,7 @@ final class ImportLabsCommand extends Command
     {
         $files = LabFiles::read();
         foreach ($files['shadowed'] as $slug) {
-            $this->warn("labs/{$slug}.php wins over the entry in labs.php. Remove that entry.");
+            $this->warn("labs/{$slug}.php wins over the \"{$slug}\" entry in labs.php. To finish the export, delete that entry from database/seeders/content/labs.php.");
         }
         $report = $loader->load($files['labs'], (bool) $this->option('force'));
         $this->info("Labs imported: {$report['labs']}.");

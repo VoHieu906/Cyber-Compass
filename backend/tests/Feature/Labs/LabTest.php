@@ -40,7 +40,7 @@ it('lists the labs in order with my progress and their lessons', function () {
 
     expect(collect($labs)->pluck('slug')->all())->toBe(['investigate-a-suspicious-login', 'lock-down-a-web-server', 'inspect-a-shop-session'])
         ->and($labs[0])->toMatchArray(['engine' => 'linux-shell', 'lesson' => ['slug' => 'linux-logs', 'title' => Lesson::query()->where('slug', 'linux-logs')->value('title')]])
-        ->and($labs[0]['progress'])->toBe(['started' => false, 'completed' => false, 'passed' => 0, 'total' => 5]);
+        ->and($labs[0]['progress'])->toBe(['started' => false, 'completed' => false, 'passed' => 0, 'total' => 5, 'holds' => 0]);
 });
 
 it('never sends answers, hidden packets, routes or files', function (string $slug, array $secrets) {

@@ -481,3 +481,48 @@ describe('the health check', function () {
         $this->artisan('content:check-labs', ['--warn-only' => true])->assertSuccessful();
     });
 });
+
+describe('what the learner is shown (F7 Part B)', function () {
+    it('flags conditions that are true at the start and leaves them out of the progress counts', function () {
+        labLearner();
+        $lab = $this->getJson('/api/v1/labs/lock-down-a-web-server')->assertOk()->json('data');
+
+        expect(collect($lab['checkpoints'])->where('starts_true', true)->pluck('id')->all())->toBe(['https-open', 'http-redirect'])
+            ->and($lab['progress'])->toMatchArray(['passed' => 0, 'total' => 3, 'holds' => 2]);
+
+        // A lab that starts with nothing true has no conditions to keep.
+        $shell = $this->getJson('/api/v1/labs/investigate-a-suspicious-login')->json('data');
+        expect(collect($shell['checkpoints'])->where('starts_true', true))->toBeEmpty()->and($shell['progress']['holds'])->toBe(0);
+    });
+
+    it('tells a learner that the lab started over until they have seen it or acted', function () {
+        labLearner();
+        $attempt = $this->postJson('/api/v1/labs/lock-down-a-web-server/attempts')->assertCreated()->json('data.attempt');
+        labAdmin();
+        $saved = labEdit('lock-down-a-web-server', function (array $def) {
+            $def['scenario']['server']['name'] = 'web-03';
+
+            return $def;
+        });
+        $this->postJson("/api/v1/admin/content/labs/{$saved['id']}/publish", ['lock_version' => $saved['lock_version'], 'confirm_restart' => true])->assertOk();
+
+        labLearner();
+        // Reading the lab twice (a reload, a second tab) shows the notice twice: it is not used up by being fetched.
+        expect($this->getJson('/api/v1/labs/lock-down-a-web-server')->json('data.attempt.restarted'))->toBeTrue()
+            ->and($this->getJson('/api/v1/labs/lock-down-a-web-server')->json('data.attempt.restarted'))->toBeTrue();
+
+        $this->postJson("/api/v1/lab-attempts/{$attempt['id']}/notice-seen")->assertOk();
+        expect($this->getJson('/api/v1/labs/lock-down-a-web-server')->json('data.attempt.restarted'))->toBeFalse();
+        // Someone else's attempt is not reachable.
+        Auth::forgetGuards();
+        $this->actingAs($this->admin, 'web');
+        $this->postJson("/api/v1/lab-attempts/{$attempt['id']}/notice-seen")->assertNotFound();
+    });
+
+    it('lists the domains, and says when a lab is in both files', function () {
+        labAdmin();
+        $json = $this->getJson('/api/v1/admin/content/labs')->assertOk()->json();
+
+        expect(collect($json['meta']['domains'])->pluck('slug')->all())->toContain('linux')->and(collect($json['data'])->every(fn ($l) => $l['shadowed'] === false))->toBeTrue();
+    });
+});

@@ -19,7 +19,7 @@ class LabSeeder extends Seeder
 
         $this->command?->info(sprintf('Labs: %d.', $report['labs']));
         if ($files['shadowed']) {
-            $this->command?->warn('labs/<slug>.php wins over labs.php for: '.implode(', ', $files['shadowed']).'. Remove those entries from labs.php.');
+            $this->command?->warn('labs/<slug>.php wins over labs.php for: '.implode(', ', $files['shadowed']).'. To finish the export, delete those entries from database/seeders/content/labs.php.');
         }
         if ($report['skipped']) {
             $this->command?->warn('Edited in the admin console, not overwritten: '.implode(', ', $report['skipped']));

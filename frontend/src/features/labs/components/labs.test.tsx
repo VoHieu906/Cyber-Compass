@@ -8,13 +8,14 @@ import { LabView } from "./lab-view";
 import { LabsList } from "./labs-list";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/labs" }));
-const mocks = { list: vi.fn(), lab: vi.fn(), start: vi.fn(), act: vi.fn(), reset: vi.fn() };
+const mocks = { list: vi.fn(), lab: vi.fn(), start: vi.fn(), act: vi.fn(), reset: vi.fn(), seen: vi.fn() };
 vi.mock("../api", () => ({
   fetchLabs: () => mocks.list(),
   fetchLab: () => mocks.lab(),
   startLab: () => mocks.start(),
   actInLab: (...args: unknown[]) => mocks.act(...args),
   resetLab: (...args: unknown[]) => mocks.reset(...args),
+  dismissRestartNotice: (...args: unknown[]) => mocks.seen(...args),
 }));
 
 const summary: LabSummary = {
@@ -26,12 +27,12 @@ const summary: LabSummary = {
   estimated_minutes: 25,
   domain: { slug: "linux", name: "Linux" },
   lesson: { slug: "linux-logs", title: "Finding evidence in logs" },
-  progress: { started: false, completed: false, passed: 0, total: 2 },
+  progress: { started: false, completed: false, passed: 0, total: 2, holds: 0 },
 };
 
 const checkpoints = [
-  { id: "read-auth-log", title: "Open the authentication log.", kind: "read", hint: "Try cd /var/log.", passed: false },
-  { id: "attacker-ip", title: "Which IP address logged in?", kind: "answer", hint: null, passed: false },
+  { id: "read-auth-log", title: "Open the authentication log.", kind: "read", hint: "Try cd /var/log.", passed: false, starts_true: false },
+  { id: "attacker-ip", title: "Which IP address logged in?", kind: "answer", hint: null, passed: false, starts_true: false },
 ];
 
 const shellLab: LabDetail = {
@@ -45,7 +46,7 @@ const shellLab: LabDetail = {
 const started: LabDetail = {
   ...shellLab,
   progress: { ...summary.progress, started: true },
-  attempt: { id: 5, version: 1, state: { cwd: "/home/analyst", prompt: "analyst@web-01:~$", history: [] }, completed_at: null },
+  attempt: { id: 5, version: 1, state: { cwd: "/home/analyst", prompt: "analyst@web-01:~$", history: [] }, completed_at: null, restarted: false },
 };
 
 function result(over: Partial<LabActionResult> & { history?: { command: string; output: string; error: boolean }[]; version?: number }): LabActionResult {
@@ -53,7 +54,7 @@ function result(over: Partial<LabActionResult> & { history?: { command: string; 
     output: over.output ?? {},
     newly_passed: over.newly_passed ?? [],
     checkpoints: over.checkpoints ?? checkpoints,
-    attempt: { id: 5, version: over.version ?? 2, state: { cwd: "/var/log", prompt: "analyst@web-01:/var/log$", history: over.history ?? [] }, completed_at: null },
+    attempt: { id: 5, version: over.version ?? 2, state: { cwd: "/var/log", prompt: "analyst@web-01:/var/log$", history: over.history ?? [] }, completed_at: null, restarted: false },
   };
 }
 
@@ -61,7 +62,7 @@ describe("labs", () => {
   beforeEach(() => Object.values(mocks).forEach((m) => m.mockReset()));
 
   it("lists labs with progress and the right action", async () => {
-    mocks.list.mockResolvedValue([summary, { ...summary, slug: "b", title: "Lock down", engine: "firewall-rules", progress: { started: true, completed: true, passed: 2, total: 2 } }]);
+    mocks.list.mockResolvedValue([summary, { ...summary, slug: "b", title: "Lock down", engine: "firewall-rules", progress: { started: true, completed: true, passed: 2, total: 2, holds: 0 } }]);
     renderWithProviders(<LabsList />);
 
     const first = (await screen.findByRole("link", { name: "Investigate a suspicious login" })).closest("li")!;
@@ -103,6 +104,54 @@ describe("labs", () => {
     expect(await screen.findByText("Not quite. Look again, then try another answer.")).toBeInTheDocument();
   });
 
+  it("labels conditions that are true at the start as ones to keep, not progress", async () => {
+    const mixed = [
+      { id: "https", title: "HTTPS answers.", kind: "traffic", hint: null, passed: true, starts_true: true },
+      { id: "ssh", title: "SSH is refused from the internet.", kind: "traffic", hint: null, passed: false, starts_true: false },
+    ];
+    mocks.lab.mockResolvedValue({ ...started, checkpoints: mixed, progress: { ...summary.progress, started: true, total: 1, holds: 1 } } satisfies LabDetail);
+    renderWithProviders(<LabView slug={summary.slug} />);
+
+    // Tasks count only what is earned; the condition that already holds is its own line.
+    expect(await screen.findByText("0 of 1 tasks done")).toBeInTheDocument();
+    expect(screen.getByText("1 of 1 conditions still true")).toBeInTheDocument();
+    const keep = screen.getByText("HTTPS answers.").closest("li")!;
+    expect(within(keep).getByText("Already true. Keep it that way.")).toBeInTheDocument();
+    expect(keep).toHaveAttribute("data-holding", "true");
+    expect(within(keep).getByText(/Condition 1, Already true/)).toBeInTheDocument();
+  });
+
+  it("says when a kept condition is broken", async () => {
+    mocks.lab.mockResolvedValue({
+      ...started,
+      checkpoints: [{ id: "https", title: "HTTPS answers.", kind: "traffic", hint: null, passed: false, starts_true: true }],
+      progress: { ...summary.progress, started: true, total: 0, holds: 1 },
+    } satisfies LabDetail);
+    renderWithProviders(<LabView slug={summary.slug} />);
+
+    const item = (await screen.findByText("HTTPS answers.")).closest("li")!;
+    expect(within(item).getByText("No longer true. Make it true again.")).toBeInTheDocument();
+  });
+
+  it("tells a learner once that the lab started over, and keeps the notice through a refetch", async () => {
+    const restarted = { ...started, attempt: { ...started.attempt!, restarted: true } } satisfies LabDetail;
+    mocks.lab.mockResolvedValue(restarted);
+    const user = userEvent.setup();
+    const { queryClient } = renderWithProviders(<LabView slug={summary.slug} />);
+
+    expect(await screen.findByText(/This lab was updated since you last worked on it, so it started over/)).toBeInTheDocument();
+    // The server forgets after telling once; a refetch must not take the notice away from the page.
+    mocks.lab.mockResolvedValue(started);
+    await queryClient.invalidateQueries();
+    expect(await screen.findByText(/so it started over/)).toBeInTheDocument();
+
+    mocks.seen.mockResolvedValue({ restarted: false });
+    await user.click(screen.getByRole("button", { name: "Dismiss" }));
+    expect(screen.queryByText(/so it started over/)).not.toBeInTheDocument();
+    // The server is told, so a reload does not bring it back.
+    expect(mocks.seen).toHaveBeenCalledWith(5);
+  });
+
   it("reloads after a conflict from another tab and says so", async () => {
     mocks.lab.mockResolvedValue(started);
     mocks.act.mockRejectedValue(new ApiError(409, { message: "stale" }));
@@ -119,7 +168,7 @@ describe("labs", () => {
       ...shellLab,
       engine: "firewall-rules",
       scenario: { server: { name: "web-01", ip: "10.0.20.10" }, max_rules: 20 },
-      attempt: { id: 6, version: 4, state: { rules: [{ action: "allow", proto: "tcp", port: 22, source: "any" }], default: "allow", tests: [] }, completed_at: null },
+      attempt: { id: 6, version: 4, state: { rules: [{ action: "allow", proto: "tcp", port: 22, source: "any" }], default: "allow", tests: [] }, completed_at: null, restarted: false },
     } satisfies LabDetail);
     mocks.act.mockResolvedValue(result({}));
     const user = userEvent.setup();
@@ -143,7 +192,7 @@ describe("labs", () => {
       ...shellLab,
       engine: "http-inspector",
       scenario: { app: { name: "Mini Shop", origin: "https://shop.example" }, session: { name: "session", value: "abc" }, captured: [], methods: ["GET", "POST"] },
-      attempt: { id: 7, version: 1, state: { sent: [] }, completed_at: null },
+      attempt: { id: 7, version: 1, state: { sent: [] }, completed_at: null, restarted: false },
     } satisfies LabDetail);
     mocks.act.mockResolvedValue(result({ output: { response: { status: 200, headers: { "Content-Type": "application/json" }, body: '{"id":1002}' } } }));
     const user = userEvent.setup();

@@ -1,7 +1,7 @@
 [
-  { "name": "method not in the list", "set": { "scenario.routes.0.method": "PATCH" }, "error": "scenario.routes.0.method" },
-  { "name": "route path without a slash", "set": { "scenario.routes.0.path": "profile" }, "error": "scenario.routes.0.path" },
-  { "name": "response status as text", "set": { "scenario.routes.0.response.status": "ok" }, "error": "scenario.routes.0.response.status" },
-  { "name": "checkpoint names a route that does not exist", "set": { "scenario.checkpoints.0.route": "nowhere" }, "error": "scenario.checkpoints.0.route" },
-  { "name": "session without a value", "set": { "scenario.session": { "name": "session" } }, "error": "scenario.session" }
+  { "name": "method not in the list", "check": "schema", "set": { "scenario.routes.0.method": "PATCH" }, "error": "scenario.routes.0.method" },
+  { "name": "route path without a slash", "check": "schema", "set": { "scenario.routes.0.path": "profile" }, "error": "scenario.routes.0.path" },
+  { "name": "response status as text", "check": "schema", "set": { "scenario.routes.0.response.status": "ok" }, "error": "scenario.routes.0.response.status" },
+  { "name": "checkpoint names a route that does not exist", "check": "reference", "set": { "scenario.checkpoints.0.route": "nowhere" }, "error": "scenario.checkpoints.0.route" },
+  { "name": "session without a value", "check": "schema", "set": { "scenario.session": { "name": "session" } }, "error": "scenario.session" }
 ]

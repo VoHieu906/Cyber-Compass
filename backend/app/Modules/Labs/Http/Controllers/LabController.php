@@ -66,6 +66,14 @@ final class LabController extends Controller
         ]]);
     }
 
+    /** The learner has read the notice that the lab started over (D75). It also goes at their next action or reset. */
+    public function noticeSeen(Request $request, int $id, LabSession $session): JsonResponse
+    {
+        $session->acknowledge($this->attempt($request, $id, $session));
+
+        return response()->json(['data' => ['restarted' => false]]);
+    }
+
     /** Start my attempt over (same version check as actions). Completion is kept. */
     public function reset(Request $request, int $id, LabSession $session, LabPresenter $presenter): JsonResponse
     {

@@ -5,7 +5,8 @@
 
 export type Engine = "linux-shell" | "firewall-rules" | "http-inspector";
 
-export type LabProgress = { started: boolean; completed: boolean; passed: number; total: number };
+/** `passed` and `total` count tasks only; `holds` counts conditions already true at the start (to keep, not earn). */
+export type LabProgress = { started: boolean; completed: boolean; passed: number; total: number; holds: number };
 
 export type LabSummary = {
   slug: string;
@@ -19,7 +20,7 @@ export type LabSummary = {
   progress: LabProgress;
 };
 
-export type Checkpoint = { id: string; title: string; kind: string; hint: string | null; passed: boolean };
+export type Checkpoint = { id: string; title: string; kind: string; hint: string | null; passed: boolean; starts_true: boolean };
 
 export type ShellEntry = { command: string; output: string; error: boolean };
 export type ShellScenario = { hostname: string; user: string; commands: string[] };
@@ -41,7 +42,14 @@ export type HttpScenario = {
 };
 export type HttpState = { sent: { request: HttpRequest; status: number }[] };
 
-export type LabAttempt<S = unknown> = { id: number; version: number; state: S; completed_at: string | null };
+export type LabAttempt<S = unknown> = {
+  id: number;
+  version: number;
+  state: S;
+  completed_at: string | null;
+  /** The scenario changed since the learner began, so the lab started over (D75). */
+  restarted: boolean;
+};
 
 export type LabDetail = LabSummary & {
   briefing: string;

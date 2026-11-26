@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Domain;
 use App\Models\Lab;
 use App\Models\LabRevision;
+use App\Modules\Labs\Services\LabFiles;
 use App\Modules\Labs\Services\LabLifecycle;
 use App\Modules\Labs\Services\LabWorkingCopy;
 use App\Modules\Labs\Services\PublishLab;
@@ -33,6 +34,7 @@ final class LabAdminController extends Controller
     public function index(): JsonResponse
     {
         Gate::authorize('viewAny', Lab::class);
+        $shadowed = $this->shadowed();
         $labs = Lab::query()->with('domain:id,slug,name')->withExists(['draft', 'revisions'])
             ->withCount(['attempts as started' => fn ($q) => $q->where('action_count', '>', 0), 'attempts as completed' => fn ($q) => $q->whereNotNull('completed_at')])
             ->orderBy('position')->get();
@@ -49,10 +51,12 @@ final class LabAdminController extends Controller
                 'domain' => ['slug' => $lab->domain->slug, 'name' => $lab->domain->name],
                 'has_draft' => $lab->draft_exists,
                 'owned' => $lab->updated_by !== null || $lab->draft_exists || $lab->revisions_exists,
+                // Also defined in labs.php while labs/<slug>.php exists: the old entry should go (D73).
+                'shadowed' => in_array($lab->slug, $shadowed, true),
                 'started' => $lab->started,
                 'completed' => $lab->completed,
             ]),
-            'meta' => ['engines' => array_map(fn (string $key) => ['key' => $key, 'checkpoint_kinds' => ['answer', ...$this->engines->engineFor($key)->checkpointKinds()]], $this->engines->engineKeys())],
+            'meta' => ['domains' => Domain::query()->orderBy('name')->get(['slug', 'name']), 'engines' => array_map(fn (string $key) => ['key' => $key, 'checkpoint_kinds' => ['answer', ...$this->engines->engineFor($key)->checkpointKinds()]], $this->engines->engineKeys())],
         ]);
     }
 
@@ -184,6 +188,16 @@ final class LabAdminController extends Controller
         $lifecycle->restore($request->user(), $lab, $lab->revisions()->where('version', $version)->firstOrFail());
 
         return response()->json(['data' => $this->payload($lab->refresh(), $copies, $publish)]);
+    }
+
+    /** @return list<string> */
+    private function shadowed(): array
+    {
+        try {
+            return LabFiles::read()['shadowed'];
+        } catch (\InvalidArgumentException) {
+            return [];
+        }
     }
 
     /** @return array<string, mixed> */
