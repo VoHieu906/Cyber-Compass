@@ -70,6 +70,21 @@ final class LinuxShellEngine implements LabEngine
         return $errors;
     }
 
+    public function citableIds(array $scenario): array
+    {
+        return [];
+    }
+
+    public function citable(array $scenario, array $state): array
+    {
+        return [];
+    }
+
+    public function debrief(array $scenario, array $state): ?array
+    {
+        return null;
+    }
+
     public function initialState(array $scenario): array
     {
         return ['cwd' => $scenario['cwd'], 'read' => [], 'history' => []];

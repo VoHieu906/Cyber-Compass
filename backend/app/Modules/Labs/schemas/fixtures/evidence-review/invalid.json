@@ -1,0 +1,9 @@
+[
+  { "name": "no artifacts", "check": "schema", "set": { "scenario.artifacts": [] }, "error": "scenario.artifacts" },
+  { "name": "a view without lines", "check": "schema", "set": { "scenario.artifacts.0.views.0.lines": [] }, "error": "scenario.artifacts.0.views.0.lines" },
+  { "name": "an id with capitals", "check": "schema", "set": { "scenario.artifacts.0.id": "Message" }, "error": "scenario.artifacts.0.id" },
+  { "name": "an indicator without an explanation", "check": "schema", "set": { "scenario.indicators.0.explanation": "" }, "error": "scenario.indicators.0.explanation" },
+  { "name": "indicator points past the last line", "check": "reference", "set": { "scenario.indicators.0.lines.0.line": 9 }, "error": "scenario.indicators.0.lines.0.line" },
+  { "name": "indicator points at a view that does not exist", "check": "reference", "set": { "scenario.indicators.0.lines.0.view": "nowhere" }, "error": "scenario.indicators.0.lines.0" },
+  { "name": "checkpoint names an indicator that does not exist", "check": "reference", "set": { "scenario.checkpoints.0.indicators": ["nowhere"] }, "error": "scenario.checkpoints.0.indicators.0" }
+]

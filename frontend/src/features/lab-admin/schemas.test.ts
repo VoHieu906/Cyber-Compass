@@ -64,3 +64,29 @@ it("reads an empty header object that came back from the server as an empty list
   scenario.routes[0].response.headers = [];
   expect(checkScenario("http-inspector", scenario)).toEqual({});
 });
+
+it("accepts the code-review variant of the evidence engine, with its conclusion", () => {
+  const fixture = read<{ scenario: Record<string, unknown> }>("fixtures/evidence-review/code-review.json");
+  expect(checkScenario("evidence-review", fixture.scenario)).toEqual({});
+});
+
+it("reads a conclusion on any engine and names what is wrong with it", () => {
+  const starter = read<{ scenario: { checkpoints: unknown[] } }>("fixtures/firewall-rules/starter.json");
+  const conclusion = {
+    id: "verdict",
+    kind: "conclusion",
+    title: "Conclude.",
+    question: "Which?",
+    options: [{ id: "yes", text: "Yes" }],
+    answer: "yes",
+    evidence: ["rule-1"],
+  };
+  const scenario = { ...starter.scenario, checkpoints: [...starter.scenario.checkpoints, conclusion] };
+
+  // One option is too few: the schema wants two to six.
+  expect(
+    Object.keys(checkScenario("firewall-rules", scenario)).some((p) => p.startsWith("scenario.checkpoints.1.options")),
+  ).toBe(true);
+  conclusion.options.push({ id: "no", text: "No" });
+  expect(checkScenario("firewall-rules", scenario)).toEqual({});
+});

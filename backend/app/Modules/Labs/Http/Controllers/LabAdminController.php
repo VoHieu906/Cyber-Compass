@@ -56,7 +56,7 @@ final class LabAdminController extends Controller
                 'started' => $lab->started,
                 'completed' => $lab->completed,
             ]),
-            'meta' => ['domains' => Domain::query()->orderBy('name')->get(['slug', 'name']), 'engines' => array_map(fn (string $key) => ['key' => $key, 'checkpoint_kinds' => ['answer', ...$this->engines->engineFor($key)->checkpointKinds()]], $this->engines->engineKeys())],
+            'meta' => ['domains' => Domain::query()->orderBy('name')->get(['slug', 'name']), 'engines' => array_map(fn (string $key) => ['key' => $key, 'checkpoint_kinds' => ['answer', 'conclusion', ...$this->engines->engineFor($key)->checkpointKinds()]], $this->engines->engineKeys())],
         ]);
     }
 

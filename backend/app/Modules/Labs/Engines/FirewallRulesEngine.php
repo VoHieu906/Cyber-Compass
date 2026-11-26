@@ -51,6 +51,25 @@ final class FirewallRulesEngine implements LabEngine
         return $errors;
     }
 
+    /** The rules the lab starts with, numbered from 1 (a learner's own later rules are not evidence). */
+    public function citableIds(array $scenario): array
+    {
+        return array_map(fn (int $i) => 'rule-'.($i + 1), array_keys($scenario['rules']));
+    }
+
+    public function citable(array $scenario, array $state): array
+    {
+        return array_map(fn (int $i, array $r) => [
+            'id' => 'rule-'.($i + 1),
+            'label' => 'Rule '.($i + 1).': '.$r['action'].' '.$r['proto'].(isset($r['port']) ? ' '.$r['port'] : '').' from '.$r['source'],
+        ], array_keys($scenario['rules']), $scenario['rules']);
+    }
+
+    public function debrief(array $scenario, array $state): ?array
+    {
+        return null;
+    }
+
     public function initialState(array $scenario): array
     {
         return ['rules' => array_values($scenario['rules'] ?? []), 'default' => $scenario['default'], 'tests' => []];

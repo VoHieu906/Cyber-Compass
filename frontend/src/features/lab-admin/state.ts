@@ -52,6 +52,16 @@ export const KIND_TEMPLATES: Record<string, Record<string, unknown>> = {
   read: { path: "/" },
   traffic: { packets: [{ proto: "tcp", port: 80, source: "203.0.113.1", expect: "allow" }] },
   request: { route: "" },
+  findings: { indicators: [] },
+  conclusion: {
+    question: "",
+    options: [
+      { id: "yes", text: "" },
+      { id: "no", text: "" },
+    ],
+    answer: "yes",
+    evidence: [],
+  },
 };
 
 export function newCheckpoint(kind: string, taken: string[]): CheckpointDef {

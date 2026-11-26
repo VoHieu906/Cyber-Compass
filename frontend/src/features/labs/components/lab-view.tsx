@@ -21,6 +21,8 @@ import { useLab, useLabAction, useResetLab, useStartLab } from "../hooks";
 import type {
   Checkpoint,
   Engine,
+  EvidenceScenario,
+  EvidenceState,
   FirewallScenario,
   FirewallState,
   HttpScenario,
@@ -31,6 +33,8 @@ import type {
   ShellScenario,
   ShellState,
 } from "../types";
+import { Debrief } from "./debrief";
+import { EvidenceConsole } from "./evidence-console";
 import { FirewallConsole } from "./firewall-console";
 import { HttpConsole } from "./http-console";
 import { DIFFICULTY, ENGINE_ICON } from "./labs-list";
@@ -139,7 +143,12 @@ function LearnerPlayground({ lab }: { lab: LabDetail }) {
   return <LabPlayground lab={lab} transport={transport} />;
 }
 
-type ConsoleProps = { lab: LabDetail; state: unknown; busy: boolean; send: (action: LabAction) => Promise<LabActionResult | null> };
+type ConsoleProps = {
+  lab: LabDetail;
+  state: unknown;
+  busy: boolean;
+  send: (action: LabAction) => Promise<LabActionResult | null>;
+};
 
 /** One console per engine key (D77): a new engine adds an entry here and nothing else in this file. */
 const CONSOLES: Record<Engine, (props: ConsoleProps) => ReactNode> = {
@@ -152,10 +161,23 @@ const CONSOLES: Record<Engine, (props: ConsoleProps) => ReactNode> = {
     />
   ),
   "firewall-rules": ({ lab, state, busy, send }) => (
-    <FirewallConsole scenario={lab.scenario as FirewallScenario} state={state as FirewallState} busy={busy} onAction={send} />
+    <FirewallConsole
+      scenario={lab.scenario as FirewallScenario}
+      state={state as FirewallState}
+      busy={busy}
+      onAction={send}
+    />
   ),
   "http-inspector": ({ lab, state, busy, send }) => (
     <HttpConsole scenario={lab.scenario as HttpScenario} state={state as HttpState} busy={busy} onAction={send} />
+  ),
+  "evidence-review": ({ lab, state, busy, send }) => (
+    <EvidenceConsole
+      scenario={lab.scenario as EvidenceScenario}
+      state={state as EvidenceState}
+      busy={busy}
+      onAction={send}
+    />
   ),
 };
 
@@ -235,6 +257,7 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
           lab={lab}
           busy={transport.acting}
           onAnswer={(checkpoint, value) => send({ type: "answer", checkpoint, value })}
+          onConclude={(checkpoint, option, cited) => send({ type: "conclude", checkpoint, option, cited })}
           transport={transport}
         />
         <div
@@ -246,6 +269,7 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
         >
           {notice ? <Alert tone="error">{notice}</Alert> : null}
           {CONSOLES[lab.engine]({ lab, state: attempt.state, busy: transport.acting, send })}
+          {attempt.debrief ? <Debrief debrief={attempt.debrief} /> : null}
         </div>
       </div>
     </div>
@@ -256,11 +280,13 @@ function Checkpoints({
   lab,
   busy,
   onAnswer,
+  onConclude,
   transport,
 }: {
   lab: LabDetail;
   busy: boolean;
   onAnswer: (id: string, value: string) => Promise<LabActionResult | null>;
+  onConclude: ConcludeHandler;
   transport: LabTransport;
 }) {
   const t = useTranslations("labs");
@@ -321,7 +347,14 @@ function Checkpoints({
       >
         <ol className="flex flex-col gap-3">
           {lab.checkpoints.map((c, i) => (
-            <CheckpointItem key={c.id} checkpoint={c} number={i + 1} busy={busy} onAnswer={onAnswer} />
+            <CheckpointItem
+              key={c.id}
+              checkpoint={c}
+              number={i + 1}
+              busy={busy}
+              onAnswer={onAnswer}
+              onConclude={onConclude}
+            />
           ))}
         </ol>
         <ResetButton lab={lab} transport={transport} />
@@ -330,16 +363,20 @@ function Checkpoints({
   );
 }
 
+type ConcludeHandler = (id: string, option: string, cited: string[]) => Promise<LabActionResult | null>;
+
 function CheckpointItem({
   checkpoint,
   number,
   busy,
   onAnswer,
+  onConclude,
 }: {
   checkpoint: Checkpoint;
   number: number;
   busy: boolean;
   onAnswer: (id: string, value: string) => Promise<LabActionResult | null>;
+  onConclude: ConcludeHandler;
 }) {
   const t = useTranslations("labs");
   const [value, setValue] = useState("");
@@ -355,7 +392,10 @@ function CheckpointItem({
     >
       <p className="flex gap-2.5 text-sm text-ink">
         {holding ? (
-          <ShieldCheck aria-hidden className={cn("mt-0.5 size-4 shrink-0", checkpoint.passed ? "text-accent" : "text-bad")} />
+          <ShieldCheck
+            aria-hidden
+            className={cn("mt-0.5 size-4 shrink-0", checkpoint.passed ? "text-accent" : "text-bad")}
+          />
         ) : checkpoint.passed ? (
           <Check aria-hidden className="mt-0.5 size-4 shrink-0 text-accent" />
         ) : (
@@ -364,7 +404,14 @@ function CheckpointItem({
         <span>
           <span className="sr-only">
             {holding ? t("conditionNumber", { number }) : t("taskNumber", { number })},{" "}
-            {holding ? (checkpoint.passed ? t("holdingOk") : t("holdingBroken")) : checkpoint.passed ? t("done") : t("notDone")}:{" "}
+            {holding
+              ? checkpoint.passed
+                ? t("holdingOk")
+                : t("holdingBroken")
+              : checkpoint.passed
+                ? t("done")
+                : t("notDone")}
+            :{" "}
           </span>
           {checkpoint.title}
         </span>
@@ -414,6 +461,9 @@ function CheckpointItem({
           ) : null}
         </form>
       ) : null}
+      {checkpoint.kind === "conclusion" && !checkpoint.passed && checkpoint.options ? (
+        <ConclusionForm checkpoint={checkpoint} busy={busy} onConclude={onConclude} />
+      ) : null}
       {checkpoint.hint && !checkpoint.passed ? (
         <details suppressHydrationWarning className="pl-6 text-sm">
           <summary className="cursor-pointer text-ink underline decoration-rule-2 underline-offset-4">
@@ -423,6 +473,89 @@ function CheckpointItem({
         </details>
       ) : null}
     </li>
+  );
+}
+
+/** A verdict (one option) and the evidence behind it (items the learner has marked): checked together by the server. */
+function ConclusionForm({
+  checkpoint,
+  busy,
+  onConclude,
+}: {
+  checkpoint: Checkpoint;
+  busy: boolean;
+  onConclude: ConcludeHandler;
+}) {
+  const t = useTranslations("labs.conclusion");
+  const [option, setOption] = useState<string | null>(null);
+  const [cited, setCited] = useState<string[]>([]);
+  const [wrong, setWrong] = useState(false);
+  const citable = checkpoint.citable ?? [];
+  const max = checkpoint.max_cited ?? 6;
+  // An item that is no longer citable (unmarked meanwhile) drops out of the selection.
+  const chosen = cited.filter((id) => citable.some((c) => c.id === id));
+  const groupId = `conclusion-${checkpoint.id}`;
+
+  return (
+    <form
+      className="flex flex-col gap-3 pl-6"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!option) return;
+        const result = await onConclude(checkpoint.id, option, chosen);
+        if (result) setWrong(result.output.correct === false);
+      }}
+    >
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="text-sm font-medium text-ink">{checkpoint.question}</legend>
+        {checkpoint.options!.map((o) => (
+          <label key={o.id} className="flex items-start gap-2 text-sm text-ink">
+            <input
+              type="radio"
+              name={groupId}
+              value={o.id}
+              checked={option === o.id}
+              onChange={() => {
+                setOption(o.id);
+                setWrong(false);
+              }}
+              className="mt-1"
+            />
+            <span>{o.text}</span>
+          </label>
+        ))}
+      </fieldset>
+      <fieldset className="flex flex-col gap-1.5">
+        <legend className="text-sm font-medium text-ink">{t("cite", { max })}</legend>
+        {citable.length ? (
+          citable.map((c) => (
+            <label key={c.id} className="flex items-start gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={chosen.includes(c.id)}
+                disabled={!chosen.includes(c.id) && chosen.length >= max}
+                onChange={(e) => {
+                  setCited(e.target.checked ? [...chosen, c.id] : chosen.filter((id) => id !== c.id));
+                  setWrong(false);
+                }}
+                className="mt-1"
+              />
+              <span className="min-w-0 break-words">{c.label}</span>
+            </label>
+          ))
+        ) : (
+          <p className="text-sm">{t("nothingToCite")}</p>
+        )}
+      </fieldset>
+      <Button type="submit" size="sm" variant="secondary" className="self-start" disabled={busy || !option}>
+        {t("submit")}
+      </Button>
+      {wrong ? (
+        <p role="status" className="text-sm text-bad">
+          {t("notYet")}
+        </p>
+      ) : null}
+    </form>
   );
 }
 
@@ -452,7 +585,10 @@ function ResetButton({ lab, transport }: { lab: LabDetail; transport: LabTranspo
             variant="danger"
             loading={transport.resetting}
             onClick={() => {
-              transport.reset(attempt.version).catch(() => undefined).finally(() => setOpen(false));
+              transport
+                .reset(attempt.version)
+                .catch(() => undefined)
+                .finally(() => setOpen(false));
             }}
           >
             {t("labs.reset")}

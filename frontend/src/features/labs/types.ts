@@ -3,7 +3,7 @@
  * only what the learner may see; answers, hidden packets and routes stay on the server.
  */
 
-export type Engine = "linux-shell" | "firewall-rules" | "http-inspector";
+export type Engine = "linux-shell" | "firewall-rules" | "http-inspector" | "evidence-review";
 
 /** `passed` and `total` count tasks only; `holds` counts conditions already true at the start (to keep, not earn). */
 export type LabProgress = { started: boolean; completed: boolean; passed: number; total: number; holds: number };
@@ -20,7 +20,19 @@ export type LabSummary = {
   progress: LabProgress;
 };
 
-export type Checkpoint = { id: string; title: string; kind: string; hint: string | null; passed: boolean; starts_true: boolean };
+/** A `conclusion` checkpoint also carries its question, the options (already in this attempt's own order) and what can be cited now. */
+export type Checkpoint = {
+  id: string;
+  title: string;
+  kind: string;
+  hint: string | null;
+  passed: boolean;
+  starts_true: boolean;
+  question?: string;
+  options?: { id: string; text: string }[];
+  max_cited?: number;
+  citable?: { id: string; label: string }[];
+};
 
 export type ShellEntry = { command: string; output: string; error: boolean };
 export type ShellScenario = { hostname: string; user: string; commands: string[] };
@@ -42,6 +54,26 @@ export type HttpScenario = {
 };
 export type HttpState = { sent: { request: HttpRequest; status: number }[] };
 
+/** Evidence review: artifacts of plain text lines. `max_marks` is the most lines one artifact may hold marked. */
+export type EvidenceScenario = {
+  artifacts: {
+    id: string;
+    title: string;
+    max_marks: number;
+    views: { id: string; label: string; lines: string[]; mono: boolean }[];
+  }[];
+};
+/** Marks are `artifact:view:line` keys (line from 1). */
+export type EvidenceState = { marks: string[] };
+
+type DebriefLine = { artifact: string; view: string; line: number; text: string };
+/** What a learner may read once the lab is complete (D80). Never present during play. */
+export type Debrief = {
+  indicators?: { id: string; title: string; explanation: string; required: boolean; found: boolean; lines: DebriefLine[] }[];
+  wrong?: DebriefLine[];
+  conclusions: { checkpoint: string; title: string; explanation: string }[];
+};
+
 export type LabAttempt<S = unknown> = {
   id: number;
   version: number;
@@ -49,11 +81,12 @@ export type LabAttempt<S = unknown> = {
   completed_at: string | null;
   /** The scenario changed since the learner began, so the lab started over (D75). */
   restarted: boolean;
+  debrief: Debrief | null;
 };
 
 export type LabDetail = LabSummary & {
   briefing: string;
-  scenario: ShellScenario | FirewallScenario | HttpScenario;
+  scenario: ShellScenario | FirewallScenario | HttpScenario | EvidenceScenario;
   checkpoints: Checkpoint[];
   attempt: LabAttempt | null;
 };
@@ -66,7 +99,9 @@ export type LabAction =
   | { type: "move_rule"; from: number; to: number }
   | { type: "set_default"; policy: "allow" | "deny" }
   | { type: "test"; packet: Packet }
-  | { type: "send"; request: HttpRequest };
+  | { type: "send"; request: HttpRequest }
+  | { type: "mark"; artifact: string; view: string; line: number; on: boolean }
+  | { type: "conclude"; checkpoint: string; option: string; cited: string[] };
 
 export type LabActionResult = {
   output: {

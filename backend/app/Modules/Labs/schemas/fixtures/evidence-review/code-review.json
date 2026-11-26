@@ -1,0 +1,94 @@
+{
+  "scenario": {
+    "artifacts": [
+      {
+        "id": "profile-php",
+        "title": "profile.php",
+        "max_extra": 1,
+        "views": [
+          {
+            "id": "code",
+            "label": "Source",
+            "lines": [
+              "<?php",
+              "$name = $_GET['name'];",
+              "$stmt = $db->prepare('SELECT * FROM users WHERE id = ?');",
+              "$stmt->execute([$_SESSION['uid']]);",
+              "echo '<h1>Hello ' . $name . '</h1>';",
+              "$q = \"SELECT * FROM orders WHERE user = '\" . $_GET['user'] . \"'\";",
+              "$rows = $db->query($q);",
+              "echo count($rows);"
+            ]
+          }
+        ]
+      }
+    ],
+    "indicators": [
+      {
+        "id": "reflected-xss",
+        "title": "Input is printed back without escaping",
+        "explanation": "$name comes from the URL and is placed into the page as it is, so a crafted link can run script in the visitor's browser. Escape it with htmlspecialchars().",
+        "lines": [{ "artifact": "profile-php", "view": "code", "line": 5 }]
+      },
+      {
+        "id": "sql-injection",
+        "title": "Input is joined into a SQL statement",
+        "explanation": "The user parameter is concatenated into the query. The prepared statement three lines above is the pattern to use instead.",
+        "lines": [
+          { "artifact": "profile-php", "view": "code", "line": 6 },
+          { "artifact": "profile-php", "view": "code", "line": 7 }
+        ]
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "find-flaws",
+        "kind": "findings",
+        "title": "Mark the lines with a security flaw.",
+        "indicators": ["reflected-xss", "sql-injection"]
+      },
+      {
+        "id": "severity",
+        "kind": "conclusion",
+        "title": "Rate the file and cite what supports it.",
+        "question": "Should this file ship as it is?",
+        "options": [
+          { "id": "ship", "text": "Yes, the flaws are minor" },
+          { "id": "block", "text": "No, it holds flaws that let attackers read data or run script" }
+        ],
+        "answer": "block",
+        "evidence": ["profile-php:code:5", "profile-php:code:6"],
+        "min_cited": 2,
+        "max_cited": 3
+      }
+    ]
+  },
+  "solutions": {
+    "solutions": [
+      {
+        "name": "Mark both flaws and block",
+        "actions": [
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 5, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 6, "on": true },
+          { "type": "conclude", "checkpoint": "severity", "option": "block", "cited": ["profile-php:code:5", "profile-php:code:6"] }
+        ]
+      }
+    ],
+    "decoys": [
+      {
+        "name": "Mark every line",
+        "actions": [
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 1, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 2, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 3, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 4, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 5, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 6, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 7, "on": true },
+          { "type": "mark", "artifact": "profile-php", "view": "code", "line": 8, "on": true },
+          { "type": "conclude", "checkpoint": "severity", "option": "block", "cited": ["profile-php:code:5", "profile-php:code:6"] }
+        ]
+      }
+    ]
+  }
+}

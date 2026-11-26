@@ -39,4 +39,12 @@ interface LabProvider
      * @return array<string, mixed>
      */
     public function view(Lab $lab, array $state): array;
+
+    /**
+     * What a learner may read once the lab is complete (D80); the caller checks completion.
+     *
+     * @param  array<string, mixed>  $state
+     * @return ?array<string, mixed>
+     */
+    public function debrief(Lab $lab, array $state): ?array;
 }

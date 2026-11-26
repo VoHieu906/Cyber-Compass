@@ -67,7 +67,7 @@ function forbiddenUses(string $code): array
 
 it('scans every engine file', function () {
     expect(engineFiles())->not->toBeEmpty()
-        ->and(array_map(fn ($f) => basename($f), engineFiles()))->toContain('LinuxShellEngine.php', 'FirewallRulesEngine.php', 'HttpInspectorEngine.php');
+        ->and(array_map(fn ($f) => basename($f), engineFiles()))->toContain('LinuxShellEngine.php', 'FirewallRulesEngine.php', 'HttpInspectorEngine.php', 'EvidenceReviewEngine.php');
 });
 
 it('finds no process, file system, network or dynamic code use in the engines', function (string $file) {

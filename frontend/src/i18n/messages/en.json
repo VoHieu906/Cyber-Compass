@@ -1667,7 +1667,8 @@
     "engines": {
       "linux-shell": "Linux shell",
       "firewall-rules": "Firewall",
-      "http-inspector": "HTTP inspector"
+      "http-inspector": "HTTP inspector",
+      "evidence-review": "Evidence review"
     },
     "checkpoints": "{passed} of {total} tasks done",
     "completed": "Completed",
@@ -1754,7 +1755,34 @@
     "holdsSummary": "{ok} of {total} conditions still true",
     "conditionNumber": "Condition {number}",
     "holdingOk": "Already true. Keep it that way.",
-    "holdingBroken": "No longer true. Make it true again."
+    "holdingBroken": "No longer true. Make it true again.",
+    "evidence": {
+      "howTo": "Read the evidence and mark the lines that show a problem. Click a line, or use the arrow keys to move between lines and Space or Enter to mark or unmark it. Everything is plain text: nothing here is a working link.",
+      "views": "Views of {artifact}",
+      "lines": "{view}, lines of {artifact}. Mark the lines that matter.",
+      "lineNumber": "Line {line}",
+      "count": "{count} of at most {max} lines marked",
+      "over": "Too many lines marked here: at most {max}. Unmark the ones you are least sure of.",
+      "announceOn": "Line {line} marked. {count} of at most {max} marked in {artifact}.",
+      "announceOff": "Line {line} unmarked. {count} of at most {max} marked in {artifact}."
+    },
+    "conclusion": {
+      "cite": "Cite the evidence behind it (up to {max})",
+      "nothingToCite": "Mark some evidence in the console first, then cite it here.",
+      "submit": "Check my conclusion",
+      "notYet": "Not yet. Look again at your verdict and at the evidence you cite."
+    },
+    "debrief": {
+      "title": "Debrief",
+      "intro": "You completed the lab. Here is what each piece of evidence meant and what you marked.",
+      "found": "Found",
+      "missed": "Missed",
+      "bonus": "bonus",
+      "where": "{artifact}, {view}, line {line}",
+      "wrong": "Marked, but not evidence",
+      "noneWrong": "None. Every line you marked was evidence.",
+      "verdict": "{title}"
+    }
   },
   "dashboard": {
     "pageTitle": "Dashboard",
@@ -2175,7 +2203,9 @@
         "answer": "Answer (a typed text)",
         "read": "Read a file",
         "traffic": "Packets get the right verdict",
-        "request": "Send a request that succeeds"
+        "request": "Send a request that succeeds",
+        "findings": "Mark the right evidence",
+        "conclusion": "A verdict with cited evidence"
       },
       "title": "Task",
       "titleHint": "As the learner reads it.",

@@ -56,6 +56,34 @@ interface LabEngine
     public function checkpointPassed(array $scenario, array $state, array $checkpoint): bool;
 
     /**
+     * Every id a `conclusion` checkpoint of this lab could cite as evidence (D80); empty when the
+     * engine has nothing to cite, which is how an engine opts out.
+     *
+     * @param  array<string, mixed>  $scenario
+     * @return list<string>
+     */
+    public function citableIds(array $scenario): array;
+
+    /**
+     * What the learner may cite right now, with a label to show: a subset of citableIds().
+     *
+     * @param  array<string, mixed>  $scenario
+     * @param  array<string, mixed>  $state
+     * @return list<array{id: string, label: string}>
+     */
+    public function citable(array $scenario, array $state): array;
+
+    /**
+     * What a learner may read once the lab is complete: the reasoning behind the answers. Null when
+     * the engine has none. Called only for a complete state, never during play.
+     *
+     * @param  array<string, mixed>  $scenario
+     * @param  array<string, mixed>  $state
+     * @return ?array<string, mixed>
+     */
+    public function debrief(array $scenario, array $state): ?array;
+
+    /**
      * What the learner may see of the scenario: never answers or hidden test data.
      *
      * @param  array<string, mixed>  $scenario

@@ -46,7 +46,7 @@ const shellLab: LabDetail = {
 const started: LabDetail = {
   ...shellLab,
   progress: { ...summary.progress, started: true },
-  attempt: { id: 5, version: 1, state: { cwd: "/home/analyst", prompt: "analyst@web-01:~$", history: [] }, completed_at: null, restarted: false },
+  attempt: { id: 5, version: 1, state: { cwd: "/home/analyst", prompt: "analyst@web-01:~$", history: [] }, completed_at: null, restarted: false, debrief: null },
 };
 
 function result(over: Partial<LabActionResult> & { history?: { command: string; output: string; error: boolean }[]; version?: number }): LabActionResult {
@@ -54,7 +54,7 @@ function result(over: Partial<LabActionResult> & { history?: { command: string; 
     output: over.output ?? {},
     newly_passed: over.newly_passed ?? [],
     checkpoints: over.checkpoints ?? checkpoints,
-    attempt: { id: 5, version: over.version ?? 2, state: { cwd: "/var/log", prompt: "analyst@web-01:/var/log$", history: over.history ?? [] }, completed_at: null, restarted: false },
+    attempt: { id: 5, version: over.version ?? 2, state: { cwd: "/var/log", prompt: "analyst@web-01:/var/log$", history: over.history ?? [] }, completed_at: null, restarted: false, debrief: null },
   };
 }
 
@@ -168,7 +168,7 @@ describe("labs", () => {
       ...shellLab,
       engine: "firewall-rules",
       scenario: { server: { name: "web-01", ip: "10.0.20.10" }, max_rules: 20 },
-      attempt: { id: 6, version: 4, state: { rules: [{ action: "allow", proto: "tcp", port: 22, source: "any" }], default: "allow", tests: [] }, completed_at: null, restarted: false },
+      attempt: { id: 6, version: 4, state: { rules: [{ action: "allow", proto: "tcp", port: 22, source: "any" }], default: "allow", tests: [] }, completed_at: null, restarted: false, debrief: null },
     } satisfies LabDetail);
     mocks.act.mockResolvedValue(result({}));
     const user = userEvent.setup();
@@ -192,7 +192,7 @@ describe("labs", () => {
       ...shellLab,
       engine: "http-inspector",
       scenario: { app: { name: "Mini Shop", origin: "https://shop.example" }, session: { name: "session", value: "abc" }, captured: [], methods: ["GET", "POST"] },
-      attempt: { id: 7, version: 1, state: { sent: [] }, completed_at: null, restarted: false },
+      attempt: { id: 7, version: 1, state: { sent: [] }, completed_at: null, restarted: false, debrief: null },
     } satisfies LabDetail);
     mocks.act.mockResolvedValue(result({ output: { response: { status: 200, headers: { "Content-Type": "application/json" }, body: '{"id":1002}' } } }));
     const user = userEvent.setup();

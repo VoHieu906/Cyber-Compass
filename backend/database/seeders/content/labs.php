@@ -241,4 +241,151 @@ MD,
             'not_found' => ['status' => 404, 'headers' => ['Content-Type' => 'text/plain'], 'body' => 'Not Found'],
         ],
     ],
+
+    // Invented names and reserved domains only (example.com, example.net, .test): nothing here is a real company.
+    'spot-the-phishing-email' => [
+        'title' => 'Spot the phishing email',
+        'summary' => 'Read an email\'s raw headers, what the recipient saw and the mail server\'s log, mark the lines that give it away, and say what it is.',
+        'briefing' => <<<'MD'
+An employee at **corp.test** forwarded a message that claims to come from their savings bank and asks them to verify their account. You are the analyst on duty.
+
+You have three pieces of evidence: the message's **raw headers** and **what the recipient saw** (two views of the same email), and the **mail server's log** from when it arrived. Everything is plain text. Nothing in it is a working link, and nothing is loaded or run.
+
+1. Mark the lines that show the email did not come from who it claims. Click a line, or move to it with the arrow keys and press Space or Enter. Mark only the lines you would put in your report: each piece of evidence has a limit, and marking everything will not pass.
+2. Say what the email is, and cite the evidence you marked.
+
+All names and domains here are invented.
+MD,
+        'domain' => 'security-fundamentals',
+        'lesson' => null,
+        'engine' => 'evidence-review',
+        'difficulty' => 1,
+        'estimated_minutes' => 15,
+        'scenario' => [
+            'artifacts' => [
+                [
+                    'id' => 'email',
+                    'title' => 'The email',
+                    'max_extra' => 2,
+                    'views' => [
+                        ['id' => 'raw', 'label' => 'Raw headers', 'lines' => [
+                            'Return-Path: <billing-noreply@accounts-verify.example.net>',
+                            'Received: from mail-gw.example.net (mail-gw.example.net [198.51.100.45]) by mx.corp.test with ESMTP; Wed, 18 Nov 2026 03:12:03 +0000',
+                            'Authentication-Results: mx.corp.test; spf=fail smtp.mailfrom=larkfield.example; dkim=none; dmarc=fail header.from=larkfield.example',
+                            'From: "Larkfield Savings Support" <support@larkfield.example>',
+                            'Reply-To: <recover-account@larkfield-secure.example.net>',
+                            'To: <a.nguyen@corp.test>',
+                            'Subject: Action required: your account will be suspended',
+                            'Date: Wed, 18 Nov 2026 03:11:52 +0000',
+                            'Message-ID: <7f3c19a2@mail-gw.example.net>',
+                            'X-Mailer: BulkSend 2.1',
+                            'MIME-Version: 1.0',
+                            'Content-Type: text/html; charset=UTF-8',
+                        ]],
+                        ['id' => 'rendered', 'label' => 'What the recipient saw', 'mono' => false, 'lines' => [
+                            'From: Larkfield Savings Support',
+                            'Dear customer,',
+                            'Your account will be suspended in 24 hours unless you confirm your details.',
+                            'Click the button below to keep your account active.',
+                            'Button label: Verify my account',
+                            'Link text: www.larkfield.example/verify',
+                            'Link target: https://larkfield-secure.example.net/verify?token=a81f3c',
+                            'Thank you for banking with us.',
+                            'Larkfield Savings Customer Care',
+                        ]],
+                    ],
+                ],
+                [
+                    'id' => 'mail-log',
+                    'title' => 'Mail server log',
+                    'max_extra' => 2,
+                    'views' => [
+                        ['id' => 'log', 'label' => 'mx.corp.test, 03:11 to 03:12', 'lines' => [
+                            '03:11:58 mx postfix/smtpd[411]: connect from mail-gw.example.net[198.51.100.45]',
+                            '03:11:59 mx policyd[412]: SPF fail for larkfield.example from 198.51.100.45 (not an authorized sender)',
+                            '03:12:00 mx postfix/smtpd[411]: 4F2A1: client=mail-gw.example.net[198.51.100.45]',
+                            '03:12:01 mx postfix/cleanup[415]: 4F2A1: message-id=<7f3c19a2@mail-gw.example.net>',
+                            '03:12:01 mx rspamd[420]: 4F2A1: score=4.9 (threshold 8.0, not rejected), symbols: SPF_FAIL, NO_DKIM, URGENT_SUBJECT',
+                            '03:12:02 mx postfix/qmgr[416]: 4F2A1: from=<billing-noreply@accounts-verify.example.net>, size=5128, nrcpt=1',
+                            '03:12:03 mx postfix/local[418]: 4F2A1: to=<a.nguyen@corp.test>, status=sent (delivered to mailbox)',
+                            '03:12:04 mx postfix/smtpd[411]: disconnect from mail-gw.example.net[198.51.100.45]',
+                        ]],
+                    ],
+                ],
+            ],
+            'indicators' => [
+                ['id' => 'sender-not-authorized', 'title' => 'The sender checks failed', 'explanation' => 'The receiving server checked whether the sending machine may send mail for larkfield.example. SPF failed and there is no DKIM signature, so nothing vouches for the From address. The mail server\'s log says the same in its own words.',
+                    'lines' => [['artifact' => 'email', 'view' => 'raw', 'line' => 3], ['artifact' => 'mail-log', 'view' => 'log', 'line' => 2]]],
+                ['id' => 'reply-elsewhere', 'title' => 'Replies go to a different domain', 'explanation' => 'The From address says larkfield.example, but a reply would go to larkfield-secure.example.net, a look-alike domain the sender controls. Look-alike domains are a common way to collect answers.',
+                    'lines' => [['artifact' => 'email', 'view' => 'raw', 'line' => 5]]],
+                ['id' => 'link-mismatch', 'title' => 'The link shows one address and goes to another', 'explanation' => 'The text of the link reads www.larkfield.example, but the address behind it is on larkfield-secure.example.net. Always compare where a link goes with what it says.',
+                    'lines' => [['artifact' => 'email', 'view' => 'rendered', 'line' => 7], ['artifact' => 'email', 'view' => 'rendered', 'line' => 6]]],
+                ['id' => 'pressure', 'title' => 'It pushes you to act within 24 hours', 'explanation' => 'A deadline and a threat (your account will be suspended) are meant to make you click before you think. Real banks do not suspend accounts over an unconfirmed email.',
+                    'lines' => [['artifact' => 'email', 'view' => 'rendered', 'line' => 3]]],
+                ['id' => 'return-path', 'title' => 'The envelope sender is another domain (a bonus find)', 'explanation' => 'The Return-Path, where bounces go, is on accounts-verify.example.net, a third domain unrelated to the one the email claims. Not needed to reach a verdict, but one more thing that does not add up.',
+                    'lines' => [['artifact' => 'email', 'view' => 'raw', 'line' => 1], ['artifact' => 'mail-log', 'view' => 'log', 'line' => 6]]],
+            ],
+            'checkpoints' => [
+                ['id' => 'mark-evidence', 'kind' => 'findings', 'title' => 'Mark the lines that show this email did not come from who it claims.', 'hint' => 'Check who the server says sent it, where a reply would go, where the link really leads and how the message tries to rush you.', 'indicators' => ['sender-not-authorized', 'reply-elsewhere', 'link-mismatch', 'pressure']],
+                ['id' => 'real-domain', 'kind' => 'answer', 'answers' => ['larkfield-secure.example.net'], 'title' => 'Which domain does the link in the email really lead to?', 'hint' => 'Read the link target, not the link text.'],
+                [
+                    'id' => 'verdict',
+                    'kind' => 'conclusion',
+                    'title' => 'Give your verdict and cite the evidence behind it.',
+                    'question' => 'What is this email?',
+                    'options' => [
+                        ['id' => 'real-bank', 'text' => 'A genuine message from the bank with an odd layout'],
+                        ['id' => 'phishing', 'text' => 'A phishing attempt: it pretends to be the bank to steal login details'],
+                        ['id' => 'newsletter', 'text' => 'Harmless advertising that only looks urgent'],
+                        ['id' => 'misconfigured', 'text' => 'A genuine message the bank\'s own mail server misconfigured'],
+                    ],
+                    'answer' => 'phishing',
+                    'evidence' => ['email:raw:3', 'email:raw:5', 'email:rendered:6', 'email:rendered:7', 'mail-log:log:2'],
+                    'min_cited' => 2,
+                    'max_cited' => 4,
+                    'explanation' => 'The server could not verify the sender, replies and the link both lead to look-alike domains, and the text pushes a deadline. Two independent signs are enough to treat it as phishing: report it and do not click.',
+                ],
+            ],
+        ],
+        'solutions' => [
+            'solutions' => [
+                ['name' => 'Mark the four signs, then conclude', 'actions' => [
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => 3, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => 5, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => 7, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => 3, 'on' => true],
+                    ['type' => 'answer', 'checkpoint' => 'real-domain', 'value' => 'larkfield-secure.example.net'],
+                    ['type' => 'conclude', 'checkpoint' => 'verdict', 'option' => 'phishing', 'cited' => ['email:raw:3', 'email:raw:5', 'email:rendered:7']],
+                ]],
+                ['name' => 'Use the log for the sender check', 'actions' => [
+                    ['type' => 'mark', 'artifact' => 'mail-log', 'view' => 'log', 'line' => 2, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => 5, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => 6, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => 3, 'on' => true],
+                    ['type' => 'answer', 'checkpoint' => 'real-domain', 'value' => 'larkfield-secure.example.net'],
+                    ['type' => 'conclude', 'checkpoint' => 'verdict', 'option' => 'phishing', 'cited' => ['mail-log:log:2', 'email:raw:5']],
+                ]],
+            ],
+            'decoys' => [
+                // Marking every line is not a review: the cap per artifact refuses it.
+                ['name' => 'Mark every line', 'actions' => array_merge(
+                    array_map(fn (int $n) => ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => $n, 'on' => true], range(1, 12)),
+                    array_map(fn (int $n) => ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => $n, 'on' => true], range(1, 9)),
+                    array_map(fn (int $n) => ['type' => 'mark', 'artifact' => 'mail-log', 'view' => 'log', 'line' => $n, 'on' => true], range(1, 8)),
+                    [
+                        ['type' => 'answer', 'checkpoint' => 'real-domain', 'value' => 'larkfield-secure.example.net'],
+                        ['type' => 'conclude', 'checkpoint' => 'verdict', 'option' => 'phishing', 'cited' => ['email:raw:3', 'email:raw:5']],
+                    ],
+                )],
+                // Right verdict, but the evidence marked is only what looks odd, not what proves it.
+                ['name' => 'Mark the look of the email only', 'actions' => [
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => 10, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'raw', 'line' => 7, 'on' => true],
+                    ['type' => 'mark', 'artifact' => 'email', 'view' => 'rendered', 'line' => 2, 'on' => true],
+                    ['type' => 'answer', 'checkpoint' => 'real-domain', 'value' => 'larkfield-secure.example.net'],
+                    ['type' => 'conclude', 'checkpoint' => 'verdict', 'option' => 'phishing', 'cited' => ['email:raw:7', 'email:rendered:2']],
+                ]],
+            ],
+        ],
+    ],
 ];

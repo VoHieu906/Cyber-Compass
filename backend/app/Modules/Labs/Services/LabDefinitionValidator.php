@@ -98,19 +98,59 @@ final class LabDefinitionValidator
 
         $seen = [];
         foreach ($scenario['checkpoints'] as $i => $checkpoint) {
-            if (! in_array($checkpoint['kind'], ['answer', ...$engine->checkpointKinds()], true)) {
+            if (! in_array($checkpoint['kind'], ['answer', 'conclusion', ...$engine->checkpointKinds()], true)) {
                 $add("scenario.checkpoints.{$i}.kind", 'This engine has no checkpoint of this kind.');
             }
             if (isset($seen[$checkpoint['id']])) {
                 $add("scenario.checkpoints.{$i}.id", 'Another checkpoint has this id.');
             }
             $seen[$checkpoint['id']] = true;
+            if ($checkpoint['kind'] === 'conclusion') {
+                foreach ($this->conclusion($engine, $scenario, $checkpoint) as $field => $message) {
+                    $add("scenario.checkpoints.{$i}.{$field}", $message);
+                }
+            }
         }
         foreach ($engine->validateScenario($scenario) as $path => $messages) {
             foreach ($messages as $message) {
                 $add("scenario.{$path}", $message);
             }
         }
+    }
+
+    /**
+     * The references of a `conclusion` checkpoint (D80): the answer is one of the options, and
+     * what it cites is evidence this engine offers.
+     *
+     * @param  array<string, mixed>  $scenario
+     * @param  array<string, mixed>  $checkpoint
+     * @return array<string, string> message by field
+     */
+    private function conclusion(LabEngine $engine, array $scenario, array $checkpoint): array
+    {
+        $errors = [];
+        $ids = array_column($checkpoint['options'], 'id');
+        if (count($ids) !== count(array_unique($ids))) {
+            $errors['options'] = 'Two options have the same id.';
+        }
+        if (! in_array($checkpoint['answer'], $ids, true)) {
+            $errors['answer'] = 'The answer must be the id of one of the options.';
+        }
+        $citable = $engine->citableIds($scenario);
+        if ($citable === []) {
+            $errors['kind'] = 'This lab has nothing to cite, so it cannot have a conclusion.';
+        } elseif (array_diff($checkpoint['evidence'], $citable) !== []) {
+            $errors['evidence'] = 'Every item of evidence must be one this lab offers to cite.';
+        }
+        $min = $checkpoint['min_cited'] ?? 1;
+        if ($min > count(array_unique($checkpoint['evidence']))) {
+            $errors['min_cited'] = 'More than the evidence listed.';
+        }
+        if (isset($checkpoint['max_cited']) && $checkpoint['max_cited'] < $min) {
+            $errors['max_cited'] = 'Less than the least a learner must cite.';
+        }
+
+        return $errors;
     }
 
     private function solutionShape(mixed $solutions, callable $add): void

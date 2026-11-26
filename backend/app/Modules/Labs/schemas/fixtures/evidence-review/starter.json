@@ -1,0 +1,56 @@
+{
+  "scenario": {
+    "artifacts": [
+      {
+        "id": "message",
+        "title": "The message",
+        "views": [
+          {
+            "id": "text",
+            "label": "As received",
+            "lines": [
+              "From: Help Desk <helpdesk@example.test>",
+              "Reply-To: <collect@example.net>",
+              "Subject: Your password expires today",
+              "Open https://example.net/login to keep your password."
+            ]
+          }
+        ]
+      }
+    ],
+    "indicators": [
+      {
+        "id": "reply-elsewhere",
+        "title": "Replies go to another domain",
+        "explanation": "The From address is on example.test but a reply would go to example.net.",
+        "lines": [{ "artifact": "message", "view": "text", "line": 2 }]
+      }
+    ],
+    "checkpoints": [
+      {
+        "id": "find-it",
+        "kind": "findings",
+        "title": "Mark the line that shows the reply would not reach the help desk.",
+        "indicators": ["reply-elsewhere"]
+      }
+    ]
+  },
+  "solutions": {
+    "solutions": [
+      {
+        "name": "Mark the Reply-To line",
+        "actions": [{ "type": "mark", "artifact": "message", "view": "text", "line": 2, "on": true }]
+      }
+    ],
+    "decoys": [
+      {
+        "name": "Mark every line",
+        "actions": [
+          { "type": "mark", "artifact": "message", "view": "text", "line": 1, "on": true },
+          { "type": "mark", "artifact": "message", "view": "text", "line": 3, "on": true },
+          { "type": "mark", "artifact": "message", "view": "text", "line": 4, "on": true }
+        ]
+      }
+    ]
+  }
+}

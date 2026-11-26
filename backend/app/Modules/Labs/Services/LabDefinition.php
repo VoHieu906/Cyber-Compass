@@ -94,7 +94,10 @@ final class LabDefinition
     {
         $scenario = $def['scenario'];
         foreach ($scenario['checkpoints'] ?? [] as $i => $checkpoint) {
-            unset($scenario['checkpoints'][$i]['title'], $scenario['checkpoints'][$i]['hint']);
+            unset($scenario['checkpoints'][$i]['title'], $scenario['checkpoints'][$i]['hint'], $scenario['checkpoints'][$i]['question'], $scenario['checkpoints'][$i]['explanation']);
+        }
+        foreach ($scenario['indicators'] ?? [] as $i => $indicator) {
+            unset($scenario['indicators'][$i]['title'], $scenario['indicators'][$i]['explanation']);
         }
 
         return hash('sha256', self::canonical(['engine' => $def['engine'], 'scenario' => $scenario]));

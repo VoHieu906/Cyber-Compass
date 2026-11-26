@@ -56,6 +56,25 @@ final class HttpInspectorEngine implements LabEngine
         return $errors;
     }
 
+    /** The recorded exchanges, numbered from 1. */
+    public function citableIds(array $scenario): array
+    {
+        return array_map(fn (int $i) => 'exchange-'.($i + 1), array_keys($scenario['captured'] ?? []));
+    }
+
+    public function citable(array $scenario, array $state): array
+    {
+        return array_map(fn (int $i, array $x) => [
+            'id' => 'exchange-'.($i + 1),
+            'label' => 'Exchange '.($i + 1).': '.$x['request']['method'].' '.$x['request']['path'].' → '.$x['response']['status'],
+        ], array_keys($scenario['captured'] ?? []), $scenario['captured'] ?? []);
+    }
+
+    public function debrief(array $scenario, array $state): ?array
+    {
+        return null;
+    }
+
     public function initialState(array $scenario): array
     {
         return ['sent' => [], 'hits' => []];

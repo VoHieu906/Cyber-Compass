@@ -11,7 +11,12 @@ import { useLabs } from "../hooks";
 import type { Engine, LabSummary } from "../types";
 
 export const DIFFICULTY = ["beginner", "intermediate", "advanced"] as const;
-export const ENGINE_ICON: Record<Engine, typeof Shield> = { "linux-shell": SquareTerminal, "firewall-rules": Shield, "http-inspector": Globe };
+export const ENGINE_ICON: Record<Engine, typeof Shield> = {
+  "linux-shell": SquareTerminal,
+  "firewall-rules": Shield,
+  "http-inspector": Globe,
+  "evidence-review": FileSearch,
+};
 
 /** The labs on offer, with my progress in each. */
 export function LabsList() {

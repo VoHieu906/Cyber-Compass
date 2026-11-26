@@ -21,7 +21,20 @@ final class LabScenarios
 
     public function schema(string $engine): object
     {
-        return $this->schemas[$engine] ??= JsonSchemaBlock::loadSchema(self::directory()."/{$engine}.json");
+        return $this->schemas[$engine] ??= $this->withConclusion(JsonSchemaBlock::loadSchema(self::directory()."/{$engine}.json"));
+    }
+
+    /**
+     * The `conclusion` checkpoint belongs to the core, not to an engine (D80): its one definition
+     * (schemas/core/conclusion.json) is added to every engine's checkpoint list. Whether an engine can
+     * be cited is the validator's check (LabEngine::citableIds).
+     */
+    private function withConclusion(object $schema): object
+    {
+        $schema->{'$defs'}->conclusion = JsonSchemaBlock::loadSchema(self::directory().'/core/conclusion.json');
+        $schema->properties->checkpoints->items->oneOf[] = (object) ['$ref' => '#/$defs/conclusion'];
+
+        return $schema;
     }
 
     /**

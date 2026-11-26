@@ -130,7 +130,7 @@ const previewLab: LabDetail = {
     version: 1,
     state: { cwd: "/home/learner", prompt: "learner@lab-01:~$", history: [] },
     completed_at: null,
-    restarted: false,
+    restarted: false, debrief: null,
   },
 };
 

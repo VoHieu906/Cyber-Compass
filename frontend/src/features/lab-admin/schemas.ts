@@ -32,9 +32,27 @@ const answer = z.strictObject({
   answers: z.array(z.string().min(1).max(200)).min(1).max(20),
 });
 
+/** The core `conclusion` checkpoint (D80), added to every engine like the backend does. */
+const conclusion = z.strictObject({
+  id,
+  title,
+  hint,
+  kind: z.literal("conclusion"),
+  question: z.string().min(1).max(500),
+  options: z
+    .array(z.strictObject({ id, text: z.string().min(1).max(200) }))
+    .min(2)
+    .max(6),
+  answer: z.string().max(60),
+  evidence: z.array(z.string().min(1).max(120)).min(1).max(30),
+  min_cited: z.number().int().min(1).max(30).optional(),
+  max_cited: z.number().int().min(1).max(30).optional(),
+  explanation: z.string().max(600).optional(),
+});
+
 const checkpoints = <T extends z.core.$ZodTypeDiscriminable>(...kinds: T[]) =>
   z
-    .array(z.discriminatedUnion("kind", [answer, ...kinds] as [typeof answer, ...T[]]))
+    .array(z.discriminatedUnion("kind", [answer, conclusion, ...kinds] as [typeof answer, typeof conclusion, ...T[]]))
     .min(1)
     .max(20);
 
@@ -129,10 +147,52 @@ const http = z.strictObject({
   checkpoints: checkpoints(z.strictObject({ id, title, hint, kind: z.literal("request"), route: id })),
 });
 
+const evidence = z.strictObject({
+  artifacts: z
+    .array(
+      z.strictObject({
+        id,
+        title: z.string().min(1).max(100),
+        max_extra: z.number().int().min(0).max(10).optional(),
+        views: z
+          .array(
+            z.strictObject({
+              id,
+              label: z.string().min(1).max(60),
+              mono: z.boolean().optional(),
+              lines: z.array(z.string().max(300)).min(1).max(200),
+            }),
+          )
+          .min(1)
+          .max(4),
+      }),
+    )
+    .min(1)
+    .max(6),
+  indicators: z
+    .array(
+      z.strictObject({
+        id,
+        title: z.string().min(1).max(200),
+        explanation: z.string().min(1).max(600),
+        lines: z
+          .array(z.strictObject({ artifact: id, view: id, line: z.number().int().min(1).max(200) }))
+          .min(1)
+          .max(10),
+      }),
+    )
+    .min(1)
+    .max(20),
+  checkpoints: checkpoints(
+    z.strictObject({ id, title, hint, kind: z.literal("findings"), indicators: z.array(id).min(1).max(20) }),
+  ),
+});
+
 export const scenarioSchemas: Record<Engine, z.ZodType> = {
   "linux-shell": shell,
   "firewall-rules": firewall,
   "http-inspector": http,
+  "evidence-review": evidence,
 };
 
 /** The schema problems of a scenario, keyed by path in the definition (`scenario.checkpoints.0.kind`). */

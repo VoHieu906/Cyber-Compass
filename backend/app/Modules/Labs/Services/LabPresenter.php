@@ -58,10 +58,27 @@ final class LabPresenter
             'briefing' => $lab->briefing,
             'scenario' => (object) $provider->publicScenario($lab),
             'checkpoints' => $attempt
-                ? array_map($flag, $provider->checkpoints($lab, $attempt->state))
+                ? array_map(fn (array $c) => $flag($this->ordered($c, $attempt)), $provider->checkpoints($lab, $attempt->state))
                 : array_map(fn ($c) => $flag(['id' => $c['id'], 'title' => $c['title'], 'kind' => $c['kind'], 'hint' => $c['hint'] ?? null, 'passed' => false]), $lab->scenario['checkpoints']),
             'attempt' => $attempt ? $this->attempt($lab, $attempt) : null,
         ];
+    }
+
+    /**
+     * A conclusion's options in an order of their own, so the order authors wrote them in cannot
+     * tell the answer (D80). Engines stay deterministic: the order is a function of the attempt,
+     * the checkpoint and the option, so it is the same on every reload and after a reset.
+     *
+     * @param  array<string, mixed>  $checkpoint
+     * @return array<string, mixed>
+     */
+    private function ordered(array $checkpoint, LabAttempt $attempt): array
+    {
+        if (isset($checkpoint['options'])) {
+            usort($checkpoint['options'], fn (array $a, array $b) => strcmp(md5("{$attempt->id}|{$checkpoint['id']}|{$a['id']}"), md5("{$attempt->id}|{$checkpoint['id']}|{$b['id']}")) ?: strcmp($a['id'], $b['id']));
+        }
+
+        return $checkpoint;
     }
 
     /** @return array<string, mixed> */
@@ -72,6 +89,8 @@ final class LabPresenter
             'version' => $attempt->state_version,
             'state' => (object) $this->providers->for($lab)->view($lab, $attempt->state),
             'completed_at' => $attempt->completed_at?->toIso8601String(),
+            // The reasoning behind the answers: only while this attempt is complete (D80), never during play.
+            'debrief' => $this->runner->progress($lab, $attempt->state)['complete'] ? $this->providers->for($lab)->debrief($lab, $attempt->state) : null,
             // The scenario changed since the learner began, so the lab started over (D75).
             'restarted' => $attempt->restarted_at !== null,
         ];

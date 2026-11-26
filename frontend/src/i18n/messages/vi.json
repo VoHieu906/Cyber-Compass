@@ -1667,7 +1667,8 @@
     "engines": {
       "linux-shell": "Shell Linux",
       "firewall-rules": "Tường lửa",
-      "http-inspector": "Phân tích HTTP"
+      "http-inspector": "Phân tích HTTP",
+      "evidence-review": "Phân tích chứng cứ"
     },
     "checkpoints": "Đã xong {passed}/{total} nhiệm vụ",
     "completed": "Đã hoàn thành",
@@ -1754,7 +1755,34 @@
     "holdsSummary": "{ok}/{total} điều kiện vẫn đúng",
     "conditionNumber": "Điều kiện {number}",
     "holdingOk": "Đã đúng sẵn. Hãy giữ nguyên như vậy.",
-    "holdingBroken": "Không còn đúng. Hãy làm cho nó đúng trở lại."
+    "holdingBroken": "Không còn đúng. Hãy làm cho nó đúng trở lại.",
+    "evidence": {
+      "howTo": "Đọc chứng cứ và đánh dấu những dòng cho thấy có vấn đề. Nhấp vào một dòng, hoặc dùng phím mũi tên để di chuyển giữa các dòng rồi nhấn Space hoặc Enter để đánh dấu hay bỏ đánh dấu. Mọi thứ đều là văn bản thuần: không có liên kết nào hoạt động.",
+      "views": "Các chế độ xem của {artifact}",
+      "lines": "{view}, các dòng của {artifact}. Hãy đánh dấu những dòng quan trọng.",
+      "lineNumber": "Dòng {line}",
+      "count": "Đã đánh dấu {count} trên tối đa {max} dòng",
+      "over": "Đánh dấu quá nhiều dòng ở đây: tối đa {max}. Hãy bỏ đánh dấu những dòng bạn ít chắc nhất.",
+      "announceOn": "Đã đánh dấu dòng {line}. {count} trên tối đa {max} dòng đã đánh dấu trong {artifact}.",
+      "announceOff": "Đã bỏ đánh dấu dòng {line}. {count} trên tối đa {max} dòng đã đánh dấu trong {artifact}."
+    },
+    "conclusion": {
+      "cite": "Dẫn chứng cứ làm cơ sở (tối đa {max})",
+      "nothingToCite": "Hãy đánh dấu một số chứng cứ trong bảng điều khiển trước, rồi dẫn chúng ở đây.",
+      "submit": "Kiểm tra kết luận",
+      "notYet": "Chưa đúng. Hãy xem lại kết luận và chứng cứ bạn dẫn."
+    },
+    "debrief": {
+      "title": "Tổng kết",
+      "intro": "Bạn đã hoàn thành bài lab. Đây là ý nghĩa của từng chứng cứ và những gì bạn đã đánh dấu.",
+      "found": "Đã tìm thấy",
+      "missed": "Bỏ sót",
+      "bonus": "thêm",
+      "where": "{artifact}, {view}, dòng {line}",
+      "wrong": "Đã đánh dấu nhưng không phải chứng cứ",
+      "noneWrong": "Không có. Mọi dòng bạn đánh dấu đều là chứng cứ.",
+      "verdict": "{title}"
+    }
   },
   "dashboard": {
     "pageTitle": "Bảng điều khiển",
@@ -2175,7 +2203,9 @@
         "answer": "Câu trả lời (gõ văn bản)",
         "read": "Đọc một tệp",
         "traffic": "Gói tin nhận đúng kết quả",
-        "request": "Gửi một yêu cầu thành công"
+        "request": "Gửi một yêu cầu thành công",
+        "findings": "Đánh dấu đúng chứng cứ",
+        "conclusion": "Kết luận kèm chứng cứ"
       },
       "title": "Nhiệm vụ",
       "titleHint": "Đúng như người học đọc.",
