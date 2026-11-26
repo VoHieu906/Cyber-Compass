@@ -58,7 +58,15 @@ function lab(over: Partial<LabDetail> = {}, marks: string[] = []): LabDetail {
 }
 
 /** The lab as a page holds it: every action is answered the way the server would, from the marks. */
-function Harness({ initial, onAction }: { initial: LabDetail; onAction?: (a: LabAction) => void }) {
+function Harness({
+  initial,
+  onAction,
+  debriefAfterAction,
+}: {
+  initial: LabDetail;
+  onAction?: (a: LabAction) => void;
+  debriefAfterAction?: NonNullable<LabDetail["attempt"]>["debrief"];
+}) {
   const [current, setCurrent] = useState(initial);
   const transport = {
     acting: false,
@@ -72,7 +80,12 @@ function Harness({ initial, onAction }: { initial: LabDetail; onAction?: (a: Lab
         const key = `${action.artifact}:${action.view}:${action.line}`;
         marks = action.on ? [...marks, key] : marks.filter((k) => k !== key);
       }
-      const next = { ...attempt, version: attempt.version + 1, state: { marks } };
+      const next = {
+        ...attempt,
+        version: attempt.version + 1,
+        state: { marks },
+        ...(debriefAfterAction ? { debrief: debriefAfterAction } : {}),
+      };
       setCurrent({ ...current, attempt: next });
       return {
         output: action.type === "conclude" ? { correct: false } : {},
@@ -207,7 +220,9 @@ describe("the debrief", () => {
       },
     ],
     wrong: [{ artifact: "The email", view: "Raw headers", line: 10, text: "X-Mailer: BulkSend 2.1" }],
-    conclusions: [{ checkpoint: "verdict", title: "Give your verdict.", explanation: "Two signs are enough." }],
+    conclusions: [
+      { checkpoint: "verdict", title: "Give your verdict.", explanation: "Two signs are enough.", tries: 3 },
+    ],
   };
 
   it("is shown once the attempt carries one: each indicator, what was missed and what was not evidence", () => {
@@ -222,6 +237,27 @@ describe("the debrief", () => {
     expect(within(region).getByText(/Missed · bonus/)).toBeInTheDocument();
     expect(within(region).getByText("X-Mailer: BulkSend 2.1")).toBeInTheDocument();
     expect(within(region).getByText("Two signs are enough.")).toBeInTheDocument();
+    expect(within(region).getByText("Reached in 3 tries.")).toBeInTheDocument();
+  });
+
+  it("sits outside the console, and takes focus when the lab is completed (not when the page loads with it)", async () => {
+    const user = userEvent.setup();
+    const { unmount } = renderWithProviders(<Harness initial={lab()} debriefAfterAction={debrief} />);
+    expect(screen.queryByRole("region", { name: "Debrief" })).not.toBeInTheDocument();
+
+    screen.getAllByRole("option")[0].focus();
+    await user.keyboard(" ");
+    const region = await screen.findByRole("region", { name: "Debrief" });
+    expect(document.getElementById("lab-console")!.contains(region)).toBe(false);
+    expect(within(region).getByRole("heading", { name: "Debrief" })).toHaveFocus();
+    unmount();
+
+    const loaded = lab();
+    loaded.attempt = { ...loaded.attempt!, debrief };
+    renderWithProviders(<Harness initial={loaded} />);
+    expect(
+      within(screen.getByRole("region", { name: "Debrief" })).getByRole("heading", { name: "Debrief" }),
+    ).not.toHaveFocus();
   });
 
   it("is not on the page while the lab is being played", () => {

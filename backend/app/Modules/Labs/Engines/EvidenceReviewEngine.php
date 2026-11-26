@@ -9,17 +9,16 @@ namespace App\Modules\Labs\Engines;
  * problem. Nothing is executed, fetched or interpreted: every line is text, and the browser shows
  * it as text (§7.1).
  *
- * Scenario: artifacts [{id, title, views [{id, label, lines, mono?}], max_extra?}], indicators
+ * Scenario: artifacts [{id, title, max_marks, views [{id, label, lines, mono?}]}], indicators
  * [{id, title, explanation, lines [{artifact, view, line}]}] (an indicator is found when any of its
  * lines is marked), checkpoints. Checkpoint kind `findings`: every listed indicator is found and
- * no artifact holds more marks than its cap, which is the number of lines the indicators point to
- * in it plus `max_extra` (default 2), so marking everything cannot pass. The cap is public; the
- * indicators and their explanations are not, until the lab is complete.
+ * no artifact holds more marks than its `max_marks`, so marking everything cannot pass. The cap
+ * is the author's, not derived from the indicators (a derived cap would tell how many lines to
+ * mark), but it must be at least the lines the indicators point to. It is public; the indicators
+ * and their explanations are not, until the lab is complete.
  */
 final class EvidenceReviewEngine implements LabEngine
 {
-    public const DEFAULT_EXTRA = 2;
-
     private const MAX_LINES = 600;
 
     public function key(): string
@@ -38,11 +37,15 @@ final class EvidenceReviewEngine implements LabEngine
         $lines = [];
         $total = 0;
         $artifactIds = [];
+        $evidence = $this->evidenceCounts($scenario);
         foreach ($scenario['artifacts'] as $i => $artifact) {
             if (isset($artifactIds[$artifact['id']])) {
                 $errors["artifacts.{$i}.id"][] = 'duplicate artifact id';
             }
             $artifactIds[$artifact['id']] = true;
+            if ($artifact['max_marks'] < ($evidence[$artifact['id']] ?? 0)) {
+                $errors["artifacts.{$i}.max_marks"][] = 'must be at least the number of lines the indicators point to in this artifact ('.$evidence[$artifact['id']].')';
+            }
             $views = [];
             foreach ($artifact['views'] as $j => $view) {
                 if (isset($views[$view['id']])) {
@@ -166,13 +169,11 @@ final class EvidenceReviewEngine implements LabEngine
 
     public function publicScenario(array $scenario): array
     {
-        $evidence = $this->evidenceCounts($scenario);
-
         return ['artifacts' => array_map(fn (array $a) => [
             'id' => $a['id'],
             'title' => $a['title'],
             'views' => array_map(fn (array $v) => ['id' => $v['id'], 'label' => $v['label'], 'lines' => $v['lines'], 'mono' => $v['mono'] ?? true], $a['views']),
-            'max_marks' => $this->cap($a, $evidence),
+            'max_marks' => $a['max_marks'],
         ], $scenario['artifacts'])];
     }
 
@@ -249,26 +250,16 @@ final class EvidenceReviewEngine implements LabEngine
     }
 
     /**
-     * @param  array<string, mixed>  $artifact
-     * @param  array<string, int>  $evidence
-     */
-    private function cap(array $artifact, array $evidence): int
-    {
-        return ($evidence[$artifact['id']] ?? 0) + ($artifact['max_extra'] ?? self::DEFAULT_EXTRA);
-    }
-
-    /**
      * @param  array<string, mixed>  $scenario
      * @param  list<string>  $marks
      * @return list<string> artifacts with more marks than their cap
      */
     private function over(array $scenario, array $marks): array
     {
-        $evidence = $this->evidenceCounts($scenario);
         $over = [];
         foreach ($scenario['artifacts'] as $a) {
             $made = count(array_filter($marks, fn (string $k) => str_starts_with($k, $a['id'].':')));
-            if ($made > $this->cap($a, $evidence)) {
+            if ($made > $a['max_marks']) {
                 $over[] = $a['id'];
             }
         }

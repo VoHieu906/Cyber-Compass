@@ -54,7 +54,7 @@ final class LabPreview
             throw ValidationException::withMessages(['action' => [$e->getMessage()]]);
         }
         $newly = array_values(array_diff($step['passed'], $entry['passed']));
-        $entry = ['hash' => $entry['hash'], 'state' => $step['state'], 'version' => $entry['version'] + 1, 'passed' => $step['passed'], 'complete' => $entry['complete'] || $step['complete'], 'restarted' => false];
+        $entry = ['hash' => $entry['hash'], 'state' => $step['state'], 'version' => $entry['version'] + 1, 'passed' => $step['passed'], 'complete' => $entry['complete'] || $step['complete'], 'restarted' => false, 'debrief' => $entry['debrief'] ?? ($step['complete'] ? $this->runner->debrief($transient, $step['state']) : null)];
         $this->store($admin, $lab, $entry);
         $attempt = $this->attempt($transient, $entry);
 
@@ -85,7 +85,7 @@ final class LabPreview
 
     /**
      * @param  array<string, mixed>  $def
-     * @return array{hash: string, state: array<string, mixed>, version: int, passed: list<string>, complete: bool, restarted: bool}
+     * @return array{hash: string, state: array<string, mixed>, version: int, passed: list<string>, complete: bool, restarted: bool, debrief: ?array<string, mixed>}
      */
     private function entry(User $admin, Lab $lab, Lab $transient, array $def, bool $fresh): array
     {
@@ -95,7 +95,7 @@ final class LabPreview
             return $stored + ['restarted' => false];
         }
         $state = $this->runner->start($transient);
-        $entry = ['hash' => $hash, 'state' => $state, 'version' => ($stored['version'] ?? 0) + 1, 'passed' => $this->runner->progress($transient, $state)['passed'], 'complete' => false, 'restarted' => ! $fresh && is_array($stored)];
+        $entry = ['hash' => $hash, 'state' => $state, 'version' => ($stored['version'] ?? 0) + 1, 'passed' => $this->runner->progress($transient, $state)['passed'], 'complete' => false, 'debrief' => null, 'restarted' => ! $fresh && is_array($stored)];
         $this->store($admin, $lab, $entry);
 
         return $entry;
@@ -116,6 +116,7 @@ final class LabPreview
             'checkpoints_passed' => $entry['passed'],
             'completed_at' => $entry['complete'] ? now() : null,
             'restarted_at' => $entry['restarted'] ? now() : null,
+            'debrief' => $entry['debrief'] ?? null,
         ]);
         $attempt->forceFill(['id' => 0]);
 

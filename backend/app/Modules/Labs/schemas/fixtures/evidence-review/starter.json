@@ -4,6 +4,7 @@
       {
         "id": "message",
         "title": "The message",
+        "max_marks": 2,
         "views": [
           {
             "id": "text",

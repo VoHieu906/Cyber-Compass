@@ -801,6 +801,13 @@ Owner request (2026-11-26): manage labs in the admin console, add lab types that
 - **Totals:** 1097 Pest, 621 Vitest, 40 Playwright (the new spec, `labs.spec.ts` and `admin-labs.spec.ts` rerun green; the full suite was not rerun this part); Pint, tsc and ESLint clean. **Browser check** (Chromium via Playwright, light and dark, 1280 and 390): the start, over-limit, concluding and debrief states, axe and overflow clean.
 - **Deploy notes (Part D):** no migration. New lab content imports with `content:import-labs` (part of `cybercompass:release`). Owner action: nothing.
 
+**Part D fix (done, 2026-11-26):** four owner points and the content rule.
+- **Cap on marks:** `max_marks` is now a required, author-set number per artifact (schema, zod mirror, fixtures, seeded lab); the validator requires it to cover the indicator lines; `max_extra` is gone. Part F's AI guide must say: set it well above the indicator lines.
+- **Debrief kept:** migration `add_lab_attempt_debrief` (nullable); `LabSession` writes it when the attempt first completes (`LabRunner::debrief`), keeps it through undone work, clears it on reset and on a version restart; the admin preview does the same in its cache entry. Pest checks the payload before completion, kept after unmarking, gone after reset and restart.
+- **Tries:** every conclusion submission counts in the attempt state until it is right; the debrief says "Reached in N tries". No limit beyond the throttle.
+- **Layout:** the debrief is full width below the lab, and focus moves to its heading when it first appears (not when a page loads with it). Checked at 1280 and 390, light and dark, including the stacked 390 version.
+- **Content rule (D80 amended):** `spot-the-phishing-email` is reworked on technical evidence only (DMARC alignment, `Received` chain, Reply-To against From, link text against href, a double-extension attachment, mail log), with a "what the mail client displays" view, a technical verdict and response, new solutions, decoys, fixtures, debrief and Playwright spec. Its title is now "Trace a forged email"; the slug is unchanged. Part F's `LAB_AUTHORING_GUIDE.md` must carry the content rule.
+
 **Follow-ups (not scheduled):** `access-policy` (IAM and permissions, the firewall pattern in a new domain), `threat-model` (STRIDE on a given architecture), then `log-query`. Code review and packet capture come as `evidence-review` variants, not engines.
 
 ## Deferred until first deployment

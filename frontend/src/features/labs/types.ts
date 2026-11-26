@@ -71,7 +71,8 @@ type DebriefLine = { artifact: string; view: string; line: number; text: string 
 export type Debrief = {
   indicators?: { id: string; title: string; explanation: string; required: boolean; found: boolean; lines: DebriefLine[] }[];
   wrong?: DebriefLine[];
-  conclusions: { checkpoint: string; title: string; explanation: string }[];
+  /** `tries` counts the submissions up to the right one. */
+  conclusions: { checkpoint: string; title: string; explanation: string | null; tries: number | null }[];
 };
 
 export type LabAttempt<S = unknown> = {

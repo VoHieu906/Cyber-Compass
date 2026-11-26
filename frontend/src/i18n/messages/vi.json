@@ -1757,7 +1757,7 @@
     "holdingOk": "Đã đúng sẵn. Hãy giữ nguyên như vậy.",
     "holdingBroken": "Không còn đúng. Hãy làm cho nó đúng trở lại.",
     "evidence": {
-      "howTo": "Đọc chứng cứ và đánh dấu những dòng cho thấy có vấn đề. Nhấp vào một dòng, hoặc dùng phím mũi tên để di chuyển giữa các dòng rồi nhấn Space hoặc Enter để đánh dấu hay bỏ đánh dấu. Mọi thứ đều là văn bản thuần: không có liên kết nào hoạt động.",
+      "howTo": "Đọc chứng cứ và đánh dấu những dòng là bằng chứng kỹ thuật. Nhấp vào một dòng, hoặc dùng phím mũi tên để di chuyển giữa các dòng rồi nhấn Space hoặc Enter để đánh dấu hay bỏ đánh dấu. Mọi thứ đều là văn bản thuần: không có liên kết nào hoạt động.",
       "views": "Các chế độ xem của {artifact}",
       "lines": "{view}, các dòng của {artifact}. Hãy đánh dấu những dòng quan trọng.",
       "lineNumber": "Dòng {line}",
@@ -1781,7 +1781,8 @@
       "where": "{artifact}, {view}, dòng {line}",
       "wrong": "Đã đánh dấu nhưng không phải chứng cứ",
       "noneWrong": "Không có. Mọi dòng bạn đánh dấu đều là chứng cứ.",
-      "verdict": "{title}"
+      "verdict": "{title}",
+      "tries": "Đạt được sau {count, plural, other {# lần thử}}."
     }
   },
   "dashboard": {

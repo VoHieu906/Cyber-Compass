@@ -16,7 +16,7 @@ export function Debrief({ debrief }: { debrief: DebriefData }) {
   return (
     <section aria-labelledby="debrief-heading" className="panel flex flex-col gap-4 p-5">
       <div className="flex flex-col gap-1">
-        <h3 id="debrief-heading" className="text-[length:var(--text-title)]">
+        <h3 id="debrief-heading" tabIndex={-1} className="scroll-mt-24 text-[length:var(--text-title)] outline-none">
           {t("title")}
         </h3>
         <p className="measured text-sm">{t("intro")}</p>
@@ -82,7 +82,8 @@ export function Debrief({ debrief }: { debrief: DebriefData }) {
       {debrief.conclusions.map((c) => (
         <div key={c.checkpoint} className="flex flex-col gap-1">
           <h4 className="text-sm font-medium text-ink">{t("verdict", { title: c.title })}</h4>
-          <p className="measured text-sm">{c.explanation}</p>
+          {c.tries ? <p className="text-sm text-ink">{t("tries", { count: c.tries })}</p> : null}
+          {c.explanation ? <p className="measured text-sm">{c.explanation}</p> : null}
         </div>
       ))}
     </section>

@@ -191,6 +191,20 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
   const attempt = lab.attempt!;
   const tc = useTranslations("compass");
   const open = lab.checkpoints.some((c) => !c.passed);
+  // The debrief appears when the lab is completed: bring the reader to it. A page that loads with one already there is left alone.
+  const hadDebrief = useRef(attempt.debrief !== null);
+  useEffect(() => {
+    if (!attempt.debrief) {
+      hadDebrief.current = false;
+      return;
+    }
+    if (hadDebrief.current) return;
+    hadDebrief.current = true;
+    const heading = document.getElementById("debrief-heading");
+    heading?.focus({ preventScroll: true });
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    heading?.scrollIntoView?.({ block: "start", behavior: reduce ? "auto" : "smooth" });
+  }, [attempt.debrief]);
   useCompassPageItems([
     { id: "tasks", label: tc("pageTasks"), run: () => goTo(document.getElementById("checkpoints-heading")) },
     {
@@ -269,9 +283,10 @@ export function LabPlayground({ lab, transport }: { lab: LabDetail; transport: L
         >
           {notice ? <Alert tone="error">{notice}</Alert> : null}
           {CONSOLES[lab.engine]({ lab, state: attempt.state, busy: transport.acting, send })}
-          {attempt.debrief ? <Debrief debrief={attempt.debrief} /> : null}
         </div>
       </div>
+      {/* Full width below the lab, where it can be read in full; focus moves to its heading when it first appears. */}
+      {attempt.debrief ? <Debrief debrief={attempt.debrief} /> : null}
     </div>
   );
 }

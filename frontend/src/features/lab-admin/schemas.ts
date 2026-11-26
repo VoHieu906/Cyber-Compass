@@ -153,7 +153,7 @@ const evidence = z.strictObject({
       z.strictObject({
         id,
         title: z.string().min(1).max(100),
-        max_extra: z.number().int().min(0).max(10).optional(),
+        max_marks: z.number().int().min(1).max(200),
         views: z
           .array(
             z.strictObject({

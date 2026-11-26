@@ -40,6 +40,18 @@ final class LabRunner
     }
 
     /**
+     * The debrief of a complete state (D80), to be kept by the caller until the attempt starts over.
+     * Null when the lab has none.
+     *
+     * @param  array<string, mixed>  $state
+     * @return ?array<string, mixed>
+     */
+    public function debrief(Lab $lab, array $state): ?array
+    {
+        return $this->providers->for($lab)->debrief($lab, $state);
+    }
+
+    /**
      * @param  array<string, mixed>  $state
      * @return array{passed: list<string>, complete: bool}
      */

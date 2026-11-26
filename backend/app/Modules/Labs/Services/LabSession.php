@@ -61,6 +61,7 @@ final class LabSession
                     'state_version' => $locked->state_version + 1,
                     'scenario_version' => $lab->scenario_version,
                     'checkpoints_passed' => [],
+                    'debrief' => null,
                     'restarted_at' => now(),
                 ]);
             }
@@ -100,6 +101,8 @@ final class LabSession
                 'action_count' => $attempt->action_count + 1,
                 'checkpoints_passed' => $step['passed'],
                 'restarted_at' => null,
+                // Written the first time this run completes, then kept: undoing work afterwards does not take it away (D80).
+                'debrief' => $attempt->debrief ?? ($step['complete'] ? $this->runner->debrief($lab, $step['state']) : null),
             ]);
             $first = $step['complete'] && $attempt->completed_at === null;
             if ($first) {
@@ -123,6 +126,7 @@ final class LabSession
                 'state' => $this->runner->start($attempt->lab),
                 'state_version' => $attempt->state_version + 1,
                 'checkpoints_passed' => [],
+                'debrief' => null,
                 'restarted_at' => null,
             ]);
 

@@ -4,7 +4,7 @@
       {
         "id": "profile-php",
         "title": "profile.php",
-        "max_extra": 1,
+        "max_marks": 5,
         "views": [
           {
             "id": "code",

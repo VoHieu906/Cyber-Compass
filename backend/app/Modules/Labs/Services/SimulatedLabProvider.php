@@ -51,7 +51,7 @@ final class SimulatedLabProvider implements LabProvider
 
     public function initialState(Lab $lab): array
     {
-        return ['engine' => $this->engine($lab->engine)->initialState($lab->scenario), 'answers' => (object) []];
+        return ['engine' => $this->engine($lab->engine)->initialState($lab->scenario), 'answers' => (object) [], 'tries' => (object) []];
     }
 
     public function apply(Lab $lab, array $state, array $action): array
@@ -108,9 +108,10 @@ final class SimulatedLabProvider implements LabProvider
     {
         $own = $this->engine($lab->engine)->debrief($lab->scenario, $state['engine']);
         $conclusions = [];
+        $tries = (array) ($state['tries'] ?? []);
         foreach ($lab->scenario['checkpoints'] as $c) {
-            if ($c['kind'] === 'conclusion' && isset($c['explanation'])) {
-                $conclusions[] = ['checkpoint' => $c['id'], 'title' => $c['title'], 'explanation' => $c['explanation']];
+            if ($c['kind'] === 'conclusion') {
+                $conclusions[] = ['checkpoint' => $c['id'], 'title' => $c['title'], 'explanation' => $c['explanation'] ?? null, 'tries' => $tries[$c['id']] ?? null];
             }
         }
 
@@ -138,13 +139,19 @@ final class SimulatedLabProvider implements LabProvider
             throw new LabActionRejected('Choose one of the options and cite at most '.self::MAX_CITED.' items.');
         }
         $cited = array_values(array_unique($cited));
+        // Every submission counts, right or wrong, until it is right; the debrief says how many it took. No limit: only the action throttle applies.
+        $answers = (array) ($state['answers'] ?? []);
+        if (! isset($answers[$checkpoint['id']])) {
+            $tries = (array) ($state['tries'] ?? []);
+            $tries[$checkpoint['id']] = ($tries[$checkpoint['id']] ?? 0) + 1;
+            $state['tries'] = $tries;
+        }
         $available = array_column($this->engine($lab->engine)->citable($lab->scenario, $state['engine']), 'id');
         $correct = $option === $checkpoint['answer']
             && array_diff($cited, $available) === []
             && count($cited) <= ($checkpoint['max_cited'] ?? self::MAX_CITED)
             && count(array_intersect($cited, $checkpoint['evidence'])) >= ($checkpoint['min_cited'] ?? 1);
         if ($correct) {
-            $answers = (array) ($state['answers'] ?? []);
             $answers[$checkpoint['id']] = true;
             $state['answers'] = $answers;
         }

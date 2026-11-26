@@ -89,8 +89,8 @@ final class LabPresenter
             'version' => $attempt->state_version,
             'state' => (object) $this->providers->for($lab)->view($lab, $attempt->state),
             'completed_at' => $attempt->completed_at?->toIso8601String(),
-            // The reasoning behind the answers: only while this attempt is complete (D80), never during play.
-            'debrief' => $this->runner->progress($lab, $attempt->state)['complete'] ? $this->providers->for($lab)->debrief($lab, $attempt->state) : null,
+            // The reasoning behind the answers, written when the attempt first completed and kept until it starts over (D80). Never during play.
+            'debrief' => $attempt->debrief,
             // The scenario changed since the learner began, so the lab started over (D75).
             'restarted' => $attempt->restarted_at !== null,
         ];

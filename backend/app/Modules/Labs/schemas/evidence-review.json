@@ -11,12 +11,12 @@
       "maxItems": 6,
       "items": {
         "type": "object",
-        "required": ["id", "title", "views"],
+        "required": ["id", "title", "max_marks", "views"],
         "additionalProperties": false,
         "properties": {
           "id": { "$ref": "#/$defs/id" },
           "title": { "type": "string", "minLength": 1, "maxLength": 100 },
-          "max_extra": { "type": "integer", "minimum": 0, "maximum": 10 },
+          "max_marks": { "type": "integer", "minimum": 1, "maximum": 200 },
           "views": {
             "type": "array",
             "minItems": 1,

@@ -1757,7 +1757,7 @@
     "holdingOk": "Already true. Keep it that way.",
     "holdingBroken": "No longer true. Make it true again.",
     "evidence": {
-      "howTo": "Read the evidence and mark the lines that show a problem. Click a line, or use the arrow keys to move between lines and Space or Enter to mark or unmark it. Everything is plain text: nothing here is a working link.",
+      "howTo": "Read the evidence and mark the lines that are technical evidence. Click a line, or use the arrow keys to move between lines and Space or Enter to mark or unmark it. Everything is plain text: nothing here is a working link.",
       "views": "Views of {artifact}",
       "lines": "{view}, lines of {artifact}. Mark the lines that matter.",
       "lineNumber": "Line {line}",
@@ -1781,7 +1781,8 @@
       "where": "{artifact}, {view}, line {line}",
       "wrong": "Marked, but not evidence",
       "noneWrong": "None. Every line you marked was evidence.",
-      "verdict": "{title}"
+      "verdict": "{title}",
+      "tries": "Reached in {count, plural, one {# try} other {# tries}}."
     }
   },
   "dashboard": {
